@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
 
 export default function SessionClasses() {
   const courses = [
@@ -10,7 +11,7 @@ export default function SessionClasses() {
       about: "About",
       description:
         "Learn algorithms, programming, and cutting-edge technology to build the future of computing.",
-      link: "#",
+      href: "/computer",
       bg: "bg-gradient-to-r from-sky-500 to-blue-700 text-white",
     },
     {
@@ -18,7 +19,7 @@ export default function SessionClasses() {
       about: "About",
       description:
         "Gain management, finance, and leadership skills to succeed in the business world.",
-      link: "#",
+      href: "/business",
       bg: "bg-gradient-to-r from-emerald-400 to-green-600 text-white",
     },
     {
@@ -26,7 +27,7 @@ export default function SessionClasses() {
       about: "About",
       description:
         "Explore classics, modern literature, and creative writing to sharpen your analytical skills.",
-      link: "#",
+      href: "/english",
       bg: "bg-gradient-to-r from-purple-400 to-indigo-600 text-white",
     },
     {
@@ -34,7 +35,7 @@ export default function SessionClasses() {
       about: "About",
       description:
         "Develop analytical thinking, problem-solving, and logical reasoning with advanced mathematics.",
-      link: "#",
+      href: "/mathematics",
       bg: "bg-gradient-to-r from-pink-400 to-rose-600 text-white",
     },
     {
@@ -42,7 +43,7 @@ export default function SessionClasses() {
       about: "About",
       description:
         "Understand markets, finance, and policies with a foundation in modern economic theory.",
-      link: "#",
+      href: "/economics",
       bg: "bg-gradient-to-r from-yellow-400 to-orange-500 text-gray-900",
     },
     {
@@ -50,8 +51,16 @@ export default function SessionClasses() {
       about: "About",
       description:
         "Design, build, and innovate machines and structures that power industries and societies.",
-      link: "#",
+      href: "/mechanical",
       bg: "bg-gradient-to-r from-gray-700 to-black text-white",
+    },
+    {
+      title: "B.Sc Statistics",
+      about: "About",
+      description:
+        "Understand markets, finance, and policies with a foundation in modern economic theory.",
+      href: "/statistics",
+      bg: "bg-gradient-to-r from-yellow-400 to-orange-500 text-gray-900",
     },
   ];
 
@@ -75,7 +84,7 @@ export default function SessionClasses() {
     exit: {
       transition: {
         staggerChildren: 0.3,
-        staggerDirection: -1, // exit in reverse order
+        staggerDirection: -1,
       },
     },
   };
@@ -86,7 +95,7 @@ export default function SessionClasses() {
     exit: { opacity: 0, x: -100 },
   };
 
-  // Detect screen size → how many cards to show
+  // Detect screen size
   const getCardsPerScreen = () => {
     if (typeof window !== "undefined") {
       if (window.innerWidth >= 1024) return 3;
@@ -125,19 +134,20 @@ export default function SessionClasses() {
                 key={course.title}
                 variants={card}
                 transition={{ duration: 0.8 }}
-                className={`relative shadow-xl p-6 rounded-lg clip-path-diagonal ${course.bg}`}
               >
-                <h2 className="text-xl font-bold mb-2">{course.title}</h2>
-                <h3 className="text-lg font-semibold mb-1">{course.about}</h3>
-                <p className="text-sm leading-relaxed mb-4">
-                  {course.description}
-                </p>
-                <a
-                  href={course.link}
-                  className="font-medium flex items-center gap-2 hover:underline"
+                <Link
+                  href={course.href}
+                  className={`block relative shadow-xl p-6 rounded-lg clip-path-diagonal hover:scale-105 transition-transform duration-300 ${course.bg}`}
                 >
-                  More info →
-                </a>
+                  <h2 className="text-xl font-bold mb-2">{course.title}</h2>
+                  <h3 className="text-lg font-semibold mb-1">{course.about}</h3>
+                  <p className="text-sm leading-relaxed mb-4">
+                    {course.description}
+                  </p>
+                  <span className="font-medium flex items-center gap-2">
+                    More info →
+                  </span>
+                </Link>
               </motion.div>
             );
           })}
