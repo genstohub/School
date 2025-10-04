@@ -18,7 +18,7 @@ export default function VerifiedInstructors() {
       id: 1,
       name: "Dr. Sarah Johnson",
       course: "Computer Science",
-      image: "https://via.placeholder.com/300x200",
+      image: "https://via.placeholder.com/400x250",
       bio: "Dr. Sarah Johnson is a senior lecturer in computer science with 10+ years of experience in AI, algorithms, and software engineering.",
     },
     {
@@ -30,17 +30,17 @@ export default function VerifiedInstructors() {
     },
     {
       id: 3,
-      name: "Dr. Emily Brown",
-      course: "English Literature",
-      image: "https://via.placeholder.com/300x200",
-      bio: "Dr. Emily Brown specializes in modern literature and creative writing, inspiring students to become critical thinkers and writers.",
+      name: "Mr. ABAH CLEMENT",
+      course: "Biology Instructor ",
+      image: "/images/Clement-removebg-preview.png",
+      bio: "A Microbiologist with indusrty experince covering different sectors, including office of Mentorship, Instructoor/Tutor and Graphics Designe",
     },
     {
       id: 4,
-      name: "Dr. Michael Davis",
+      name: "Mr Emmanuel Benson",
       course: "Mechanical Engineering",
-      image: "https://via.placeholder.com/300x200",
-      bio: "Dr. Michael Davis is a mechanical engineer focusing on robotics and sustainable engineering solutions for the future.",
+      image: "/images/Instructor_Benson-removebg-preview.png",
+      bio: "Mr. Emmanuel Benson is a mechanical engineer focusing on robotics and sustainable engineering solutions for the future.",
     },
   ];
 
@@ -51,16 +51,16 @@ export default function VerifiedInstructors() {
   // Responsive cards per view
   useEffect(() => {
     const updateCardsPerView = () => {
-      if (window.innerWidth < 768) setCardsPerView(1);
-      else if (window.innerWidth < 1024) setCardsPerView(2);
-      else setCardsPerView(2);
+      if (window.innerWidth < 768) setCardsPerView(1); // mobile
+      else if (window.innerWidth < 1024) setCardsPerView(2); // tablet
+      else setCardsPerView(3); // desktop
     };
     updateCardsPerView();
     window.addEventListener("resize", updateCardsPerView);
     return () => window.removeEventListener("resize", updateCardsPerView);
   }, []);
 
-  // Auto-rotation: advance by cardsPerView so all cards rotate
+  // Auto-rotation
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + cardsPerView) % instructors.length);
@@ -68,33 +68,13 @@ export default function VerifiedInstructors() {
     return () => clearInterval(interval);
   }, [cardsPerView, instructors.length]);
 
-  // Slice visible cards
+  // Visible cards
   const visibleCards = [];
   for (let i = 0; i < cardsPerView; i++) {
     visibleCards.push(instructors[(currentIndex + i) % instructors.length]);
   }
 
-  // Keyboard navigation for modal
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (selectedIndex === null) return;
-      if (e.key === "ArrowRight") {
-        setSelectedIndex((prev) =>
-          prev !== null ? (prev + 1) % instructors.length : 0
-        );
-      } else if (e.key === "ArrowLeft") {
-        setSelectedIndex((prev) =>
-          prev !== null
-            ? (prev - 1 + instructors.length) % instructors.length
-            : 0
-        );
-      } else if (e.key === "Escape") setSelectedIndex(null);
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [selectedIndex, instructors.length]);
-
-  // Random tumble angles
+  // Random angles for animation
   const randomAngle = () => ({
     rotateX: Math.floor(Math.random() * 90 - 45),
     rotateY: Math.floor(Math.random() * 90 - 45),
@@ -107,12 +87,8 @@ export default function VerifiedInstructors() {
         Verified Instructors
       </h1>
 
-      {/* Animated Cards */}
-      <div
-        className={`grid gap-8 grid-cols-1 ${
-          cardsPerView === 2 ? "md:grid-cols-2" : ""
-        }`}
-      >
+      {/* Instructor Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         <AnimatePresence mode="popLayout">
           {visibleCards.map((instructor, idx) => {
             const initialAngles = randomAngle();
@@ -121,12 +97,12 @@ export default function VerifiedInstructors() {
               rotateY: initialAngles.rotateY * -1,
               rotateZ: initialAngles.rotateZ * -1,
             };
-            const delay = idx * 0.4; // dynamic stagger
+            const delay = idx * 0.3;
 
             return (
               <motion.div
                 key={instructor.id}
-                initial={{ opacity: 0, scale: 0.5, ...initialAngles }}
+                initial={{ opacity: 0, scale: 0.85, ...initialAngles }}
                 animate={{
                   opacity: 1,
                   scale: 1,
@@ -134,13 +110,13 @@ export default function VerifiedInstructors() {
                   rotateY: 0,
                   rotateZ: 0,
                 }}
-                exit={{ opacity: 0, scale: 0.5, ...exitAngles }}
+                exit={{ opacity: 0, scale: 0.85, ...exitAngles }}
                 transition={{
-                  duration: 0.8,
+                  duration: 0.7,
                   ease: "easeInOut",
                   delay,
                 }}
-                className="bg-gray-50 shadow-lg rounded-xl overflow-hidden cursor-pointer hover:shadow-2xl transition-transform transform-gpu"
+                className="bg-gray-50 shadow-lg rounded-xl overflow-hidden cursor-pointer hover:shadow-2xl transition-transform transform-gpu max-w-md mx-auto"
                 onClick={() => setSelectedIndex(instructor.id - 1)}
               >
                 <img
@@ -148,11 +124,13 @@ export default function VerifiedInstructors() {
                   alt={instructor.name}
                   className="w-full h-56 object-cover"
                 />
-                <div className="p-6">
+                <div className="p-5">
                   <h2 className="text-xl font-bold text-gray-800">
                     {instructor.name}
                   </h2>
-                  <p className="text-sky-700 font-medium">{instructor.course}</p>
+                  <p className="text-sky-700 font-medium text-base">
+                    {instructor.course}
+                  </p>
                 </div>
               </motion.div>
             );
@@ -165,11 +143,11 @@ export default function VerifiedInstructors() {
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 px-4">
           <motion.div
             key={instructors[selectedIndex].id}
-            initial={{ opacity: 0, scale: 0.8, y: 40 }}
+            initial={{ opacity: 0, scale: 0.85, y: 40 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.8, y: -40 }}
+            exit={{ opacity: 0, scale: 0.85, y: -40 }}
             transition={{ duration: 0.4, ease: "easeOut" }}
-            className="bg-white rounded-xl shadow-2xl max-w-lg w-full p-6 relative"
+            className="bg-white rounded-xl shadow-2xl max-w-md md:max-w-lg w-full p-6 relative"
           >
             <button
               onClick={() => setSelectedIndex(null)}
@@ -181,7 +159,7 @@ export default function VerifiedInstructors() {
             <img
               src={instructors[selectedIndex].image}
               alt={instructors[selectedIndex].name}
-              className="w-full h-56 object-cover rounded-md mb-4"
+              className="w-full max-h-72 object-cover rounded-md mb-4"
             />
             <h2 className="text-2xl font-bold text-gray-800">
               {instructors[selectedIndex].name}

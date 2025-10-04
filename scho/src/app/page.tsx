@@ -7,6 +7,9 @@ import Instructors from "./Components/Instructors";
 import Flyer from "./Components/Flyer";
 import Upcoming from "./Components/Upcoming";
 import Subscription from "./Components/Subcription";
+import ConfirmSubscription from "@/components/ConfirmSubscription";
+import Community from "./Components/Community";
+import SupportTeam from "./Components/SupportTeam";
 
 
 
@@ -31,6 +34,9 @@ export default function Home() {
             <Flyer />
             <Upcoming />
             <Subscription />
+            <ConfirmSubscription />
+            <Community />
+            <SupportTeam />
         </main>
     )
 }

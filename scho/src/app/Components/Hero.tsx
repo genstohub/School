@@ -69,7 +69,7 @@ export default function Hero() {
       <div className="relative z-10 flex flex-row flex-nowrap items-center gap-4 sm:gap-6 md:gap-10">
         {/* Left: Text */}
         <div className="text-white flex-1 min-w-[140px]">
-          <h1 className="text-1xl xs:text-3xl sm:text-4xl md:text-5xl font-extrabold leading-tight">
+          <h1 className="text-1xl mt-12 xs:text-3xl sm:text-4xl md:text-5xl font-extrabold leading-tight">
             Learn with Certified Tutors
           </h1>
           <p className="mt-3 xs:mt-4 sm:mt-5 text-xs xs:text-sm sm:text-lg text-gray-800 leading-relaxed">
@@ -78,12 +78,10 @@ export default function Hero() {
           </p>
 
           <div className="mt-4 xs:mt-5 sm:mt-6 flex flex-wrap gap-2 xs:gap-3 sm:gap-4">
-            <button className="bg-sky-400 text-white px-4 xs:px-6 sm:px-8 py-2 sm:py-3 rounded-full font-semibold shadow-md hover:bg-sky-500 transition">
+            <button className=" border border-white-500 text-sky-100 px-4 xs:px-6 sm:px-8 py-2 sm:py-3 rounded-full font-semibold shadow-md hover:bg-slate-500 transition">
               Got Class
             </button>
-            <button className="border border-sky-400 text-sky-100 px-4 xs:px-6 sm:px-8 py-2 sm:py-3 rounded-full font-semibold hover:bg-sky-500 hover:text-white transition">
-              Explore Progress
-            </button>
+           
           </div>
         </div>
 
@@ -94,7 +92,7 @@ export default function Hero() {
     alt="A girl you know"
     fill
     priority
-    className="object-contain mt-30 sm:mt-10 md:mt-22 lg:mt-28 drop-shadow-2xl"
+    className="object-contain mt-35 h-50 sm:mt-10 md:mt-22 lg:mt-28 drop-shadow-2xl"
   />
 </div>
       </div>
