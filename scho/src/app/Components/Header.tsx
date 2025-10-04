@@ -34,9 +34,9 @@ export default function Header() {
   return (
     <header className="w-full bg-white flex items-center justify-between shadow-md fixed top-0 left-0 z-50">
       {/* Logo */}
-      <div className="flex items-center space-x-3 ml-2 sm:ml-4 md:ml-6">
+      <div className="flex rounded items-center space-x-3 ml-2 sm:ml-4 md:ml-6">
         <Image
-          src=""
+          src="/"
           alt="prep Logo"
           width={37}
           height={37}
@@ -53,7 +53,7 @@ export default function Header() {
         <ul className="hidden md:flex space-x-5 ml-2">
           <li><Link href="/" className="text-gray-700 hover:text-blue-600">Home</Link></li>
           <li><Link href="/about" className="text-gray-700 hover:text-blue-600">About</Link></li>
-          <li><Link href="/services" className="text-gray-700 hover:text-blue-600">Services</Link></li>
+          <li><Link href="/services" className="text-gray-700 hover:text-sky-600">Services</Link></li>
           <li><Link href="/contact" className="text-gray-700 hover:text-blue-600">Contact</Link></li>
           <li><Link href="/faq" className="text-gray-700 hover:text-blue-600">FAQ</Link></li>
         </ul>

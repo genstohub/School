@@ -115,7 +115,7 @@ export default function SessionClasses() {
   return (
     <section className="relative bg-gray-50 py-16 px-6 lg:px-20 overflow-hidden">
       <h1 className="text-3xl md:text-4xl font-bold text-center text-gray-800 mb-12">
-        Session Classes
+        Degree Programs
       </h1>
 
       <AnimatePresence mode="wait">

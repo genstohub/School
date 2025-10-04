@@ -19,9 +19,9 @@ export default function Footer() {
         <div>
           <h3 className="text-lg font-semibold mb-4">Support</h3>
           <ul className="space-y-2">
+            <li><a href="/collaboration" className="hover:text-gray-300">Blogs</a></li>
             <li><a href="/privacy-policy" className="hover:text-gray-300">Privacy Policy</a></li>
             <li><a href="/terms-condition" className="hover:text-gray-300">Terms & Conditions</a></li>
-            <li><a href="/collaboration" className="hover:text-gray-300">Collaboration</a></li>
           </ul>
         </div>
 
@@ -31,13 +31,14 @@ export default function Footer() {
           <ul className="space-y-2">
             <li><a href="/partnership" className="hover:text-gray-300">Partnership</a></li>
             <li><a href="/sponsorship" className="hover:text-gray-300">Sponsorship</a></li>
-            <li><a href="/course" className="hover:text-gray-300">Our School</a></li>
+            <li><a href="/collaboration" className="hover:text-gray-300">Collaborations</a></li>
+            
           </ul>
         </div>
 
         {/* Social Media */}
         <div className='flex flex-col items-center-start'>
-          <h3 className="text-lg text-center lg:text-center-left font-semibold mb-4">Follow Us</h3>
+          <h3 className="text-lg text-center lg:text-center-left font-semibold mb-4">Direct Contact</h3>
           <div className="flex justify-center  space-x-4">
             <div className="flex space-x-4 hover:scale-110 transition-transform">
               <SocialIcon url="https://www.facebook.com/profile.php?id=61577237818068" target="_blank" rel="noopener noreferrer" style={{ height: 30, width: 30 }} />
