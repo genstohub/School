@@ -53,8 +53,8 @@ export default function Header() {
         <ul className="hidden md:flex space-x-5 ml-2">
           <li><Link href="/" className="text-gray-700 hover:text-blue-600">Home</Link></li>
           <li><Link href="/about" className="text-gray-700 hover:text-blue-600">About</Link></li>
-          <li><Link href="/services" className="text-gray-700 hover:text-sky-600">Services</Link></li>
-          <li><Link href="/contact" className="text-gray-700 hover:text-blue-600">Contact</Link></li>
+          <li><Link href="/sign-up" className="text-gray-700 hover:text-sky-600">SignUp</Link></li>
+          <li><Link href="/signin" className="text-gray-700 hover:text-blue-600">LogIn</Link></li>
           <li><Link href="/faq" className="text-gray-700 hover:text-blue-600">FAQ</Link></li>
         </ul>
       </nav>
@@ -79,11 +79,11 @@ export default function Header() {
           <Link href="/about" onClick={closeMenu} className="block py-2 px-6 text-gray-800 hover:text-blue-600 font-medium">
             About »
           </Link>
-          <Link href="/services" onClick={closeMenu} className="block py-2 px-6 text-gray-800 hover:text-blue-600 font-medium">
-            Services »
+          <Link href="/sign-up" onClick={closeMenu} className="block py-2 px-6 text-gray-800 hover:text-blue-600 font-medium">
+            Sign Up »
           </Link>
-          <Link href="/contact" onClick={closeMenu} className="block py-2 px-6 text-gray-800 hover:text-blue-600 font-medium">
-            Contact »
+          <Link href="/signin" onClick={closeMenu} className="block py-2 px-6 text-gray-800 hover:text-blue-600 font-medium">
+            SignIn »
           </Link>
           <Link href="/faq" onClick={closeMenu} className="block py-2 px-6 text-gray-800 hover:text-blue-600 font-medium">
             FAQ »
