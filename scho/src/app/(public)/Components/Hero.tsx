@@ -78,7 +78,8 @@ export default function Hero() {
           </p>
 
           <div className="mt-4 xs:mt-5 sm:mt-6 flex flex-wrap gap-2 xs:gap-3 sm:gap-4">
-            <button className=" border border-white-500 text-sky-100 px-4 xs:px-6 sm:px-8 py-2 sm:py-3 rounded-full font-semibold shadow-md hover:bg-slate-500 transition">
+            <button
+ className=" border border-white-500 text-sky-100 px-4 xs:px-6 sm:px-8 py-2 sm:py-3 rounded-full font-semibold shadow-md hover:bg-slate-500 transition">
               Got Class
             </button>
            

@@ -12,10 +12,10 @@ export default function SponsorshipPage() {
   const [successModal, setSuccessModal] = useState(false);
 
   const prices: Record<string, number> = {
-    Individual: 100,
-    Group: 80,
-    Department: 70,
-    Institution: 60,
+    Individual: 3000,
+    Group: 20000,
+    Department: 100000,
+    Institution: 1.500000,
   };
 
   const descriptions: Record<string, string> = {

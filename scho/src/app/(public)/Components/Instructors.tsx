@@ -53,7 +53,7 @@ export default function VerifiedInstructors() {
     const updateCardsPerView = () => {
       if (window.innerWidth < 768) setCardsPerView(1); // mobile
       else if (window.innerWidth < 1024) setCardsPerView(2); // tablet
-      else setCardsPerView(3); // desktop
+      else setCardsPerView(3); //  ;
     };
     updateCardsPerView();
     window.addEventListener("resize", updateCardsPerView);
