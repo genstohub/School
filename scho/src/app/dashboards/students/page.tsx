@@ -60,11 +60,11 @@ export default function StudentDashboard() {
     { name: "Course Mentor", icon: UsersRound, href: "/dashboards/students/courses/mentor" },
     { name: "Course Quiz", icon: ClipboardList, href: "/dashboards/students/courses/quiz" },
     { name: "Course Test", icon: PenLine, href: "/dashboards/students/courses/test" },
-    { name: "Course Assignment", icon: FileText, href: "/dashboards/students/courses/assignment" },
+    { name: "Course Assignments", icon: FileText, href: "/dashboards/students/courses/assignments" },
     { name: "Course CBT", icon: SquareCheck, href: "/dashboards/students/courses/cbt" },
     { name: "Course Summary", icon: CircleCheck, href: "/dashboards/students/courses/summary" },
     { name: "Course Exam", icon: GraduationCap, href: "/dashboards/students/courses/exam" },
-    { name: "Course Q&A", icon: MessageSquare, href: "/dashboards/students/courses/qa" },
+    { name: "Course Q&A", icon: MessageSquare, href: "/dashboards/students/courses/qna" },
   ];
 
   return (
