@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { cn } from "@/lib/utils"; // Make sure utils.ts exists
 
 const liveSessions = [
   {
@@ -91,9 +92,18 @@ const LiveSessionsPage = () => {
                   <span>{session.viewers} watching</span>
                 </div>
 
-                <Link href={`/dashboards/students/courses/live-sessions/${session.id}`}>
-                  <Button className="bg-[#035b77] text-white hover:bg-[#02475c] transition">
-                    Join Live
+                {/* Button wrapped with Link using asChild */}
+                <Link
+                  href={`/dashboards/students/courses/live-sessions/${session.id}`}
+                  passHref
+                >
+                  <Button
+                    asChild
+                    className={cn(
+                      "bg-[#035b77] text-white hover:bg-[#02475c] transition"
+                    )}
+                  >
+                    <a>Join Live</a>
                   </Button>
                 </Link>
               </div>
