@@ -95,7 +95,7 @@ export default function MentorsPage() {
             className="bg-white rounded-2xl shadow-md hover:shadow-2xl p-6 border hover:border-blue-500 transition-all duration-300 cursor-pointer"
             onClick={() => setSelectedMentor(mentor)}
           >
-            <div className="w-full h-48 relative rounded-xl overflow-hidden mb-4">
+            <div className="w-full h-60 relative rounded-xl overflow-hidden mb-4">
               <Image
                 src={mentor.image}
                 alt={mentor.name}
