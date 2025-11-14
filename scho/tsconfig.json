@@ -29,11 +29,12 @@
     }
   },
   "include": [
-    "next-env.d.ts",
+    ".next/types//*.ts",
     "/*.ts",
     "/*.tsx",
-    ".next/types//*.ts",
-    "src/app/dashboards/admin/Components"
+    "next-env.d.ts",
+    "src/app/dashboards/admin/Components",
+    ".next/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"
