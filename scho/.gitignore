@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+../.hintrc
+../Clement.jpg
+../Instructor Benson.jpg
+../WhatsApp Image*.jpg
