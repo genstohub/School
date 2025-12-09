@@ -29,7 +29,7 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
     { name: "Courses", href: "/dashboards/students/courses", icon: BookOpen },
     { name: "Live Sessions", href: "/dashboards/students/live", icon: Video },
     { name: "Community", href: "/dashboards/students/community", icon: Users },
-    { name: "Study Mate", href: "/dashboards/students/studymate", icon: Group },
+    { name: "Study Mate", href: "/dashboards/students/study-mate", icon: Group },
     { name: "Chat", href: "/dashboards/students/chat", icon: MessageSquare },
     { name: "BookMark", href: "/dashboard/students/bookmark", icon: Bookmark },
     { name: "Support", href: "/dashboards/students/support", icon: LifeBuoy },
