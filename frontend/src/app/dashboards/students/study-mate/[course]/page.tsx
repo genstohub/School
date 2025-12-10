@@ -506,7 +506,7 @@ export default function CourseStudyMate({
 
             {fileUploading && (
               <div className="mt-3 text-xs text-gray-600 flex items-center gap-2">
-                <ImageIcon className="w-4 h-4" /> Uploading image...
+                <ImageIcon className="w-4 h-4" /> Uploading images...
               </div>
             )}
           </div>
