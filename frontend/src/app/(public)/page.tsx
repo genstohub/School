@@ -7,7 +7,7 @@ import Instructors from "./Components/Instructors";
 import Flyer from "./Components/Flyer";
 import Upcoming from "./Components/Upcoming";
 import Subscription from "./Components/Subcription";
-import ConfirmSubscription from "@/components/ConfirmSubscription";
+import ConfirmSubscription from "./Components/confirmsubscription";
 import Community from "./Components/Community";
 import SupportTeam from "./Components/SupportTeam";
 
