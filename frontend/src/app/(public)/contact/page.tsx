@@ -109,7 +109,7 @@ export default function ContactPage() {
       >
         {/* WhatsApp */}
         <a
-          href="https://wa.me/2348012345678"
+          href="https://wa.me/2349117559163"
           target="_blank"
           rel="noopener noreferrer"
           className="bg-green-50 border border-green-200 p-6 rounded-xl flex flex-col items-center hover:shadow-lg transition"
@@ -123,7 +123,7 @@ export default function ContactPage() {
 
         {/* Email */}
         <a
-          href="mailto:prepcenter@email.com"
+          href="mailto:genstohub1@gmail.com"
           className="bg-blue-50 border border-blue-200 p-6 rounded-xl flex flex-col items-center hover:shadow-lg transition"
         >
           <FaEnvelope className="text-4xl text-blue-600 mb-3" />
@@ -135,7 +135,7 @@ export default function ContactPage() {
 
         {/* Phone (redirect to dialer) */}
         <a
-          href="tel:+2348012345678"
+          href="tel:+2347061065498"
           className="bg-yellow-50 border border-yellow-200 p-6 rounded-xl flex flex-col items-center hover:shadow-lg transition"
         >
           <FaPhoneAlt className="text-4xl text-yellow-600 mb-3" />
