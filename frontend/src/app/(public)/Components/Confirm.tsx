@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card } from "/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Card } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/Dialog";
 import { Clock, CheckCircle, AlertCircle } from "lucide-react";
 
 type Transaction = {
@@ -74,44 +74,46 @@ export default function ConfirmSubscriptionSection() {
       </div>
 
       {/* Modal */}
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-lg w-full backdrop-blur-md">
-          <DialogHeader>
-            <DialogTitle>
-              {activeTab === "history" ? "Subscription History" : "Pending Transactions"}
-            </DialogTitle>
-          </DialogHeader>
+      <Dialog>
+        <DialogContent>
+          <div className="max-w-lg w-full backdrop-blur-md">
+            <DialogHeader>
+              <DialogTitle>
+                {activeTab === "history" ? "Subscription History" : "Pending Transactions"}
+              </DialogTitle>
+            </DialogHeader>
 
-          <div className="space-y-4">
-            {filteredData.length > 0 ? (
-              filteredData.map((t) => (
-                <div
-                  key={t.id}
-                  className="flex justify-between items-center border rounded-lg p-3 bg-white shadow-sm"
-                >
-                  <div className="flex items-center gap-3">
-                    <Clock className="h-5 w-5 text-gray-500" />
-                    <div>
-                      <p className="font-medium">₦{t.amount.toLocaleString()}</p>
-                      <p className="text-sm text-gray-500">
-                        {t.date} • {t.time}
-                      </p>
+            <div className="space-y-4">
+              {filteredData.length > 0 ? (
+                filteredData.map((t) => (
+                  <div
+                    key={t.id}
+                    className="flex justify-between items-center border rounded-lg p-3 bg-white shadow-sm"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Clock className="h-5 w-5 text-gray-500" />
+                      <div>
+                        <p className="font-medium">₦{t.amount.toLocaleString()}</p>
+                        <p className="text-sm text-gray-500">
+                          {t.date} • {t.time}
+                        </p>
+                      </div>
                     </div>
+                    {t.type === "history" ? (
+                      <CheckCircle className="h-6 w-6 text-green-600" />
+                    ) : (
+                      <AlertCircle className="h-6 w-6 text-yellow-500" />
+                    )}
                   </div>
-                  {t.type === "history" ? (
-                    <CheckCircle className="h-6 w-6 text-green-600" />
-                  ) : (
-                    <AlertCircle className="h-6 w-6 text-yellow-500" />
-                  )}
-                </div>
-              ))
-            ) : (
-              <p className="text-center text-gray-500">
-                {activeTab === "history"
-                  ? "No subscription history yet."
-                  : "No pending transactions."}
-              </p>
-            )}
+                ))
+              ) : (
+                <p className="text-center text-gray-500">
+                  {activeTab === "history"
+                    ? "No subscription history yet."
+                    : "No pending transactions."}
+                </p>
+              )}
+            </div>
           </div>
         </DialogContent>
       </Dialog>
