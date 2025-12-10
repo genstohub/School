@@ -1,1 +1,0 @@
-const REST_API = "http://localhost:5000";
