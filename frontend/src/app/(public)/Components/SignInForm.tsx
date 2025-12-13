@@ -42,6 +42,7 @@ const SignInForm: React.FC = () => {
           <div>
             <label className="block text-sm font-medium mb-1">Email</label>
             <input
+              aria-label="email"
               type="email"
               name="email"
               onChange={handleChange}
@@ -54,6 +55,7 @@ const SignInForm: React.FC = () => {
           <div>
             <label className="block text-sm font-medium mb-1">Password</label>
             <input
+              aria-label="password"
               type="password"
               name="password"
               onChange={handleChange}
