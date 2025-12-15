@@ -40,7 +40,7 @@ export default function Hero() {
               Practical Learning
             </h1>
 
-            <span className="text-sm sm:text-base lg:text-lg font-medium text-emerald-300">
+            <span className="text-sm sm:text-base lg:text-lg font-medium text-sky-900">
               Learn • Practice • Apply
             </span>
           </div>
@@ -59,7 +59,7 @@ export default function Hero() {
   </span>
 
   <span className="shrink-0 rounded-full bg-sky-100 px-2 py-1 text-xs sm:text-sm whitespace-nowrap text-sky-900">
-    Real-world practice
+    Practice
   </span>
 
   <span className="shrink-0 rounded-full bg-sky-500 px-2 py-1 text-xs sm:text-sm whitespace-nowrap">
