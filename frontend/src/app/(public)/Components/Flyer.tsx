@@ -1,7 +1,7 @@
 "use client";
 import { motion } from "framer-motion";
 import { Sunrise, Sun, Moon } from "lucide-react";
-
+import Link from "next/link";
 
 
 
@@ -25,7 +25,7 @@ export default function FlexibleLearning() {
   ];
 
   return (
-    <section className="relative bg-gradient-to-r from-[#036c73] to-[#014d61] text-white px-6 lg:px-20 py-20 overflow-hidden rounded-2xl shadow-2xl mt-16">
+    <section className="relative bg-linear-to-r from-[#036c73] to-[#014d61] text-white px-6 lg:px-20 py-20 overflow-hidden rounded-2xl shadow-2xl mt-16">
       <div className="relative z-10 max-w-5xl mx-auto text-center space-y-6">
         {/* Headline */}
         <motion.h2
@@ -82,9 +82,11 @@ export default function FlexibleLearning() {
           transition={{ duration: 0.8, delay: 1 }}
           viewport={{ once: true }}
         >
+        <Link href="/signin">
           <button className="px-8 py-4 bg-white text-[#014d61] font-semibold rounded-full shadow-lg hover:bg-gray-100 transition duration-300">
             Start Learning Now
-          </button>
+            </button>
+        </Link>
         </motion.div>
       </div>
 
