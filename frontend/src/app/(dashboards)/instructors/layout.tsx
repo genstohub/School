@@ -3,7 +3,7 @@
 import React, { useState, ReactNode } from "react";
 import Sidebar from "./Components/Sidebar";
 import Header from "./Components/Header";
-import { useSignedPathProtector, useUserType } from "@/hooks";
+import { useLoggedIn, useSignedPathProtector, useUserType } from "@/hooks";
 
 export default function InstructorLayout({
   children,
@@ -15,6 +15,7 @@ export default function InstructorLayout({
   const [isOpen, setIsOpen] = useState(false);
   const isPathArea = useSignedPathProtector("/instructors");
   const { userType } = useUserType();
+  const { loggedIn } = useLoggedIn();
 
   if (isPathArea)
     return (
@@ -32,7 +33,9 @@ export default function InstructorLayout({
         </div>
       </div>
     );
-  else {
+  else if (!loggedIn) {
+    window.location.replace(`/signin`);
+  } else if (loggedIn) {
     window.location.replace(`/${userType}s`);
   }
 }
