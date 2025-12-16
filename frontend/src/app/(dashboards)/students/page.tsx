@@ -28,11 +28,13 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
+import { useUser } from "@/hooks";
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
 export default function StudentDashboard() {
   const [greeting, setGreeting] = useState("");
+  const {user} = useUser()
 
   useEffect(() => {
     const hour = new Date().getHours();
@@ -71,7 +73,7 @@ export default function StudentDashboard() {
     <div className="p-4 w-full sm:p-6 lg:p-8 bg-gray-900 min-h-screen text-white space-y-6">
       {/* Greeting Card */}
       <div className="bg-gray-800 rounded-2xl p-5 shadow hover:shadow-lg transition">
-        <h2 className="text-xl font-semibold">{greeting}, Wasem!</h2>
+        <h2 className="text-xl font-semibold">{greeting}, { user.first_name}!</h2>
         <p className="text-gray-400 mt-1">Welcome back to your learning space</p>
       </div>
 

@@ -3,23 +3,36 @@
 import React, { useState, ReactNode } from "react";
 import Sidebar from "./Components/Sidebar";
 import Header from "./Components/Header";
+import { useSignedPathProtector, useUserType } from "@/hooks";
 
-export default function InstructorLayout({ children }: { children: ReactNode }) {
+export default function InstructorLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  return (
-    <div className="flex h-screen bg-gray-900 text-white">
-      {/* Sidebar */}
-      <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
+  const [isOpen, setIsOpen] = useState(false);
+  const isPathArea = useSignedPathProtector("/instructors");
+  const { userType } = useUserType();
 
-      {/* Main Content Area */}
-      <div className="flex flex-col flex-1 overflow-hidden">
-        {/* Header (Top Bar) */}
-        <Header onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} />
+  if (isPathArea)
+    return (
+      <div className="flex h-screen bg-gray-900 text-white">
+        {/* Sidebar */}
+        <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
 
-        {/* Page Content */}
-        <main className="flex-1 overflow-y-auto p-6">{children}</main>
+        {/* Main Content Area */}
+        <div className="flex flex-col flex-1 overflow-hidden">
+          {/* Header (Top Bar) */}
+          <Header onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} />
+
+          {/* Page Content */}
+          <main className="flex-1 overflow-y-auto p-6">{children}</main>
+        </div>
       </div>
-    </div>
-  );
+    );
+  else {
+    window.location.replace(`/${userType}s`);
+  }
 }

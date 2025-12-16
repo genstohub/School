@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { Menu, Bell, User, ChevronDown, X } from "lucide-react";
+import { useUser } from "@/hooks";
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -9,6 +10,7 @@ interface HeaderProps {
 
 export default function Header({ onMenuClick }: HeaderProps) {
   const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const {user}  = useUser()
 
   return (
     <>
@@ -45,7 +47,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
                 <User size={18} />
               </div>
               <span className="hidden sm:block text-sm font-medium">
-                Philip Wasem
+                {user.first_name}{" "}{user.last_name}
               </span>
               <ChevronDown size={16} className="hidden sm:block" />
             </button>
@@ -89,7 +91,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
           {/* Overlay */}
           <div
             onClick={() => setIsNotifOpen(false)}
-            className="fixed inset-0 bg-black bg-opacity-40 z-30"
+            className="fixed inset-0 bg-[rgba(0,0,0,0.7)] z-30"
           />
 
           {/* Notification Drawer */}

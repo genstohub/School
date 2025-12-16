@@ -1,7 +1,8 @@
 // app/layout.tsx
+import AppContext from '@/context';
 import './globals.css';
 import { ReactNode } from 'react';
-import { AuthProvider } from '@/context/AuthContext'; // <-- Import
+// import { AuthProvider } from '@/context/AuthContext'; // <-- Import
 
 export const metadata = {
   title: 'Prep',
@@ -12,7 +13,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <body>
-        <AuthProvider>{children}</AuthProvider> {/* <-- Wrap everything */}
+        {/* <AuthProvider>{children}</AuthProvider> <-- Wrap everything */}
+        <AppContext>
+          {children}
+        </AppContext>
       </body>
     </html>
   );

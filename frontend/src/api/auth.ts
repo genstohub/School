@@ -1,44 +1,10 @@
 // src/api/auth.ts
 import axios from "axios";
+import { AuthResponse, AuthSignInResponse, AxiosErrorResponse, LoginPayload, RegisterPayload, User } from "@/types";
+import { REST_API } from "@/constants";
 
-const BASE_URL = "https://your-backend-url.com/api/auth";
+// const BASE_URL = "https://your-backend-url.com/api/auth";
 
-// --------------------
-// Types
-// --------------------
-
-export interface RegisterPayload {
-    name: string;
-    email: string;
-    password: string;
-}
-
-export interface LoginPayload {
-    email: string;
-    password: string;
-}
-
-export interface User {
-    id: string;
-    name: string;
-    email: string;
-    role: "student" | "worker" | "instructor" | "admin";
-}
-
-export interface AuthResponse {
-    user: User;
-    message?: string;
-}
-
-// Error shape for axios-like errors
-interface AxiosErrorResponse {
-    response?: {
-        data?: {
-            message?: string;
-        };
-    };
-    message?: string;
-}
 
 // Utility to extract API error safely, WITHOUT using any
 function extractError(err: unknown): string {
@@ -55,26 +21,35 @@ function extractError(err: unknown): string {
 // API Calls
 // --------------------
 
-export const register = async (data: RegisterPayload): Promise<AuthResponse> => {
-    try {
-        const response = await axios.post<AuthResponse>(
-            `${BASE_URL}/register`,
-            data,
-            { withCredentials: true }
-        );
-        return response.data;
-    } catch (err) {
-        throw new Error(extractError(err));
-    }
-};
+// export const createAccount = async (data: RegisterPayload) => {
+//     try {
+//        await fetch(`${REST_API}/auth_create/create_account`, {
+//             method: "post",
+//             headers: { "content-Type": "application/json" },
+//             credentials: "include",
+//             body: JSON.stringify(data)
+//         }).then(response => response.json())
+//             .then(res => {
+//                 if (res.user.user_id && res.emailVerification.status === "sent") { 
+//                     return res
+//                 }
+//             }).catch(err => {
+//             console.log(err)
+//         })
+        
+//     } catch (err) {
+//         throw new Error(extractError(err));
+//     }
+// };
 
-export const login = async (data: LoginPayload): Promise<AuthResponse> => {
+export const login = async (data: LoginPayload): Promise<AuthSignInResponse> => {
     try {
-        const response = await axios.post<AuthResponse>(
-            `${BASE_URL}/login`,
+        const response = await axios.post<AuthSignInResponse>(
+            `${REST_API}/auth_sign/signin`,
             data,
             { withCredentials: true }
         );
+        console.log(response.data)
         return response.data;
     } catch (err) {
         throw new Error(extractError(err));
@@ -84,7 +59,7 @@ export const login = async (data: LoginPayload): Promise<AuthResponse> => {
 export const logout = async (): Promise<void> => {
     try {
         await axios.post(
-            `${BASE_URL}/logout`,
+            `${REST_API}/logout`,
             {},
             { withCredentials: true }
         );
@@ -95,7 +70,7 @@ export const logout = async (): Promise<void> => {
 
 export const getCurrentUser = async (): Promise<User> => {
     try {
-        const response = await axios.get<User>(`${BASE_URL}/me`, {
+        const response = await axios.get<User>(`${REST_API}/me`, {
             withCredentials: true,
         });
         return response.data;
