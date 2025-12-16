@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-
+import { useAuth } from "@/context/AuthContext";
+import { RegisterPayload } from "@/api/auth";
 import { useRouter } from "next/navigation";
 
 const SignInForm: React.FC = () => {
