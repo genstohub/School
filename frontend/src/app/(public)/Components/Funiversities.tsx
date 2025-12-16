@@ -55,7 +55,7 @@ export default function FeaturedUniversities() {
                 delay: i * 0.8, // stagger effect
                 ease: "easeOut",
               }}
-              className="min-w-[200px] sm:min-w-[240px] md:min-w-[240px] flex flex-col items-center justify-center bg-gray-100 rounded-2xl shadow-lg p-6"
+              className="min-w-[200px] sm:min-w-60 md:min-w-60 flex flex-col items-center justify-center bg-gray-100 rounded-2xl shadow-lg p-6"
             >
               <Image
                 src={universities[idx].logo}

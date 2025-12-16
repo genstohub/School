@@ -21,7 +21,7 @@ export default function Home() {
             <section className="mt-20 text-center px-4">
                 <hr className="border-t border-gray-500 mb-10 w-4/4 mx-auto" />
                 <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
-                    Featured Uinversities
+                    Featured Universities
                 </h1>
                 <p className="mt-3 text-gray-600 max-w-2xl-mx-auto text-sm md:text-base">
                     Trusted by world-class institutions and educators, helping studenets achieve their academic goals daily.

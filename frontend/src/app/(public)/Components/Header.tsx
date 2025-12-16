@@ -36,15 +36,15 @@ export default function Header() {
       {/* Logo */}
       <div className="flex rounded items-center space-x-3 ml-2 sm:ml-4 md:ml-6">
         <Image
-          src="/"
+          src="/images/Base.png"
           alt="prep Logo"
           width={37}
           height={37}
           priority
         />
         <div className="ml-[-25px]">
-          <h1 className="text-xl font-semibold text-gray-800 px-6 pr-30">PREP CENTER</h1>
-          <p className="text-xs text-gray-500 pl-6 mb-2">Learn, Unlearn & Relearn</p>
+          <h1 className="text-xl font-semibold text-gray-800 px-6 pr-30">BASE</h1>
+          <p className="text-xs text-gray-500 pl-6 mb-2">Learn. Practice. Apply</p>
         </div>
       </div>
 
@@ -53,7 +53,6 @@ export default function Header() {
         <ul className="hidden md:flex space-x-5 ml-2">
           <li><Link href="/" className="text-gray-700 hover:text-blue-600">Home</Link></li>
           <li><Link href="/about" className="text-gray-700 hover:text-blue-600">About</Link></li>
-          <li><Link href="/sign-up" className="text-gray-700 hover:text-sky-600">SignUp</Link></li>
           <li><Link href="/signin" className="text-gray-700 hover:text-blue-600">LogIn</Link></li>
           <li><Link href="/faq" className="text-gray-700 hover:text-blue-600">FAQ</Link></li>
         </ul>

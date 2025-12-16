@@ -5,8 +5,8 @@ import { ReactNode } from 'react';
 // import { AuthProvider } from '@/context/AuthContext'; // <-- Import
 
 export const metadata = {
-  title: 'Prep',
-  description: 'Smart learning platform'
+  title: 'BASE',
+  description: 'Educational Smart learning platform'
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
