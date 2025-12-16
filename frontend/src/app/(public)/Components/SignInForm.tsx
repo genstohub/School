@@ -1,8 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import { useAuth } from "@/context/AuthContext";
-import { RegisterPayload } from "@/api/auth";
 import { useRouter } from "next/navigation";
 import { login } from "@/api/auth";
 import { useUser, useUserType } from "@/hooks";
