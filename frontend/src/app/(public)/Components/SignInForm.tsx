@@ -4,6 +4,8 @@ import React, { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { RegisterPayload } from "@/api/auth";
 import { useRouter } from "next/navigation";
+import { login } from "@/api/auth";
+import { useUser, useUserType } from "@/hooks";
 
 const SignInForm: React.FC = () => {
   const router = useRouter();
@@ -12,6 +14,9 @@ const SignInForm: React.FC = () => {
     email: "",
     password: "",
   });
+
+  const { setUser } = useUser()
+  const {setUserType} = useUserType()
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -23,13 +28,21 @@ const SignInForm: React.FC = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
+    login(formData)
+      .then(res => {
+        if (res.user_id) {
+          setUser(res)
+          setUserType(res.role)
+          setLoading(false)
+          router.push("/students");
+        }
+    })
     // 🧠 Later this is where you'll integrate your backend login API
-    setTimeout(() => {
-      setLoading(false);
-      alert("Login successful!");
-      router.push("/dashboard/students");
-    }, 2000);
+    // setTimeout(() => {
+    //   setLoading(false);
+    //   alert("Login successful!");
+    //   router.push("/dashboard/students");
+    // }, 2000);
   };
 
   return (
@@ -39,7 +52,7 @@ const SignInForm: React.FC = () => {
           Welcome Back 👋
         </h2>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form  className="space-y-5">
           <div>
             <label className="block text-sm font-medium mb-1">Email</label>
             <input
@@ -67,11 +80,12 @@ const SignInForm: React.FC = () => {
           </div>
 
           <button
-            type="submit"
-            disabled={loading}
+            // type="submit"
+            onClick={handleSubmit}
+            // disabled={loading}
             className="w-full flex justify-center items-center bg-green-600 text-white p-3 rounded-lg hover:bg-green-700 transition"
           >
-           
+           sign in
           </button>
         </form>
 

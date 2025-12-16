@@ -460,3 +460,11 @@
     margin-top: 0.75rem;
   }
 }
+
+
+.passwordVerificationCheckbox {
+  accent-color: green;
+  width: 18px;
+  height: 18px;
+
+}

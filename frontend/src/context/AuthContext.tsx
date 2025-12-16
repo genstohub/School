@@ -7,7 +7,7 @@ import {
   RegisterPayload,
   LoginPayload,
   AuthResponse
-} from "@/api/auth";
+} from "@/types";
 
 interface AuthContextType {
   user: User | null;
