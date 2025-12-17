@@ -228,20 +228,21 @@ export default function SignupPage() {
   };
 
   return (
-    <section className="min-h-screen mt-16 w-full flex items-center justify-center bg-gray-50 px-6">
+<section className="min-h-screen mt-20 mb-10 w-full flex items-center justify-center bg-gray-50 px-4 md:px-6">
+
       <div className="flex flex-row justify-center items-start bg-white shadow-xl rounded-2xl overflow-hidden max-w-6xl w-full flex-wrap lg:flex-nowrap">
         {/* LEFT SIDE */}
-        <div className="bg-[#073B4C] text-white flex flex-col justify-center items-center w-full lg:w-1/2 min-h-[500px] p-8 lg:mt-16">
-          <h1 className="text-3xl font-bold mb-4">PREP CENTER</h1>
+        <div className="bg-sky-700 text-white rounded-2xl flex flex-col justify-center items-center w-full lg:w-1/2 min-h-[500px] p-8 lg:mt-16">
+          <h1 className="text-3xl font-bold mb-4">BASE</h1>
           <p className="text-xl font-semibold mb-2 text-center">
-            Learn, Unlearn & Relearn!
+            Learn. Practice .Apply
           </p>
           <p className="text-center text-gray-200 mt-4 max-w-md text-sm leading-relaxed">
-            “Prep Center provides all your learning needs — from resources to
+            “BASE provides all your learning needs from resources to
             mentorship. Begin your success journey today.”
           </p>
           <div className="mt-6 flex flex-col items-center">
-            <div className="flex items-center justify-center w-14 h-14 bg-white text-[#073B4C] rounded-full font-bold text-2xl">
+            <div className="flex items-center justify-center w-14 h-14 bg-white text-sky-700 rounded-full font-bold text-2xl">
               📘
             </div>
             <p className="mt-3 text-gray-200 text-sm">
@@ -256,284 +257,166 @@ export default function SignupPage() {
             Create Your Account
           </h2>
 
-          <form
-            // onSubmit={handleSignup}
-            className="space-y-4"
-          >
-            <div>
-              <label className="block text-sm font-medium mb-1">Name</label>
-              <input
-                type="text"
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                required
-                placeholder="first name"
-                className="w-1/2 m-2 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
-              />
-              <input
-                type="text"
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-                required
-                placeholder="last name"
-                className="w-1/2 m-2 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
-              />
-            </div>
+          
+<form className="space-y-5">
 
-            <div>
-              <label className="block text-sm font-medium mb-1">Email</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                placeholder="example@gmail.com"
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
-              />
-            </div>
+  {/* NAME */}
+  <div>
+    <label className="block text-sm font-medium mb-1">Name</label>
+    <div className="flex flex-col md:flex-row gap-3">
+      <input
+        type="text"
+        value={firstName}
+        onChange={(e) => setFirstName(e.target.value)}
+        placeholder="First name"
+        className="w-full md:w-1/2 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+      />
+      <input
+        type="text"
+        value={lastName}
+        onChange={(e) => setLastName(e.target.value)}
+        placeholder="Last name"
+        className="w-full md:w-1/2 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+      />
+    </div>
+  </div>
 
-            <div className="p-4">
-              <label className="block text-sm font-medium mb-1">Sex</label>
+  {/* EMAIL */}
+  <div>
+    <label className="block text-sm font-medium mb-1">Email</label>
+    <input
+      type="email"
+      value={email}
+      onChange={(e) => setEmail(e.target.value)}
+      placeholder="example@gmail.com"
+      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+    />
+  </div>
 
-              <div className="flex flex-row gap-5 ml-10">
-                <div className="flex items-center gap-1">
-                  <label className="font-medium text-xs" htmlFor="male">
-                    Male
-                  </label>
-                  <input
-                    onChange={(e) => setSex(e.target.value)}
-                    value={"male"}
-                    type="radio"
-                    required
-                    name="sexSelection"
-                    id="male"
-                    className="w-5 h-5 accent-emerald-500"
-                  />
-                </div>
-                <div className="flex items-center gap-1">
-                  <label className="font-medium text-xs" htmlFor="female">
-                    Female
-                  </label>
-                  <input
-                    onChange={(e) => setSex(e.target.value)}
-                    value={"female"}
-                    type="radio"
-                    name="sexSelection"
-                    id="female"
-                    required
-                    className="w-5 h-5 accent-emerald-500"
-                  />
-                </div>
-                <div className="flex items-center gap-1">
-                  <label className="font-medium text-xs" htmlFor="custom">
-                    Custom
-                  </label>
-                  <input
-                    onChange={(e) => setSex(e.target.value)}
-                    value={"custom"}
-                    type="radio"
-                    name="sexSelection"
-                    id="custom"
-                    required
-                    className="w-5 h-5 accent-emerald-500"
-                  />
-                </div>
-              </div>
-            </div>
+  {/* SEX */}
+  <div>
+    <label className="block text-sm font-medium mb-2">Sex</label>
+    <div className="flex gap-6">
+      {["male", "female", "custom"].map((v) => (
+        <label key={v} className="flex items-center gap-2 text-sm">
+          <input
+            type="radio"
+            name="sexSelection"
+            value={v}
+            onChange={(e) => setSex(e.target.value)}
+            className="accent-sky-600"
+          />
+          {v.charAt(0).toUpperCase() + v.slice(1)}
+        </label>
+      ))}
+    </div>
+  </div>
 
-            <div className="flex flex-row gap-1">
-              <div className="p-4 w-8/12">
-                <label className="block text-sm font-medium mb-1">
-                  Select School
-                </label>
-                <select
-                  onChange={(e) => setSchool(e.target.value)}
-                  className="w-full  border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
-                >
-                  {schools.map((e, i) => (
-                    <option key={i - 1} value={JSON.stringify(e)}>
-                      {e.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
+  {/* SCHOOL + COUNTRY */}
+  <div className="flex flex-col md:flex-row gap-4">
+    <div className="w-full md:w-7/12">
+      <label className="block text-sm font-medium mb-1">Select School</label>
+      <select
+        onChange={(e) => setSchool(e.target.value)}
+        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+      >
+        {schools.map((e, i) => (
+          <option key={i} value={JSON.stringify(e)}>
+            {e.name}
+          </option>
+        ))}
+      </select>
+    </div>
 
-              <div className="p-4 w-6/12">
-                <label className="block text-sm font-medium mb-1">
-                  Select Country
-                </label>
-                <select
-                  onChange={(e) => setCountry(e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
-                >
-                  {countries.map((country, i) => (
-                    <option key={i - 1} value={country.code}>
-                      {country.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
+    <div className="w-full md:w-5/12">
+      <label className="block text-sm font-medium mb-1">Select Country</label>
+      <select
+        onChange={(e) => setCountry(e.target.value)}
+        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+      >
+        {countries.map((c, i) => (
+          <option key={i} value={c.code}>
+            {c.name}
+          </option>
+        ))}
+      </select>
+    </div>
+  </div>
 
-            <div className="p-4">
-              <label className="block text-sm font-medium mb-1">
-                Select Department
-              </label>
-              <select
-                onChange={(e) => setDepartment(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
-              >
-                {allCourses.map((e, i) => (
-                  <option key={i - 1} value={e}>
-                    {e}
-                  </option>
-                ))}
-              </select>
-            </div>
+  {/* DEPARTMENT */}
+  <div>
+    <label className="block text-sm font-medium mb-1">
+      Select Department
+    </label>
+    <select
+      onChange={(e) => setDepartment(e.target.value)}
+      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+    >
+      {allCourses.map((e, i) => (
+        <option key={i} value={e}>
+          {e}
+        </option>
+      ))}
+    </select>
+  </div>
 
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Phone number
-              </label>
-              <div className="border border-gray-300 outline-none rounded-md w-8/12 flex flex-nowrap">
-                <select
-                  onChange={(e) => onPhoneCodeSelect(e.target.value)}
-                  className="w-28 border-none px-1 py-2 outline-none"
-                >
-                  {countryCode.map((e, i) => (
-                    <option key={i - 1} value={e.phoneCode}>
-                      {e.code}
-                      {`(${e.phoneCode})`}
-                    </option>
-                  ))}
-                </select>
-                <input
-                  type="tel"
-                  value={phoneNumber}
-                  maxLength={15}
-                  onChange={(e) => onPhoneNumberInput(e.target.value)}
-                  required
-                  placeholder="0099028899"
-                  className="w-11/12 gray-300 rounded-lg px-3 py-2 outline-none font-normal "
-                />
-              </div>
-            </div>
+  {/* PHONE */}
+  <div>
+    <label className="block text-sm font-medium mb-1">Phone number</label>
+    <div className="flex w-full border border-gray-300 rounded-lg overflow-hidden">
+      <select
+        onChange={(e) => onPhoneCodeSelect(e.target.value)}
+        className="w-28 border-none px-2 bg-transparent outline-none"
+      >
+        {countryCode.map((e, i) => (
+          <option key={i} value={e.phoneCode}>
+            {e.code} ({e.phoneCode})
+          </option>
+        ))}
+      </select>
+      <input
+        type="tel"
+        value={phoneNumber}
+        onChange={(e) => onPhoneNumberInput(e.target.value)}
+        placeholder="0099028899"
+        className="flex-1 px-3 py-2 outline-none"
+      />
+    </div>
+  </div>
 
-            <div>
-              <label className="block text-sm font-medium mb-1">Password</label>
-              <input
-                type="password"
-                value={password1}
-                onChange={(e) => setPassword1(e.target.value)}
-                required
-                placeholder="At least 8 chars, one capital & number"
-                className={
-                  passwordNotMatch
-                    ? "w-full border border-red-600 rounded-lg px-3 py-2  outline-none"
-                    : "w-full border border-gray-300 rounded-lg px-3 py-2 outline-none"
-                }
-              />
-              <input
-                type="password"
-                value={password2}
-                onChange={(e) => setPassword2(e.target.value)}
-                required
-                placeholder="confirm password"
-                className={
-                  passwordNotMatch
-                    ? "w-full border border-red-600 rounded-lg px-3 py-2  outline-none mt-2"
-                    : "w-full border border-gray-300 rounded-lg px-3 py-2 outline-none mt-2"
-                }
-              />
-              {passwordNotMatch && (
-                <p className="font-black text-xs text-red-600 p-2">
-                  password not matched
-                </p>
-              )}
-              <ul className="mt-2 text-sm space-y-1">
-                <li
-                  className={
-                    validations.length
-                      ? "text-green-600 flex gap-2"
-                      : "text-gray-500 flex gap-2"
-                  }
-                >
-                  <input
-                    type="checkbox"
-                    onChange={() => {}}
-                    name="lengthValidation"
-                    id="lengthValidation"
-                    checked={validations.length}
-                    className="passwordVerificationCheckbox"
-                  />
-                  {/* ✔ */}
-                  At least 8 characters
-                </li>
-                <li
-                  className={
-                    validations.uppercase
-                      ? "text-green-600 flex gap-2"
-                      : "text-gray-500 flex gap-2"
-                  }
-                >
-                  <input
-                    type="checkbox"
-                    onChange={() => {}}
-                    name="lengthValidation"
-                    id="lengthValidation"
-                    checked={validations.uppercase}
-                    className="passwordVerificationCheckbox"
-                  />
-                  {/* ✔ */}
-                  One uppercase letter
-                </li>
-                <li
-                  className={
-                    validations.number
-                      ? "text-green-600 flex gap-2"
-                      : "text-gray-500 flex gap-2"
-                  }
-                >
-                  <input
-                    type="checkbox"
-                    onChange={() => {}}
-                    name="lengthValidation"
-                    id="lengthValidation"
-                    checked={validations.number}
-                    className="passwordVerificationCheckbox"
-                  />
-                  {/* ✔ */}
-                  One number
-                </li>
-              </ul>
-            </div>
+  {/* PASSWORD */}
+  <div>
+    <label className="block text-sm font-medium mb-1">Password</label>
+    <input
+      type="password"
+      value={password1}
+      onChange={(e) => setPassword1(e.target.value)}
+      placeholder="At least 8 chars, one capital & number"
+      className={`w-full rounded-lg px-3 py-2 outline-none border ${
+        passwordNotMatch ? "border-red-600" : "border-gray-300"
+      }`}
+    />
+    <input
+      type="password"
+      value={password2}
+      onChange={(e) => setPassword2(e.target.value)}
+      placeholder="Confirm password"
+      className={`w-full rounded-lg px-3 py-2 outline-none border mt-2 ${
+        passwordNotMatch ? "border-red-600" : "border-gray-300"
+      }`}
+    />
+  </div>
 
-            <button
-              // type="submit"
-              onClick={handleSignup}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-semibold transition-all"
-            >
-              Sign Up
-            </button>
+  {/* SUBMIT */}
+  <button
+    onClick={handleSignup}
+    className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-semibold"
+  >
+    Sign Up
+  </button>
 
-            <div className="text-center mt-4 text-gray-600 text-sm">
-              or sign up with
-              <div className="flex justify-center gap-4 mt-2">
-                <button
-                  type="button"
-                  className="border px-3 py-2 rounded-lg hover:bg-gray-100 flex items-center gap-2"
-                >
-                  <FaGoogle className="text-red-500" />
-                </button>
-                <button
-                  type="button"
-                  className="border px-3 py-2 rounded-lg hover:bg-gray-100 flex items-center gap-2"
-                >
-                  <FaXTwitter className="text-gray-800" />
-                </button>
-              </div>
-            </div>
-          </form>
+</form>
+
 
           <p className="text-center text-sm text-gray-600 mt-4">
             Already have an account?{" "}
@@ -568,6 +451,7 @@ export default function SignupPage() {
                 <div className="flex justify-center gap-2 mt-4">
                   {otp.map((digit, index) => (
                     <input
+                      aria-label="input"
                       key={index}
                       ref={(el) => {
                         inputsRef.current[index] = el;

@@ -46,7 +46,7 @@ const SignInForm: React.FC = () => {
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-50 px-4">
       <div className="w-full max-w-md bg-white p-6 rounded-2xl shadow-md">
-        <h2 className="text-2xl font-bold text-center mb-6 text-green-600">
+        <h2 className="text-2xl font-bold text-center mb-6 text-gray-900">
           Welcome Back 👋
         </h2>
 
@@ -60,7 +60,7 @@ const SignInForm: React.FC = () => {
               onChange={handleChange}
               value={formData.email}
               required
-              className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-63"
             />
           </div>
 
@@ -73,15 +73,26 @@ const SignInForm: React.FC = () => {
               onChange={handleChange}
               value={formData.password}
               required
-              className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-63"
             />
           </div>
+
+          <div className="text-right">
+  <button
+    type="button"
+    onClick={() => router.push("/forgot-password")}
+    className="text-sm text-sky-600 hover:underline"
+  >
+    Forgot password?
+  </button>
+</div>
+
 
           <button
             // type="submit"
             onClick={handleSubmit}
             // disabled={loading}
-            className="w-full flex justify-center items-center bg-green-600 text-white p-3 rounded-lg hover:bg-green-700 transition"
+            className="w-full flex justify-center items-center bg-sky-700 text-white p-3 rounded-lg hover:bg-gray-800 transition"
           >
            sign in
           </button>
@@ -89,7 +100,7 @@ const SignInForm: React.FC = () => {
 
         <p className="text-center text-sm mt-5">
           Don’t have an account?{" "}
-          <a href="/sign-up" className="text-green-600 hover:underline">
+          <a href="/sign-up" className="text-sky-600 hover:underline">
             Sign Up
           </a>
         </p>

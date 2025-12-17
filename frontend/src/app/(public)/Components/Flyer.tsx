@@ -35,7 +35,7 @@ export default function FlexibleLearning() {
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
         >
-          Flexible Learning, Anytime Anywhere
+          Flexible Learning. Anytime. Anywhere
         </motion.h2>
 
         <motion.p
