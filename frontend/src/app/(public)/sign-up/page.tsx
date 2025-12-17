@@ -250,7 +250,7 @@ export default function SignupPage() {
             </p>
           </div>
         </div>
-
+        
         {/* RIGHT SIDE */}
         <div className="w-full lg:w-1/2 p-8 bg-white">
           <h2 className="text-2xl font-bold text-gray-800 text-center mb-6">
