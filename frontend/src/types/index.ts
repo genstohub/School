@@ -46,7 +46,10 @@ export interface AuthSignInResponse {
     "date_created": string | Date
     "department": string,
     "school": string
+    err: string
 }
+
+
 
 // Error shape for axios-like errors
 export interface AxiosErrorResponse {
