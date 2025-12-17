@@ -6,6 +6,7 @@ import { FaGoogle, FaXTwitter } from "react-icons/fa6";
 import { allCourses, countryCode, REST_API } from "@/constants";
 import { useUser, useUserType } from "@/hooks";
 import { countries, schools } from "@/constants";
+import { SignEmptyFillOut, SignError, SignLoading } from "@/components";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -38,7 +39,8 @@ export default function SignupPage() {
     [passwordNotMatch, setPasswordNotMatch] = useState<boolean>(false);
 
   const [loading, setLoading] = useState(false),
-    [pushError, setPushError] = useState({ status: false, message: "" });
+    [signError, setSignError] = useState(false),
+    [emptBlackErr, setEmptyBlankErr] = useState(false);
 
   const [otp, setOtp] = useState(Array(6).fill(""));
   const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
@@ -119,9 +121,9 @@ export default function SignupPage() {
   };
 
   // Simulate signup + email send
-  const handleSignup = (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+
     const payload = {
       firstName,
       lastName,
@@ -134,8 +136,9 @@ export default function SignupPage() {
       phoneNumber: phoneCode + phoneNumber,
     };
 
-    if (isAllCredentialsVerified())
-      fetch(`${REST_API}/auth_create/create_account`, {
+    if (isAllCredentialsVerified()) {
+      setLoading(true);
+      await fetch(`${REST_API}/auth_create/create_account`, {
         method: "post",
         headers: { "content-Type": "application/json" },
         credentials: "include",
@@ -143,33 +146,36 @@ export default function SignupPage() {
       })
         .then((response) => response.json())
         .then((res) => {
-          if (res.user.user_id && res.emailVerification.status === "sent") {
+          if (
+            res.user.user_id
+            // && res.emailVerification.status === "sent"
+          ) {
             setUser(res.user);
             setUserType(res.user.role);
             // setShowModal(true);
             // setVerificationStatus("sent");
-            router.replace(`/${res.user.role}s`)
+            router.replace(`/${res.user.role}s`);
             setLoading(false);
-          } else if (
-            res.user.user_id &&
-            res.emailVerification.status === "notsent"
-          ) {
-            setPushError({ status: true, message: "verify my email" });
-            setLoading(false);
-          } else {
-            setLoading(false);
-            setPushError({
-              status: true,
-              message: "There is an error creating account",
-            });
           }
+          // else if (
+          //   res.user.user_id &&
+          //   res.emailVerification.status === "notsent"
+          // ) {
+          //   setSignError(true);
+          //   setLoading(false);
+          // }
+          else {
+            setLoading(false);
+            setSignError(true);
+          }
+        })
+        .catch(() => {
+          setLoading(false);
+          setSignError(true);
         });
-    else {
-      setPushError({
-        status: true,
-        message: "please make sure to fill all box correctly",
-      });
+    } else {
       setLoading(false);
+      setEmptyBlankErr(true);
     }
 
     // setTimeout(() => {
@@ -207,6 +213,12 @@ export default function SignupPage() {
         }, 1000);
       }
     }
+  };
+
+  const onSignErrorRetryClick = (e: React.FormEvent) => {
+    setLoading(false);
+    setSignError(false)
+    handleSignup(e);
   };
 
   //Handle backspace to move focus backward
@@ -513,7 +525,7 @@ export default function SignupPage() {
               onClick={handleSignup}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-semibold transition-all"
             >
-              Sign Up
+              {loading ? <SignLoading /> : "Sign Up"}
             </button>
 
             <div className="text-center mt-4 text-gray-600 text-sm">
@@ -546,6 +558,19 @@ export default function SignupPage() {
           </p>
         </div>
       </div>
+
+      {signError && (
+        <SignError
+          err={"unable to connect"}
+          solution={"check connection"}
+          onEditClick={() => setSignError(false)}
+          onRetryClick={onSignErrorRetryClick}
+        />
+      )}
+
+      {emptBlackErr && (
+        <SignEmptyFillOut onNoted={() => setEmptyBlankErr(false)} />
+      )}
 
       {/* 🔵 EMAIL VERIFICATION MODAL */}
       {showModal && (

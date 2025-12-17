@@ -34,7 +34,7 @@ export interface AuthResponse {
     message?: string;
 }
 
-export interface AuthSignInResponse {
+export interface AuthSignInSuccessResponse {
     "user_id": string | number
     "first_name": string
     "last_name": string
@@ -46,7 +46,10 @@ export interface AuthSignInResponse {
     "date_created": string | Date
     "department": string,
     "school": string
+    err: string
 }
+
+
 
 // Error shape for axios-like errors
 export interface AxiosErrorResponse {

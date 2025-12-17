@@ -1,6 +1,6 @@
 // src/api/auth.ts
 import axios from "axios";
-import { AuthResponse, AuthSignInResponse, AxiosErrorResponse, LoginPayload, RegisterPayload, User } from "@/types";
+import {  AuthSignInResponse, AxiosErrorResponse, LoginPayload,  User } from "@/types";
 import { REST_API } from "@/constants";
 
 // const BASE_URL = "https://your-backend-url.com/api/auth";

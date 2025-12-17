@@ -1,4 +1,4 @@
-export const REST_API = "http://localhost:4000/api";
+export const REST_API = process.env.REST_API;
 
 export const countries = [
   { name: "Albania", code: "AL" },
