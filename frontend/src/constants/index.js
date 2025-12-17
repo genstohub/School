@@ -1,4 +1,6 @@
-export const REST_API = process.env.REST_API;
+export const REST_API = process.env.REST_API
+  ? process.env.REST_API
+  : "https://prep-backend-khaki.vercel.app/api"; ;
 
 export const countries = [
   { name: "Albania", code: "AL" },

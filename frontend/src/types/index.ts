@@ -34,7 +34,7 @@ export interface AuthResponse {
     message?: string;
 }
 
-export interface AuthSignInSuccessResponse {
+export interface AuthSignInResponse {
     "user_id": string | number
     "first_name": string
     "last_name": string
