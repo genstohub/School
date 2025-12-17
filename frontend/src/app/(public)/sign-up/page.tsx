@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -6,7 +7,6 @@ import { FaGoogle, FaXTwitter } from "react-icons/fa6";
 import { allCourses, countryCode, REST_API } from "@/constants";
 import { useUser, useUserType } from "@/hooks";
 import { countries, schools } from "@/constants";
-import { SignEmptyFillOut, SignError, SignLoading } from "@/components";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -39,8 +39,7 @@ export default function SignupPage() {
     [passwordNotMatch, setPasswordNotMatch] = useState<boolean>(false);
 
   const [loading, setLoading] = useState(false),
-    [signError, setSignError] = useState(false),
-    [emptBlackErr, setEmptyBlankErr] = useState(false);
+    [pushError, setPushError] = useState({ status: false, message: "" });
 
   const [otp, setOtp] = useState(Array(6).fill(""));
   const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
@@ -121,9 +120,9 @@ export default function SignupPage() {
   };
 
   // Simulate signup + email send
-  const handleSignup = async (e: React.FormEvent) => {
+  const handleSignup = (e: React.FormEvent) => {
     e.preventDefault();
-
+    setLoading(true);
     const payload = {
       firstName,
       lastName,
@@ -136,9 +135,8 @@ export default function SignupPage() {
       phoneNumber: phoneCode + phoneNumber,
     };
 
-    if (isAllCredentialsVerified()) {
-      setLoading(true);
-      await fetch(`${REST_API}/auth_create/create_account`, {
+    if (isAllCredentialsVerified())
+      fetch(`${REST_API}/auth_create/create_account`, {
         method: "post",
         headers: { "content-Type": "application/json" },
         credentials: "include",
@@ -146,36 +144,33 @@ export default function SignupPage() {
       })
         .then((response) => response.json())
         .then((res) => {
-          if (
-            res.user.user_id
-            // && res.emailVerification.status === "sent"
-          ) {
+          if (res.user.user_id && res.emailVerification.status === "sent") {
             setUser(res.user);
             setUserType(res.user.role);
             // setShowModal(true);
             // setVerificationStatus("sent");
-            router.replace(`/${res.user.role}s`);
+            router.replace(`/${res.user.role}s`)
             setLoading(false);
-          }
-          // else if (
-          //   res.user.user_id &&
-          //   res.emailVerification.status === "notsent"
-          // ) {
-          //   setSignError(true);
-          //   setLoading(false);
-          // }
-          else {
+          } else if (
+            res.user.user_id &&
+            res.emailVerification.status === "notsent"
+          ) {
+            setPushError({ status: true, message: "verify my email" });
             setLoading(false);
-            setSignError(true);
+          } else {
+            setLoading(false);
+            setPushError({
+              status: true,
+              message: "There is an error creating account",
+            });
           }
-        })
-        .catch(() => {
-          setLoading(false);
-          setSignError(true);
         });
-    } else {
+    else {
+      setPushError({
+        status: true,
+        message: "please make sure to fill all box correctly",
+      });
       setLoading(false);
-      setEmptyBlankErr(true);
     }
 
     // setTimeout(() => {
@@ -213,12 +208,6 @@ export default function SignupPage() {
         }, 1000);
       }
     }
-  };
-
-  const onSignErrorRetryClick = (e: React.FormEvent) => {
-    setLoading(false);
-    setSignError(false)
-    handleSignup(e);
   };
 
   //Handle backspace to move focus backward
@@ -429,165 +418,6 @@ export default function SignupPage() {
 
 </form>
 
-            <div className="p-4">
-              <label className="block text-sm font-medium mb-1">
-                Select Department
-              </label>
-              <select
-                onChange={(e) => setDepartment(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
-              >
-                {allCourses.map((e, i) => (
-                  <option key={i - 1} value={e}>
-                    {e}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Phone number
-              </label>
-              <div className="border border-gray-300 outline-none rounded-md w-8/12 flex flex-nowrap">
-                <select
-                  onChange={(e) => onPhoneCodeSelect(e.target.value)}
-                  className="w-28 border-none px-1 py-2 outline-none"
-                >
-                  {countryCode.map((e, i) => (
-                    <option key={i - 1} value={e.phoneCode}>
-                      {e.code}
-                      {`(${e.phoneCode})`}
-                    </option>
-                  ))}
-                </select>
-                <input
-                  type="tel"
-                  value={phoneNumber}
-                  maxLength={15}
-                  onChange={(e) => onPhoneNumberInput(e.target.value)}
-                  required
-                  placeholder="0099028899"
-                  className="w-11/12 gray-300 rounded-lg px-3 py-2 outline-none font-normal "
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1">Password</label>
-              <input
-                type="password"
-                value={password1}
-                onChange={(e) => setPassword1(e.target.value)}
-                required
-                placeholder="At least 8 chars, one capital & number"
-                className={
-                  passwordNotMatch
-                    ? "w-full border border-red-600 rounded-lg px-3 py-2  outline-none"
-                    : "w-full border border-gray-300 rounded-lg px-3 py-2 outline-none"
-                }
-              />
-              <input
-                type="password"
-                value={password2}
-                onChange={(e) => setPassword2(e.target.value)}
-                required
-                placeholder="confirm password"
-                className={
-                  passwordNotMatch
-                    ? "w-full border border-red-600 rounded-lg px-3 py-2  outline-none mt-2"
-                    : "w-full border border-gray-300 rounded-lg px-3 py-2 outline-none mt-2"
-                }
-              />
-              {passwordNotMatch && (
-                <p className="font-black text-xs text-red-600 p-2">
-                  password not matched
-                </p>
-              )}
-              <ul className="mt-2 text-sm space-y-1">
-                <li
-                  className={
-                    validations.length
-                      ? "text-green-600 flex gap-2"
-                      : "text-gray-500 flex gap-2"
-                  }
-                >
-                  <input
-                    type="checkbox"
-                    onChange={() => {}}
-                    name="lengthValidation"
-                    id="lengthValidation"
-                    checked={validations.length}
-                    className="passwordVerificationCheckbox"
-                  />
-                  {/* ✔ */}
-                  At least 8 characters
-                </li>
-                <li
-                  className={
-                    validations.uppercase
-                      ? "text-green-600 flex gap-2"
-                      : "text-gray-500 flex gap-2"
-                  }
-                >
-                  <input
-                    type="checkbox"
-                    onChange={() => {}}
-                    name="lengthValidation"
-                    id="lengthValidation"
-                    checked={validations.uppercase}
-                    className="passwordVerificationCheckbox"
-                  />
-                  {/* ✔ */}
-                  One uppercase letter
-                </li>
-                <li
-                  className={
-                    validations.number
-                      ? "text-green-600 flex gap-2"
-                      : "text-gray-500 flex gap-2"
-                  }
-                >
-                  <input
-                    type="checkbox"
-                    onChange={() => {}}
-                    name="lengthValidation"
-                    id="lengthValidation"
-                    checked={validations.number}
-                    className="passwordVerificationCheckbox"
-                  />
-                  {/* ✔ */}
-                  One number
-                </li>
-              </ul>
-            </div>
-
-            <button
-              // type="submit"
-              onClick={handleSignup}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-semibold transition-all"
-            >
-              {loading ? <SignLoading /> : "Sign Up"}
-            </button>
-
-            <div className="text-center mt-4 text-gray-600 text-sm">
-              or sign up with
-              <div className="flex justify-center gap-4 mt-2">
-                <button
-                  type="button"
-                  className="border px-3 py-2 rounded-lg hover:bg-gray-100 flex items-center gap-2"
-                >
-                  <FaGoogle className="text-red-500" />
-                </button>
-                <button
-                  type="button"
-                  className="border px-3 py-2 rounded-lg hover:bg-gray-100 flex items-center gap-2"
-                >
-                  <FaXTwitter className="text-gray-800" />
-                </button>
-              </div>
-            </div>
-          </form>
 
           <p className="text-center text-sm text-gray-600 mt-4">
             Already have an account?{" "}
@@ -600,19 +430,6 @@ export default function SignupPage() {
           </p>
         </div>
       </div>
-
-      {signError && (
-        <SignError
-          err={"unable to connect"}
-          solution={"check connection"}
-          onEditClick={() => setSignError(false)}
-          onRetryClick={onSignErrorRetryClick}
-        />
-      )}
-
-      {emptBlackErr && (
-        <SignEmptyFillOut onNoted={() => setEmptyBlankErr(false)} />
-      )}
 
       {/* 🔵 EMAIL VERIFICATION MODAL */}
       {showModal && (
