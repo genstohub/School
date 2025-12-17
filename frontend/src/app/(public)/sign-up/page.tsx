@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { FaGoogle, FaXTwitter } from "react-icons/fa6";
 import { allCourses, countryCode, REST_API } from "@/constants";
-import { useUser, useUserType } from "@/hooks";
+import { useLoggedIn, useUser, useUserType } from "@/hooks";
 import { countries, schools } from "@/constants";
 import { SignEmptyFillOut, SignError, SignLoading } from "@/components";
 
@@ -13,6 +13,7 @@ export default function SignupPage() {
 
   const { setUser } = useUser();
   const { setUserType } = useUserType();
+  const { setLoggedIn } = useLoggedIn();
 
   const [firstName, setFirstName] = useState(""),
     [lastName, setLastName] = useState(""),
@@ -154,6 +155,7 @@ export default function SignupPage() {
             setUserType(res.user.role);
             // setShowModal(true);
             // setVerificationStatus("sent");
+            setLoggedIn(true)
             router.replace(`/${res.user.role}s`);
             setLoading(false);
           }

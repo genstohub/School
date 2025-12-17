@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { login } from "@/api/auth";
-import { useUser, useUserType } from "@/hooks";
+import { useLoggedIn, useUser, useUserType } from "@/hooks";
 import { SignError, SignLoading } from "@/components";
 
 const SignInForm: React.FC = () => {
@@ -22,6 +22,7 @@ const SignInForm: React.FC = () => {
 
   const { setUser } = useUser();
   const { setUserType } = useUserType();
+  const { setLoggedIn } = useLoggedIn();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -38,6 +39,7 @@ const SignInForm: React.FC = () => {
         if (res.user_id) {
           setUser(res);
           setUserType(res.role);
+          setLoggedIn(true)
           setLoading(false);
           router.push("/students");
         } else if (res.err === "wrong credentials") {
