@@ -239,7 +239,7 @@ export default function SignupPage() {
           </p>
           <p className="text-center text-gray-200 mt-4 max-w-md text-sm leading-relaxed">
             “BASE provides all your learning needs from resources to
-            mentorship. Begin your success journey today.”
+            mentorship. Begin your success journey to your mastery.”
           </p>
           <div className="mt-6 flex flex-col items-center">
             <div className="flex items-center justify-center w-14 h-14 bg-white text-sky-700 rounded-full font-bold text-2xl">
