@@ -65,7 +65,7 @@ export default function ForgotPasswordPage() {
           </form>
         ) : (
           <div className="text-center space-y-4">
-            <p className="text-green-600 font-medium">
+            <p className="text-sky-800 font-medium">
               Reset link sent successfully
             </p>
             <p className="text-sm text-gray-600">
