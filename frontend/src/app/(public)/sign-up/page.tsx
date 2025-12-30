@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -6,7 +7,6 @@ import { FaGoogle, FaXTwitter } from "react-icons/fa6";
 import { allCourses, countryCode, REST_API } from "@/constants";
 import { useLoggedIn, useUser, useUserType } from "@/hooks";
 import { countries, schools } from "@/constants";
-import { SignEmptyFillOut, SignError, SignLoading } from "@/components";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -40,8 +40,7 @@ export default function SignupPage() {
     [passwordNotMatch, setPasswordNotMatch] = useState<boolean>(false);
 
   const [loading, setLoading] = useState(false),
-    [signError, setSignError] = useState(false),
-    [emptBlackErr, setEmptyBlankErr] = useState(false);
+    [pushError, setPushError] = useState({ status: false, message: "" });
 
   const [otp, setOtp] = useState(Array(6).fill(""));
   const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
@@ -122,9 +121,9 @@ export default function SignupPage() {
   };
 
   // Simulate signup + email send
-  const handleSignup = async (e: React.FormEvent) => {
+  const handleSignup = (e: React.FormEvent) => {
     e.preventDefault();
-
+    setLoading(true);
     const payload = {
       firstName,
       lastName,
@@ -137,9 +136,8 @@ export default function SignupPage() {
       phoneNumber: phoneCode + phoneNumber,
     };
 
-    if (isAllCredentialsVerified()) {
-      setLoading(true);
-      await fetch(`${REST_API}/auth_create/create_account`, {
+    if (isAllCredentialsVerified())
+      fetch(`${REST_API}/auth_create/create_account`, {
         method: "post",
         headers: { "content-Type": "application/json" },
         credentials: "include",
@@ -147,37 +145,38 @@ export default function SignupPage() {
       })
         .then((response) => response.json())
         .then((res) => {
-          if (
-            res.user.user_id
+          if (res.user.user_id
             // && res.emailVerification.status === "sent"
           ) {
             setUser(res.user);
             setUserType(res.user.role);
+            setLoggedIn(true)
             // setShowModal(true);
             // setVerificationStatus("sent");
-            setLoggedIn(true)
-            router.replace(`/${res.user.role}s`);
+            router.replace(`/${res.user.role}s`)
             setLoading(false);
           }
           // else if (
           //   res.user.user_id &&
           //   res.emailVerification.status === "notsent"
           // ) {
-          //   setSignError(true);
+          //   setPushError({ status: true, message: "verify my email" });
           //   setLoading(false);
           // }
           else {
             setLoading(false);
-            setSignError(true);
+            setPushError({
+              status: true,
+              message: "There is an error creating account",
+            });
           }
-        })
-        .catch(() => {
-          setLoading(false);
-          setSignError(true);
         });
-    } else {
+    else {
+      setPushError({
+        status: true,
+        message: "please make sure to fill all box correctly",
+      });
       setLoading(false);
-      setEmptyBlankErr(true);
     }
 
     // setTimeout(() => {
@@ -217,12 +216,6 @@ export default function SignupPage() {
     }
   };
 
-  const onSignErrorRetryClick = (e: React.FormEvent) => {
-    setLoading(false);
-    setSignError(false)
-    handleSignup(e);
-  };
-
   //Handle backspace to move focus backward
   const handleKeyDown = (
     e: React.KeyboardEvent<HTMLInputElement>,
@@ -242,20 +235,21 @@ export default function SignupPage() {
   };
 
   return (
-    <section className="min-h-screen mt-16 w-full flex items-center justify-center bg-gray-50 px-6">
+<section className="min-h-screen mt-20 mb-10 w-full flex items-center justify-center bg-gray-50 px-4 md:px-6">
+
       <div className="flex flex-row justify-center items-start bg-white shadow-xl rounded-2xl overflow-hidden max-w-6xl w-full flex-wrap lg:flex-nowrap">
         {/* LEFT SIDE */}
-        <div className="bg-[#073B4C] text-white flex flex-col justify-center items-center w-full lg:w-1/2 min-h-[500px] p-8 lg:mt-16">
-          <h1 className="text-3xl font-bold mb-4">PREP CENTER</h1>
+        <div className="bg-sky-700 text-white rounded-2xl flex flex-col justify-center items-center w-full lg:w-1/2 min-h-[500px] p-8 lg:mt-16">
+          <h1 className="text-3xl font-bold mb-4">BASE</h1>
           <p className="text-xl font-semibold mb-2 text-center">
-            Learn, Unlearn & Relearn!
+            Learn. Practice .Apply
           </p>
           <p className="text-center text-gray-200 mt-4 max-w-md text-sm leading-relaxed">
-            “Prep Center provides all your learning needs — from resources to
-            mentorship. Begin your success journey today.”
+            “BASE provides all your learning needs from resources to
+            mentorship. Begin your success journey to your mastery.”
           </p>
           <div className="mt-6 flex flex-col items-center">
-            <div className="flex items-center justify-center w-14 h-14 bg-white text-[#073B4C] rounded-full font-bold text-2xl">
+            <div className="flex items-center justify-center w-14 h-14 bg-white text-sky-700 rounded-full font-bold text-2xl">
               📘
             </div>
             <p className="mt-3 text-gray-200 text-sm">
@@ -263,7 +257,7 @@ export default function SignupPage() {
             </p>
           </div>
         </div>
-
+        
         {/* RIGHT SIDE */}
         <div className="w-full lg:w-1/2 p-8 bg-white">
           <h2 className="text-2xl font-bold text-gray-800 text-center mb-6">
@@ -527,7 +521,7 @@ export default function SignupPage() {
               onClick={handleSignup}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-semibold transition-all"
             >
-              {loading ? <SignLoading /> : "Sign Up"}
+              Sign Up
             </button>
 
             <div className="text-center mt-4 text-gray-600 text-sm">
@@ -561,19 +555,6 @@ export default function SignupPage() {
         </div>
       </div>
 
-      {signError && (
-        <SignError
-          err={"unable to connect"}
-          solution={"check connection"}
-          onEditClick={() => setSignError(false)}
-          onRetryClick={onSignErrorRetryClick}
-        />
-      )}
-
-      {emptBlackErr && (
-        <SignEmptyFillOut onNoted={() => setEmptyBlankErr(false)} />
-      )}
-
       {/* 🔵 EMAIL VERIFICATION MODAL */}
       {showModal && (
         <div className="fixed inset-0 backdrop-blur-sm bg-black/40 flex items-center justify-center z-50">
@@ -595,6 +576,7 @@ export default function SignupPage() {
                 <div className="flex justify-center gap-2 mt-4">
                   {otp.map((digit, index) => (
                     <input
+                      aria-label="input"
                       key={index}
                       ref={(el) => {
                         inputsRef.current[index] = el;
