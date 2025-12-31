@@ -55,18 +55,18 @@ export default function StudentDashboard() {
   };
 
   const courseItems = [
-    { name: "Course Material", icon: BookOpen, href: "/dashboards/students/courses/material" },
-    { name: "Course Video", icon: MonitorPlay, href: "/dashboards/students/courses/video" },
-    { name: "Course Practical", icon: FlaskConical, href: "/dashboards/students/courses/practical" },
-    { name: "Course Live Session", icon: Video, href: "/dashboards/students/courses/live-session" },
-    { name: "Course Mentor", icon: UsersRound, href: "/dashboards/students/courses/mentor" },
-    { name: "Course Quiz", icon: ClipboardList, href: "/dashboards/students/courses/quiz" },
-    { name: "Course Test", icon: PenLine, href: "/dashboards/students/courses/test" },
-    { name: "Course Assignments", icon: FileText, href: "/dashboards/students/courses/assignments" },
-    { name: "Course CBT", icon: SquareCheck, href: "/dashboards/students/courses/cbt" },
-    { name: "Course Summary", icon: CircleCheck, href: "/dashboards/students/courses/summary" },
-    { name: "Course Exam", icon: GraduationCap, href: "/dashboards/students/courses/exam" },
-    { name: "Course Q&A", icon: MessageSquare, href: "/dashboards/students/courses/qna" },
+    { name: "Course Material", icon: BookOpen, href: "/students/courses/material" },
+    { name: "Course Video", icon: MonitorPlay, href: "/students/courses/video" },
+    { name: "Course Practical", icon: FlaskConical, href: "/students/courses/practical" },
+    { name: "Course Live Session", icon: Video, href: "/students/courses/live-session" },
+    { name: "Course Mentor", icon: UsersRound, href: "/students/courses/mentor" },
+    { name: "Course Quiz", icon: ClipboardList, href: "/students/courses/quiz" },
+    { name: "Course Test", icon: PenLine, href: "/students/courses/test" },
+    { name: "Course Assignments", icon: FileText, href: "/students/courses/assignments" },
+    { name: "Course CBT", icon: SquareCheck, href: "/students/courses/cbt" },
+    { name: "Course Summary", icon: CircleCheck, href: "/students/courses/summary" },
+    { name: "Course Exam", icon: GraduationCap, href: "/students/courses/exam" },
+    { name: "Course Q&A", icon: MessageSquare, href: "/students/courses/qna" },
   ];
 
   return (
