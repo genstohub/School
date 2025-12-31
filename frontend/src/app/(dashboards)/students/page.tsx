@@ -87,7 +87,7 @@ export default function StudentDashboard() {
           <Clock size={28} className="text-yellow-400 mb-3" />
           <h3 className="font-semibold text-lg">Learning Progress</h3>
           <p className="text-gray-400 text-sm mt-1">
-            Track your course completion over the last 7 days.
+            Track your course completion over the last 5 days.
           </p>
         </Link>
 
