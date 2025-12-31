@@ -49,13 +49,13 @@ export default function StudentDashboard() {
       {
         label: "Activities This Week",
         data: [3, 5, 2, 4, 3, 1],
-        backgroundColor: "#3B82F6",
+        backgroundColor: "#3B82F6", 
       },
     ],
   };
 
   const courseItems = [
-    { name: "Course Material", icon: BookOpen, href: "/students/courses/material" },
+    { name: "Course Material", icon: BookOpen, href: "/(dashboards)/students/courses/material" },
     { name: "Course Video", icon: MonitorPlay, href: "/students/courses/video" },
     { name: "Course Practical", icon: FlaskConical, href: "/students/courses/practical" },
     { name: "Course Live Session", icon: Video, href: "/students/courses/live-session" },
@@ -68,7 +68,7 @@ export default function StudentDashboard() {
     { name: "Course Exam", icon: GraduationCap, href: "/students/courses/exam" },
     { name: "Course Q&A", icon: MessageSquare, href: "/students/courses/qna" },
   ];
-
+ 
   return (
     <div className="p-4 w-full sm:p-6 lg:p-8 bg-gray-900 min-h-screen text-white space-y-6">
       {/* Greeting Card */}
@@ -122,7 +122,7 @@ export default function StudentDashboard() {
 
       {/* All Course Features */}
       <div>
-        <h2 className="text-xl font-semibold mb-4">Courses</h2>
+        <h2 className="text-xl font-semibold mb-4">Resources</h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
           {courseItems.map((item) => {
             const Icon = item.icon;
