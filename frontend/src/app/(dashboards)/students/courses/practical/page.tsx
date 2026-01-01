@@ -206,7 +206,7 @@ export default function PracticalsIndexPage() {
                   {/* Start Link (right side) */}
                   <div className="flex-shrink-0">
                     <Link
-                      href={`/dashboards/students/courses/practical/${course.code.toLowerCase()}`}
+                      href={`/students/courses/practical/${course.code.toLowerCase()}`}
                       className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition"
                       aria-label={`Open practicals for ${course.code}`}
                     >

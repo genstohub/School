@@ -55,7 +55,7 @@ export default function TestPage() {
               transition={{ duration: 0.4, delay: index * 0.1 }}
             >
               <Link
-                href={`/dashboards/students/courses/test/${course}/topics/${topic.id}`}
+                href={`/students/courses/test/${course}/topics/${topic.id}`}
                 className="block bg-white rounded-2xl shadow border border-gray-100 hover:shadow-md hover:-translate-y-1 transition-transform duration-300"
               >
                 <div className="p-6">

@@ -19,7 +19,7 @@ export default function CourseSummaryPage({
 
   const handleClose = () => {
     router.push(
-      `/dashboards/students/courses/summary/${params.course}/topics`
+      `/students/courses/summary/${params.course}/topics`
     );
   };
 

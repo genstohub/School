@@ -38,7 +38,7 @@ export default function CourseVideosPage() {
   );
 
   const handleNavigation = (courseCode: string) => {
-    router.push(`/dashboards/students/courses/video/${courseCode}`);
+    router.push(`/students/courses/video/${courseCode}`);
   };
 
   return (

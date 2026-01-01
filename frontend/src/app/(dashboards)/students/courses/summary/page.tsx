@@ -64,7 +64,7 @@ export default function CourseSummaryPage() {
             transition={{ delay: index * 0.15, duration: 0.6 }}
           >
             <Link
-              href={`/dashboards/students/courses/summary/${course.id}/topics`}
+              href={`/students/courses/summary/${course.id}/topics`}
               className="block bg-white p-6 rounded-2xl shadow-md hover:shadow-2xl border hover:border-green-500 transition-all duration-300 h-full"
             >
               <div className="flex items-center justify-between mb-4">

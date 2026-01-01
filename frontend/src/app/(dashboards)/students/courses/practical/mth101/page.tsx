@@ -82,7 +82,7 @@ export default function Mth101Practicals() {
                 </button>
 
                 <Link
-                  href={`/dashboards/students/courses/practical/mth101/practice`}
+                  href={`/students/courses/practical/mth101/practice`}
                   className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition"
                 >
                   <CheckCircle size={18} />

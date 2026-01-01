@@ -36,7 +36,7 @@ export default function AssignmentsPage() {
   const router = useRouter();
 
   const handleNavigate = (courseCode: string) => {
-    router.push(`/dashboards/students/courses/assignments/${courseCode.toLowerCase()}/topics`);
+    router.push(`/students/courses/assignments/${courseCode.toLowerCase()}/topics`);
   };
 
   return (

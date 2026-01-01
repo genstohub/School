@@ -33,7 +33,7 @@ export default function ExamsPage() {
             transition={{ delay: index * 0.15, duration: 0.5 }}
           >
             <Link
-              href={`/dashboards/students/courses/exam/${course.id}/topics`}
+              href={`/students/courses/exam/${course.id}/topics`}
               className="block bg-white p-6 rounded-2xl shadow-md hover:shadow-2xl border hover:border-blue-500 transition-all duration-300"
             >
               <div className="flex items-center gap-3 mb-3">

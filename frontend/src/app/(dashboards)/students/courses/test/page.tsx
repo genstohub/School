@@ -36,7 +36,7 @@ export default function Test() {
   const router = useRouter();
 
   const handleNavigate = (courseCode: string) => {
-    router.push(`/dashboards/students/courses/test/${courseCode.toLowerCase()}/topics`);
+    router.push(`/students/courses/test/${courseCode.toLowerCase()}/topics`);
   };
 
   return (
