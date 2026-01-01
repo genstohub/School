@@ -38,7 +38,7 @@ export default function TestDetailPage() {
 
   const handleCloseModal = () => {
     setShowSuccess(false);
-    router.push(`/dashboards/students/courses/assignments/${course}/topics`);
+    router.push(`/students/courses/assignments/${course}/topics`);
   };
 
   return (

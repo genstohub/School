@@ -40,7 +40,7 @@ export default function QnaTopicsPage({ params }: { params: { course: string } }
               transition={{ duration: 0.5, delay: index * 0.1 }}
             >
               <Link
-                href={`/dashboards/students/courses/qna/${params.course}/topics/${topic.id}`}
+                href={`/students/courses/qna/${params.course}/topics/${topic.id}`}
                 className="block bg-white border border-gray-200 rounded-2xl shadow hover:shadow-lg hover:-translate-y-1 transition-transform duration-300 p-5"
               >
                 <div className="flex items-center gap-4">

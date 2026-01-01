@@ -24,7 +24,7 @@ const TopicsPage = () => {
           {topics.map((t) => (
             <Link
               key={t.id}
-              href={`/dashboards/students/courses/quiz/${course}/topics/${t.id}`}
+              href={`/students/courses/quiz/${course}/topics/${t.id}`}
               className="block bg-white border border-gray-200 rounded-xl p-5 shadow hover:shadow-md hover:border-blue-400 transition"
             >
               <h3 className="text-lg font-semibold text-gray-800">

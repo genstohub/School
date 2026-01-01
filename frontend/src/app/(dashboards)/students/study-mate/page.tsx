@@ -63,7 +63,7 @@ export default function StudyMatePage() {
             transition={{ delay: index * 0.1, duration: 0.4 }}
           >
             <Link
-              href={`/dashboards/students/study-mate/${course.id}`}
+              href={`/students/study-mate/${course.id}`}
               className="flex flex-col items-center justify-center 
               bg-white rounded-2xl p-5
               shadow-md hover:shadow-xl border hover:border-blue-500

@@ -91,7 +91,7 @@ const LiveSessionsPage = () => {
                   <span>{session.viewers} watching</span>
                 </div>
 
-                <Link href={`/dashboards/students/courses/live-session/${session.id}`}>
+                <Link href={`/students/courses/live-session/${session.id}`}>
                   <Button className="bg-[#035b77] text-white hover:bg-[#02475c] transition">
                     Join Live
                   </Button>

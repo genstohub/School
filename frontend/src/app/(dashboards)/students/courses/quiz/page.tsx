@@ -17,7 +17,7 @@ export default function QuizCoursesPage() {
   const router = useRouter();
 
   const handleNavigate = (courseCode: string) => {
-    router.push(`/dashboards/students/courses/quiz/${courseCode.toLowerCase()}/topics`);
+    router.push(`/students/courses/quiz/${courseCode.toLowerCase()}/topics`);
   };
 
   return (

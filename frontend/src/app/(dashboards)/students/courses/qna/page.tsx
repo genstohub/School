@@ -17,7 +17,7 @@ export default function QnaCoursesPage() {
   const router = useRouter();
 
   const handleNavigate = (courseCode: string) => {
-    router.push(`/dashboards/students/courses/qna/${courseCode.toLowerCase()}/topics`);
+    router.push(`/students/courses/qna/${courseCode.toLowerCase()}/topics`);
   };
 
   return (

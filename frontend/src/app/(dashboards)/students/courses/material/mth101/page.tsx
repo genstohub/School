@@ -229,21 +229,21 @@ export default function MTH101Page() {
                 </button>
 
                 <button
-                  onClick={() => router.push("/dashboard/students/course/cbt")}
+                  onClick={() => router.push("/students/course/cbt")}
                   className="flex items-center gap-2 px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 transition text-white"
                 >
                   <Edit3 size={20} /> CBT
                 </button>
 
                 <button
-                  onClick={() => router.push("/dashboard/students/course/quiz")}
+                  onClick={() => router.push("/students/course/quiz")}
                   className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 transition text-white"
                 >
                   <FileQuestion size={20} /> Quiz
                 </button>
 
                 <button
-                  onClick={() => router.push("/dashboard/students/course/exam")}
+                  onClick={() => router.push("/students/course/exam")}
                   className="flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-700 transition text-white"
                 >
                   <ClipboardList size={20} /> Exam

@@ -96,7 +96,7 @@ export default function MTH101CBTPage() {
 
   const handleCloseResultModal = () => {
     setShowResultModal(false);
-    router.push("/dashboards/students/courses/cbt");
+    router.push("/students/courses/cbt");
   };
 
   const handleOpenCorrections = () => setShowCorrectionsModal(true);

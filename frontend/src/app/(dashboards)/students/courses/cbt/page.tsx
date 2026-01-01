@@ -190,7 +190,7 @@ export default function CBTPage() {
                   Time left: {timeLeft}
                 </p>
                 <Link
-                  href={`/dashboards/students/courses/cbt/${course.code}`}
+                  href={`/students/courses/cbt/${course.code}`}
                   className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-lg transition"
                 >
                   Start
