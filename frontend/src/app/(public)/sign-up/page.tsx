@@ -1,9 +1,8 @@
-
 "use client";
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { FaGoogle, FaXTwitter } from "react-icons/fa6";
+import Image from "next/image";
 import { allCourses, countryCode, REST_API } from "@/constants";
 import { useLoggedIn, useUser, useUserType } from "@/hooks";
 import { countries, schools } from "@/constants";
@@ -87,7 +86,6 @@ export default function SignupPage() {
     }
   }, [password1, password2, validations]);
 
-  // ⏱ Countdown timer for resend
   useEffect(() => {
     let countdown: NodeJS.Timeout;
     if (showModal && verificationStatus === "sent" && timer > 0) {
@@ -96,7 +94,6 @@ export default function SignupPage() {
     return () => clearInterval(countdown);
   }, [showModal, verificationStatus, timer]);
 
-  // Auto-focus first OTP box when modal opens
   useEffect(() => {
     if (showModal && verificationStatus === "sent") {
       setTimeout(() => {
@@ -105,7 +102,6 @@ export default function SignupPage() {
     }
   }, [showModal, verificationStatus]);
 
-  // Validating all credential to insure none is null
   const isAllCredentialsVerified = () => {
     if (
       firstName.length < 3 ||
@@ -120,7 +116,6 @@ export default function SignupPage() {
     } else return true;
   };
 
-  // Simulate signup + email send
   const handleSignup = (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -145,25 +140,13 @@ export default function SignupPage() {
       })
         .then((response) => response.json())
         .then((res) => {
-          if (res.user.user_id
-            // && res.emailVerification.status === "sent"
-          ) {
+          if (res.user?.user_id) {
             setUser(res.user);
             setUserType(res.user.role);
-            setLoggedIn(true)
-            // setShowModal(true);
-            // setVerificationStatus("sent");
-            router.replace(`/${res.user.role}s`)
+            setLoggedIn(true);
+            router.replace(`/${res.user.role}s`);
             setLoading(false);
-          }
-          // else if (
-          //   res.user.user_id &&
-          //   res.emailVerification.status === "notsent"
-          // ) {
-          //   setPushError({ status: true, message: "verify my email" });
-          //   setLoading(false);
-          // }
-          else {
+          } else {
             setLoading(false);
             setPushError({
               status: true,
@@ -178,11 +161,6 @@ export default function SignupPage() {
       });
       setLoading(false);
     }
-
-    // setTimeout(() => {
-    //   setVerificationStatus("sent");
-    //   setTimer(60);
-    // }, 2000);
   };
 
   const onPhoneNumberInput = (no: string) => {
@@ -194,19 +172,16 @@ export default function SignupPage() {
     setPhoneCode(e);
   };
 
-  // Handle OTP input + backspace navigation + auto verification
   const handleOtpChange = (value: string, index: number) => {
     if (/^[0-9]?$/.test(value)) {
       const newOtp = [...otp];
       newOtp[index] = value;
       setOtp(newOtp);
 
-      // Move to next input
       if (value && index < 5) {
         inputsRef.current[index + 1]?.focus();
       }
 
-      // Auto verify when full
       if (newOtp.join("").length === 6) {
         setVerificationStatus("verified");
         setTimeout(() => {
@@ -216,7 +191,6 @@ export default function SignupPage() {
     }
   };
 
-  //Handle backspace to move focus backward
   const handleKeyDown = (
     e: React.KeyboardEvent<HTMLInputElement>,
     index: number
@@ -226,7 +200,6 @@ export default function SignupPage() {
     }
   };
 
-  // Resend logic
   const handleResend = () => {
     setTimer(60);
     setOtp(Array(6).fill(""));
@@ -234,185 +207,136 @@ export default function SignupPage() {
     inputsRef.current[0]?.focus();
   };
 
-  return (
-<section className="min-h-screen mt-20 mb-10 w-full flex items-center justify-center bg-gray-50 px-4 md:px-6">
+  /* OAuth handlers */
+  const handleGoogleSignup = () => { window.location.href = `${REST_API}/auth/google`; };
+  const handleAppleSignup = () => { window.location.href = `${REST_API}/auth/apple`; };
 
-      <div className="flex flex-row justify-center items-start bg-white shadow-xl rounded-2xl overflow-hidden max-w-6xl w-full flex-wrap lg:flex-nowrap">
-        {/* LEFT SIDE */}
-        <div className="bg-sky-700 text-white rounded-2xl flex flex-col justify-center items-center w-full lg:w-1/2 min-h-[500px] p-8 lg:mt-16">
-          <h1 className="text-3xl font-bold mb-4">BASE</h1>
-          <p className="text-xl font-semibold mb-2 text-center">
-            Learn. Practice .Apply
+  return (
+    <section className="min-h-screen pt-24 pb-12 w-full flex items-center justify-center bg-gray-50 px-4">
+      <div className="flex flex-col lg:flex-row justify-center items-stretch bg-white shadow-2xl rounded-3xl overflow-hidden max-w-6xl w-full">
+        
+        {/* LEFT SIDE (Hidden on small mobile if needed, but here styled for all) */}
+        <div className="bg-sky-700 text-white flex flex-col justify-center items-center w-full lg:w-5/12 p-10">
+          <h1 className="text-4xl font-black mb-4 tracking-tighter">BASE</h1>
+          <p className="text-xl font-medium mb-2 text-center">Learn. Practice. Apply</p>
+          <p className="text-center text-sky-100 mt-4 max-w-xs text-sm leading-relaxed opacity-90">
+            “BASE provides all your learning needs from resources to mentorship. Begin your success journey to your mastery.”
           </p>
-          <p className="text-center text-gray-200 mt-4 max-w-md text-sm leading-relaxed">
-            “BASE provides all your learning needs from resources to
-            mentorship. Begin your success journey to your mastery.”
-          </p>
-          <div className="mt-6 flex flex-col items-center">
-            <div className="flex items-center justify-center w-14 h-14 bg-white text-sky-700 rounded-full font-bold text-2xl">
+          <div className="mt-8 flex flex-col items-center">
+            <div className="flex items-center justify-center w-16 h-16 bg-white/10 backdrop-blur-md rounded-2xl shadow-inner text-3xl">
               📘
             </div>
-            <p className="mt-3 text-gray-200 text-sm">
-              Your Learning Journey Starts Here
+            <p className="mt-4 text-sky-100 text-xs font-semibold uppercase tracking-widest">
+              Start Your Journey
             </p>
           </div>
         </div>
         
         {/* RIGHT SIDE */}
-        <div className="w-full lg:w-1/2 p-8 bg-white">
-          <h2 className="text-2xl font-bold text-gray-800 text-center mb-6">
-            Create Your Account
-          </h2>
+        <div className="w-full lg:w-7/12 p-6 md:p-12 bg-white">
+          <h2 className="text-3xl font-extrabold text-gray-900 text-center mb-2">Create Account</h2>
+          <p className="text-center text-gray-500 mb-8 text-sm">Join thousands of students globally</p>
 
-          <form
-            // onSubmit={handleSignup}
-            className="space-y-4"
-          >
+          <form onSubmit={(e) => e.preventDefault()} className="space-y-5">
             <div>
-              <label className="block text-sm font-medium mb-1">Name</label>
-              <input
-                type="text"
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                required
-                placeholder="first name"
-                className="w-1/2 m-2 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
-              />
-              <input
-                type="text"
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-                required
-                placeholder="last name"
-                className="w-1/2 m-2 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
-              />
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Full Name</label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <input
+                  type="text"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  required
+                  placeholder="First name"
+                  className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-sky-500 outline-none transition-all"
+                />
+                <input
+                  type="text"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  required
+                  placeholder="Last name"
+                  className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-sky-500 outline-none transition-all"
+                />
+              </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">Email</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Email Address</label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 placeholder="example@gmail.com"
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-sky-500 outline-none transition-all"
               />
             </div>
 
-            <div className="p-4">
-              <label className="block text-sm font-medium mb-1">Sex</label>
-
-              <div className="flex flex-row gap-5 ml-10">
-                <div className="flex items-center gap-1">
-                  <label className="font-medium text-xs" htmlFor="male">
-                    Male
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Sex</label>
+              <div className="flex items-center gap-6 px-2">
+                {["male", "female", "custom"].map((option) => (
+                  <label key={option} className="flex items-center gap-2 cursor-pointer group">
+                    <input
+                      onChange={(e) => setSex(e.target.value)}
+                      value={option}
+                      type="radio"
+                      required
+                      name="sexSelection"
+                      className="w-4 h-4 accent-sky-600"
+                    />
+                    <span className="text-sm font-medium text-gray-600 capitalize group-hover:text-sky-700">{option}</span>
                   </label>
-                  <input
-                    onChange={(e) => setSex(e.target.value)}
-                    value={"male"}
-                    type="radio"
-                    required
-                    name="sexSelection"
-                    id="male"
-                    className="w-5 h-5 accent-emerald-500"
-                  />
-                </div>
-                <div className="flex items-center gap-1">
-                  <label className="font-medium text-xs" htmlFor="female">
-                    Female
-                  </label>
-                  <input
-                    onChange={(e) => setSex(e.target.value)}
-                    value={"female"}
-                    type="radio"
-                    name="sexSelection"
-                    id="female"
-                    required
-                    className="w-5 h-5 accent-emerald-500"
-                  />
-                </div>
-                <div className="flex items-center gap-1">
-                  <label className="font-medium text-xs" htmlFor="custom">
-                    Custom
-                  </label>
-                  <input
-                    onChange={(e) => setSex(e.target.value)}
-                    value={"custom"}
-                    type="radio"
-                    name="sexSelection"
-                    id="custom"
-                    required
-                    className="w-5 h-5 accent-emerald-500"
-                  />
-                </div>
+                ))}
               </div>
             </div>
 
-            <div className="flex flex-row gap-1">
-              <div className="p-4 w-8/12">
-                <label className="block text-sm font-medium mb-1">
-                  Select School
-                </label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">School</label>
                 <select
                   onChange={(e) => setSchool(e.target.value)}
-                  className="w-full  border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-sky-500 outline-none bg-white"
                 >
                   {schools.map((e, i) => (
-                    <option key={i - 1} value={JSON.stringify(e)}>
-                      {e.name}
-                    </option>
+                    <option key={i} value={JSON.stringify(e)}>{e.name}</option>
                   ))}
                 </select>
               </div>
-
-              <div className="p-4 w-6/12">
-                <label className="block text-sm font-medium mb-1">
-                  Select Country
-                </label>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Country</label>
                 <select
                   onChange={(e) => setCountry(e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-sky-500 outline-none bg-white"
                 >
                   {countries.map((country, i) => (
-                    <option key={i - 1} value={country.code}>
-                      {country.name}
-                    </option>
+                    <option key={i} value={country.code}>{country.name}</option>
                   ))}
                 </select>
               </div>
             </div>
 
-            <div className="p-4">
-              <label className="block text-sm font-medium mb-1">
-                Select Department
-              </label>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Department</label>
               <select
                 onChange={(e) => setDepartment(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-sky-500 outline-none bg-white"
               >
                 {allCourses.map((e, i) => (
-                  <option key={i - 1} value={e}>
-                    {e}
-                  </option>
+                  <option key={i} value={e}>{e}</option>
                 ))}
               </select>
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">
-                Phone number
-              </label>
-              <div className="border border-gray-300 outline-none rounded-md w-8/12 flex flex-nowrap">
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Phone Number</label>
+              <div className="flex gap-2 border border-gray-300 rounded-xl px-2 overflow-hidden focus-within:ring-2 focus-within:ring-sky-500 transition-all">
                 <select
                   onChange={(e) => onPhoneCodeSelect(e.target.value)}
-                  className="w-28 border-none px-1 py-2 outline-none"
+                  className="w-24 border-none py-3 outline-none bg-transparent font-medium text-sm"
                 >
                   {countryCode.map((e, i) => (
-                    <option key={i - 1} value={e.phoneCode}>
-                      {e.code}
-                      {`(${e.phoneCode})`}
-                    </option>
+                    <option key={i} value={e.phoneCode}>{e.code} ({e.phoneCode})</option>
                   ))}
                 </select>
                 <input
@@ -422,199 +346,136 @@ export default function SignupPage() {
                   onChange={(e) => onPhoneNumberInput(e.target.value)}
                   required
                   placeholder="0099028899"
-                  className="w-11/12 gray-300 rounded-lg px-3 py-2 outline-none font-normal "
+                  className="w-full py-3 outline-none font-normal"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">Password</label>
-              <input
-                type="password"
-                value={password1}
-                onChange={(e) => setPassword1(e.target.value)}
-                required
-                placeholder="At least 8 chars, one capital & number"
-                className={
-                  passwordNotMatch
-                    ? "w-full border border-red-600 rounded-lg px-3 py-2  outline-none"
-                    : "w-full border border-gray-300 rounded-lg px-3 py-2 outline-none"
-                }
-              />
-              <input
-                type="password"
-                value={password2}
-                onChange={(e) => setPassword2(e.target.value)}
-                required
-                placeholder="confirm password"
-                className={
-                  passwordNotMatch
-                    ? "w-full border border-red-600 rounded-lg px-3 py-2  outline-none mt-2"
-                    : "w-full border border-gray-300 rounded-lg px-3 py-2 outline-none mt-2"
-                }
-              />
-              {passwordNotMatch && (
-                <p className="font-black text-xs text-red-600 p-2">
-                  password not matched
-                </p>
-              )}
-              <ul className="mt-2 text-sm space-y-1">
-                <li
-                  className={
-                    validations.length
-                      ? "text-green-600 flex gap-2"
-                      : "text-gray-500 flex gap-2"
-                  }
-                >
-                  <input
-                    type="checkbox"
-                    onChange={() => {}}
-                    name="lengthValidation"
-                    id="lengthValidation"
-                    checked={validations.length}
-                    className="passwordVerificationCheckbox"
-                  />
-                  {/* ✔ */}
-                  At least 8 characters
-                </li>
-                <li
-                  className={
-                    validations.uppercase
-                      ? "text-green-600 flex gap-2"
-                      : "text-gray-500 flex gap-2"
-                  }
-                >
-                  <input
-                    type="checkbox"
-                    onChange={() => {}}
-                    name="lengthValidation"
-                    id="lengthValidation"
-                    checked={validations.uppercase}
-                    className="passwordVerificationCheckbox"
-                  />
-                  {/* ✔ */}
-                  One uppercase letter
-                </li>
-                <li
-                  className={
-                    validations.number
-                      ? "text-green-600 flex gap-2"
-                      : "text-gray-500 flex gap-2"
-                  }
-                >
-                  <input
-                    type="checkbox"
-                    onChange={() => {}}
-                    name="lengthValidation"
-                    id="lengthValidation"
-                    checked={validations.number}
-                    className="passwordVerificationCheckbox"
-                  />
-                  {/* ✔ */}
-                  One number
-                </li>
-              </ul>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Secure Password</label>
+              <div className="space-y-3">
+                <input
+                  type="password"
+                  value={password1}
+                  onChange={(e) => setPassword1(e.target.value)}
+                  required
+                  placeholder="Create password"
+                  className={`w-full border rounded-xl px-4 py-3 outline-none transition-all ${passwordNotMatch ? 'border-red-500' : 'border-gray-300 focus:ring-2 focus:ring-sky-500'}`}
+                />
+                <input
+                  type="password"
+                  value={password2}
+                  onChange={(e) => setPassword2(e.target.value)}
+                  required
+                  placeholder="Confirm password"
+                  className={`w-full border rounded-xl px-4 py-3 outline-none transition-all ${passwordNotMatch ? 'border-red-500' : 'border-gray-300 focus:ring-2 focus:ring-sky-500'}`}
+                />
+              </div>
+              
+              {passwordNotMatch && <p className="text-xs text-red-600 mt-1 font-bold">Passwords do not match</p>}
+              
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-3">
+                {[
+                  { label: "8+ characters", met: validations.length },
+                  { label: "Uppercase", met: validations.uppercase },
+                  { label: "One number", met: validations.number }
+                ].map((rule, i) => (
+                  <div key={i} className={`flex items-center gap-2 text-xs font-medium ${rule.met ? 'text-green-600' : 'text-gray-400'}`}>
+                    <div className={`w-3 h-3 rounded-full border flex items-center justify-center ${rule.met ? 'bg-green-100 border-green-500' : 'border-gray-300'}`}>
+                      {rule.met && "✓"}
+                    </div>
+                    {rule.label}
+                  </div>
+                ))}
+              </div>
             </div>
 
             <button
-              // type="submit"
               onClick={handleSignup}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-semibold transition-all"
+              disabled={loading}
+              className="w-full bg-sky-700 hover:bg-sky-800 text-white py-4 rounded-xl font-bold text-lg transition-all shadow-lg active:scale-[0.98] disabled:opacity-50"
             >
-              Sign Up
+              {loading ? "Creating Account..." : "Sign Up"}
             </button>
 
-            <div className="text-center mt-4 text-gray-600 text-sm">
-              or sign up with
-              <div className="flex justify-center gap-4 mt-2">
-                <button
-                  type="button"
-                  className="border px-3 py-2 rounded-lg hover:bg-gray-100 flex items-center gap-2"
-                >
-                  <FaGoogle className="text-red-500" />
-                </button>
-                <button
-                  type="button"
-                  className="border px-3 py-2 rounded-lg hover:bg-gray-100 flex items-center gap-2"
-                >
-                  <FaXTwitter className="text-gray-800" />
-                </button>
-              </div>
+            <div className="relative py-4">
+              <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-gray-200"></span></div>
+              <div className="relative flex justify-center text-xs uppercase"><span className="bg-white px-4 text-gray-400 font-bold tracking-widest">or continue with</span></div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <button
+                type="button"
+                onClick={handleGoogleSignup}
+                className="flex items-center justify-center gap-3 border border-gray-300 px-4 py-3 rounded-xl hover:bg-gray-50 transition-all font-semibold text-gray-700 shadow-sm"
+              >
+                <Image src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" width={18} height={18} />
+                Google
+              </button>
+              <button
+                type="button"
+                onClick={handleAppleSignup}
+                className="flex items-center justify-center gap-3 border border-gray-300 px-4 py-3 rounded-xl hover:bg-gray-50 transition-all font-semibold text-gray-700 shadow-sm"
+              >
+                <Image src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" alt="Apple" width={16} height={16} />
+                Apple
+              </button>
             </div>
           </form>
 
-          <p className="text-center text-sm text-gray-600 mt-4">
+          <p className="text-center text-sm text-gray-500 mt-10">
             Already have an account?{" "}
-            <button
-              onClick={() => router.push("/signin")}
-              className="text-blue-600 hover:underline"
-            >
-              Login
-            </button>
+            <button onClick={() => router.push("/signin")} className="text-sky-700 font-bold hover:underline">Login</button>
           </p>
         </div>
       </div>
 
       {/* 🔵 EMAIL VERIFICATION MODAL */}
       {showModal && (
-        <div className="fixed inset-0 backdrop-blur-sm bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-lg w-[90%] max-w-md p-6 text-center">
+        <div className="fixed inset-0 backdrop-blur-md bg-black/60 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-8 text-center animate-in fade-in zoom-in duration-300">
             {verificationStatus === "sending" && (
-              <>
-                <p className="text-gray-700 text-lg font-semibold">
-                  Sending Verification Email...
-                </p>
-                <div className="mt-4 animate-spin border-4 border-blue-500 border-t-transparent w-10 h-10 rounded-full mx-auto"></div>
-              </>
+              <div className="py-4">
+                <p className="text-gray-900 text-xl font-bold">Verifying Details...</p>
+                <div className="mt-6 animate-spin border-4 border-sky-600 border-t-transparent w-12 h-12 rounded-full mx-auto"></div>
+              </div>
             )}
 
             {verificationStatus === "sent" && (
               <>
-                <p className="text-gray-700 text-lg font-semibold">
-                  Enter 6-digit verification code
-                </p>
-                <div className="flex justify-center gap-2 mt-4">
+                <div className="text-4xl mb-4">📧</div>
+                <p className="text-gray-900 text-xl font-bold">Check your email</p>
+                <p className="text-gray-500 text-sm mt-2 mb-6">Enter the 6-digit code sent to your inbox</p>
+                <div className="flex justify-center gap-2">
                   {otp.map((digit, index) => (
                     <input
-                      aria-label="input"
                       key={index}
-                      ref={(el) => {
-                        inputsRef.current[index] = el;
-                      }}
+                      ref={(el) => { inputsRef.current[index] = el; }}
                       type="text"
                       maxLength={1}
                       value={digit}
                       onChange={(e) => handleOtpChange(e.target.value, index)}
                       onKeyDown={(e) => handleKeyDown(e, index)}
-                      className="w-10 h-10 border text-center text-lg rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
+                      className="w-11 h-12 border border-gray-300 text-center text-xl font-bold rounded-xl focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none transition-all"
                     />
                   ))}
                 </div>
-
-                <p className="text-sm text-gray-500 mt-3">
+                <div className="mt-6">
                   {timer > 0 ? (
-                    `Resend available in ${timer}s`
+                    <p className="text-xs text-gray-400">Resend code in <span className="text-sky-600 font-bold">{timer}s</span></p>
                   ) : (
-                    <button
-                      onClick={handleResend}
-                      className="text-blue-600 font-medium text-xs"
-                    >
-                      Resend Code
-                    </button>
+                    <button onClick={handleResend} className="text-sky-700 font-bold text-sm hover:underline">Resend Code</button>
                   )}
-                </p>
+                </div>
               </>
             )}
 
             {verificationStatus === "verified" && (
-              <>
-                <p className="text-green-600 text-lg font-semibold">
-                  Email Verified Successfully!
-                </p>
-                <p className="text-gray-500 text-sm mt-2">
-                  Redirecting to your dashboard...
-                </p>
-              </>
+              <div className="py-4">
+                <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl font-bold">✓</div>
+                <p className="text-gray-900 text-2xl font-bold">Verified!</p>
+                <p className="text-gray-500 mt-2">Redirecting you to dashboard...</p>
+              </div>
             )}
           </div>
         </div>
