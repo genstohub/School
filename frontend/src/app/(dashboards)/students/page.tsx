@@ -81,7 +81,7 @@ export default function StudentDashboard() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Learning Progress */}
         <Link
-          href="/dashboards/students/progress"
+          href="/students/progress"
           className="bg-gray-800 rounded-2xl p-5 flex flex-col items-start hover:bg-gray-700 transition shadow-md"
         >
           <Clock size={28} className="text-yellow-400 mb-3" />
@@ -93,7 +93,7 @@ export default function StudentDashboard() {
 
         {/* Activities Chart */}
         <Link
-          href="/dashboards/students/activities"
+          href="/students/activities"
           className="bg-gray-800 rounded-2xl p-5 hover:bg-gray-700 transition shadow-md"
         >
           <h3 className="font-semibold text-lg mb-3 flex items-center gap-2">
@@ -109,7 +109,7 @@ export default function StudentDashboard() {
 
         {/* Top Students */}
         <Link
-          href="/dashboards/students/top-students"
+          href="/students/top-students"
           className="bg-gray-800 rounded-2xl p-5 flex flex-col items-start hover:bg-gray-700 transition shadow-md"
         >
           <Users size={28} className="text-purple-400 mb-3" />
