@@ -25,15 +25,15 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
   const pathname = usePathname();
 
   const navItems = [
-    { name: "Dashboard", href: "/dashboards/students", icon: Home },
-    { name: "Courses", href: "/dashboards/students/courses", icon: BookOpen },
-    { name: "Live Sessions", href: "/dashboards/students/live", icon: Video },
-    { name: "Community", href: "/dashboards/students/community", icon: Users },
-    { name: "Study Mate", href: "/dashboards/students/study-mate", icon: Group },
-    { name: "Chat", href: "/dashboards/students/chat", icon: MessageSquare },
-    { name: "BookMark", href: "/dashboard/students/bookmark", icon: Bookmark },
-    { name: "Support", href: "/dashboards/students/support", icon: LifeBuoy },
-     { name: "Settings", href: "/dashboards/students/settings", icon: Settings },
+    { name: "Dashboard", href: "/students", icon: Home },
+    { name: "Courses", href: "/students/courses", icon: BookOpen },
+    { name: "Live Sessions", href: "/students/live", icon: Video },
+    { name: "Community", href: "/students/community", icon: Users },
+    { name: "Study Mate", href: "/students/study-mate", icon: Group },
+    { name: "Chat", href: "/students/chat", icon: MessageSquare },
+    { name: "BookMark", href: "/students/bookmark", icon: Bookmark },
+    { name: "Support", href: "/students/support", icon: LifeBuoy },
+     { name: "Settings", href: "/students/settings", icon: Settings },
   ];
 
   return (
