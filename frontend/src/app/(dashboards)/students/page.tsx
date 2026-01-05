@@ -109,7 +109,7 @@ export default function StudentDashboard() {
 
         {/* Top Students */}
         <Link
-          href="/students/top-students"
+          href="/students/top-student"
           className="bg-gray-800 rounded-2xl p-5 flex flex-col items-start hover:bg-gray-700 transition shadow-md"
         >
           <Users size={28} className="text-purple-400 mb-3" />
