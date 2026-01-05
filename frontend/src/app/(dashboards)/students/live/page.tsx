@@ -1,173 +1,93 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { 
-  Send, Users, MessageSquare, Mic, MicOff, 
-  Hand, ArrowLeft, Loader2 
+  Video, Calendar, Clock, User, ArrowRight, 
+  PlayCircle, Search, Filter 
 } from "lucide-react";
 import Link from "next/link";
 
-// --- Define the shape of your session data ---
-interface SessionData {
+interface LiveSession {
   id: string;
   title: string;
   tutor: string;
-  description?: string;
-  streamUrl?: string;
+  time: string;
+  status: "live" | "scheduled";
+  studentsJoined?: number;
 }
 
-export default function LiveClassroom() {
-  const [activeTab, setActiveTab] = useState<"chat" | "qa">("chat");
-  const [isMicOn, setIsMicOn] = useState(false);
-  const [handRaised, setHandRaised] = useState(false);
-  const [message, setMessage] = useState("");
-  
-  // Use the interface instead of 'any'
-  const [sessionData, setSessionData] = useState<SessionData | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchLiveDetails() {
-      try {
-        setLoading(true);
-        const res = await fetch("/api/students/live-sessions/current"); 
-        if (!res.ok) throw new Error("Failed to fetch");
-        
-        const data: SessionData = await res.json();
-        setSessionData(data);
-      } catch (err) {
-        // Fallback for your FE development
-        setSessionData({ 
-          id: "curr-01",
-          title: "Organic Chemistry: Carbon Bonds", 
-          tutor: "Dr. Sarah" 
-        });
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchLiveDetails();
-  }, []);
-
-  const handleRaiseHand = () => {
-    setHandRaised(!handRaised);
-  };
-
-  if (loading) {
-    return (
-      <div className="h-screen bg-gray-950 flex items-center justify-center">
-        <Loader2 className="animate-spin text-blue-500" />
-      </div>
-    );
-  }
+export default function LiveSessionsDashboard() {
+  const [sessions] = useState<LiveSession[]>([
+    { id: "chm-101", title: "Organic Chemistry: Carbon Bonds", tutor: "Dr. Sarah", time: "Now", status: "live", studentsJoined: 142 },
+    { id: "mth-102", title: "Advanced Calculus II", tutor: "Prof. Benson", time: "2:00 PM", status: "scheduled" },
+    { id: "phy-101", title: "Quantum Physics Introduction", tutor: "Dr. Ojo", time: "4:30 PM", status: "scheduled" },
+  ]);
 
   return (
-    <div className="h-screen bg-gray-950 text-white flex flex-col overflow-hidden">
-      {/* Header */}
-      <div className="bg-gray-900 border-b border-gray-800 p-4 flex justify-between items-center">
-        <Link href="/students/live-session" className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors">
-          <ArrowLeft size={20} /> 
-          <span className="text-sm">Leave Class</span>
-        </Link>
-        
-        <h2 className="font-bold truncate px-4">{sessionData?.title}</h2>
-        
-        <div className="flex items-center gap-3">
-           <div className="bg-red-500 w-2 h-2 rounded-full animate-pulse" />
-           <span className="text-xs font-bold uppercase tracking-wider">Live</span>
-        </div>
-      </div>
+    <div className="min-h-screen bg-gray-950 text-white p-6 md:p-10">
+      <div className="max-w-6xl mx-auto">
+        <header className="mb-10">
+          <h1 className="text-4xl font-black mb-2 tracking-tight">Virtual Classrooms</h1>
+          <p className="text-gray-500 font-medium">Join ongoing live classes or set reminders for upcoming ones.</p>
+        </header>
 
-      <div className="flex flex-1 overflow-hidden">
-        {/* Main Player Section */}
-        <div className="flex-1 flex flex-col relative bg-black">
-          <div className="flex-1 flex items-center justify-center">
-            {/* VIDEO STREAM CONTAINER */}
-            <div className="text-center">
-              <p className="text-gray-600 italic">Streaming Interface Connected...</p>
-              <p className="text-gray-800 text-xs mt-2 uppercase tracking-tighter">
-                Session ID: {sessionData?.id}
-              </p>
-            </div>
+        {/* Section: Live Now */}
+        <section className="mb-12">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="bg-red-500 w-2 h-2 rounded-full animate-pulse" />
+            <h2 className="text-xs font-black uppercase tracking-widest text-red-500">Happening Now</h2>
           </div>
-
-          {/* Instructor Interaction Controls */}
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-4 bg-gray-900/80 backdrop-blur-xl p-4 rounded-2xl border border-white/10 shadow-2xl">
-            <button 
-              onClick={() => setIsMicOn(!isMicOn)}
-              className={`p-4 rounded-xl transition-all ${isMicOn ? 'bg-green-600 shadow-[0_0_15px_rgba(22,163,74,0.4)]' : 'bg-gray-700 hover:bg-gray-600'}`}
-              title={isMicOn ? "Mute Microphone" : "Unmute to Talk"}
-            >
-              {isMicOn ? <Mic size={24} /> : <MicOff size={24} />}
-            </button>
-
-            <button 
-              onClick={handleRaiseHand}
-              className={`flex items-center gap-2 px-6 py-4 rounded-xl font-bold transition-all ${handRaised ? 'bg-yellow-500 text-black shadow-[0_0_15px_rgba(234,179,8,0.4)]' : 'bg-blue-600 text-white hover:bg-blue-500'}`}
-            >
-              <Hand size={20} />
-              {handRaised ? "Hand Raised" : "Ask to Speak"}
-            </button>
-          </div>
-        </div>
-
-        {/* Sidebar: Chat & Questions */}
-        <div className="w-96 bg-gray-900 border-l border-gray-800 flex flex-col shadow-2xl">
-          <div className="flex border-b border-gray-800">
-            <button 
-              onClick={() => setActiveTab("chat")}
-              className={`flex-1 p-4 text-xs font-bold uppercase tracking-widest transition-colors ${activeTab === 'chat' ? 'border-b-2 border-blue-500 text-blue-500' : 'text-gray-500 hover:text-gray-300'}`}
-            >
-              Live Chat
-            </button>
-            <button 
-              onClick={() => setActiveTab("qa")}
-              className={`flex-1 p-4 text-xs font-bold uppercase tracking-widest transition-colors ${activeTab === 'qa' ? 'border-b-2 border-blue-500 text-blue-500' : 'text-gray-500 hover:text-gray-300'}`}
-            >
-              Q&A
-            </button>
-          </div>
-
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
-            {activeTab === "chat" ? (
-              <div className="space-y-4">
-                <div className="text-sm bg-gray-800/50 p-3 rounded-lg border border-gray-700/50">
-                  <span className="text-blue-400 font-bold block mb-1">Student John</span>
-                  <p className="text-gray-300">Hello everyone!</p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {sessions.filter(s => s.status === "live").map(session => (
+              <div key={session.id} className="bg-gray-900 border border-white/10 rounded-[2rem] p-6 relative overflow-hidden group">
+                <div className="absolute top-0 right-0 p-6">
+                    <Video className="text-red-500/20 group-hover:text-red-500/40 transition-colors" size={80} />
+                </div>
+                
+                <div className="relative z-10">
+                  <span className="bg-red-500 text-white text-[10px] font-black px-3 py-1 rounded-full uppercase">Live</span>
+                  <h3 className="text-2xl font-bold mt-4 mb-2">{session.title}</h3>
+                  <div className="flex items-center gap-4 text-gray-400 text-sm mb-6">
+                    <span className="flex items-center gap-1"><User size={14}/> {session.tutor}</span>
+                    <span className="flex items-center gap-1 font-bold text-blue-500">{session.studentsJoined} Students joined</span>
+                  </div>
+                  
+                  <Link href={`/students/live/${session.id}`} className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-xl shadow-blue-900/20">
+                    Join Classroom <ArrowRight size={18} />
+                  </Link>
                 </div>
               </div>
-            ) : (
-              <div className="space-y-4">
-                 <p className="text-[10px] text-gray-500 uppercase font-bold text-center tracking-widest">Formal Question Queue</p>
-                 <div className="bg-blue-600/10 border border-blue-500/20 p-3 rounded-lg">
-                    <span className="text-xs text-blue-400 font-bold">Question from Sarah:</span>
-                    <p className="text-sm mt-1 italic text-gray-200">
-                      &quot;How does the catalyst affect the carbon bond?&quot;
-                    </p>
-                 </div>
-              </div>
-            )}
+            ))}
+          </div>
+        </section>
+
+        {/* Section: Schedule */}
+        <section>
+          <div className="flex items-center gap-3 mb-6">
+            <Calendar className="text-gray-500" size={18} />
+            <h2 className="text-xs font-black uppercase tracking-widest text-gray-500">Upcoming Schedule</h2>
           </div>
 
-          {/* Input Area */}
-          <div className="p-4 border-t border-gray-800 bg-gray-900">
-            <div className="relative">
-              <input 
-                type="text" 
-                placeholder={activeTab === "chat" ? "Type a message..." : "Ask a formal question..."}
-                className="w-full bg-gray-800 rounded-xl py-3 pl-4 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 border border-transparent transition-all"
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-              />
-              <button 
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-blue-500 p-2 hover:text-blue-400 transition-colors"
-                aria-label="Send message"
-              >
-                <Send size={18} />
-              </button>
-            </div>
+          <div className="space-y-3">
+            {sessions.filter(s => s.status === "scheduled").map(session => (
+              <div key={session.id} className="bg-gray-900/50 border border-gray-800 p-5 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 hover:border-gray-700 transition-colors">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-gray-800 rounded-xl flex items-center justify-center text-gray-500">
+                    <Clock size={24} />
+                  </div>
+                  <div>
+                    <h4 className="font-bold">{session.title}</h4>
+                    <p className="text-xs text-gray-500">{session.tutor} • Starts at {session.time}</p>
+                  </div>
+                </div>
+                <button className="bg-gray-800 hover:bg-gray-700 text-xs font-bold px-6 py-3 rounded-lg transition-colors uppercase tracking-widest">
+                  Set Reminder
+                </button>
+              </div>
+            ))}
           </div>
-        </div>
+        </section>
       </div>
     </div>
   );
