@@ -9,13 +9,12 @@ import {
   Users, 
   Globe,
   Loader2,
-  Trophy,
   MoreHorizontal,
   UserPlus,
   UserCheck,
   Video,
   Home,
-  Bell
+  X
 } from "lucide-react";
 import { useUser } from "@/hooks";
 import Link from "next/link";
@@ -56,9 +55,13 @@ interface ActiveStudent {
 export default function CommunityPage() {
   const { user } = useUser() as { user: UserProfile | null };
   const pathname = usePathname();
+  
+  // States
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [newPost, setNewPost] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
 
   useEffect(() => {
     async function fetchFeed() {
@@ -97,6 +100,32 @@ export default function CommunityPage() {
     fetchFeed();
   }, []);
 
+  // --- Handlers ---
+  const handlePost = async () => {
+    if (!newPost.trim()) return;
+
+    const postObj: Post = {
+      id: Math.random().toString(36).substr(2, 9),
+      author: {
+        name: `${user?.first_name || "Me"} ${user?.last_name || ""}`,
+        avatar: "",
+        role: "Student",
+        isFollowing: false
+      },
+      content: newPost,
+      likes: 0,
+      comments: 0,
+      hasLiked: false,
+      timestamp: "Just now",
+      tags: ["General"]
+    };
+
+    setPosts([postObj, ...posts]);
+    setNewPost("");
+    
+    // API Call: await fetch('/api/community/post', { method: 'POST', body: JSON.stringify({ content: newPost }) })
+  };
+
   const handleLike = (postId: string) => {
     setPosts(prev => prev.map(post => {
       if (post.id === postId) {
@@ -109,6 +138,11 @@ export default function CommunityPage() {
       return post;
     }));
   };
+
+  const filteredPosts = posts.filter(p => 
+    p.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    p.author.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100 p-4 md:p-8 font-sans pb-24 lg:pb-8">
@@ -150,7 +184,28 @@ export default function CommunityPage() {
 
         {/* MIDDLE COLUMN: Feed */}
         <main className="lg:col-span-6 space-y-6">
-          {/* Post Creation Area - Search Removed */}
+          {/* Search Bar - Replaces Alerts in Logic */}
+          {isSearching && (
+            <div className="relative animate-in fade-in zoom-in duration-200">
+              <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
+              <input 
+                autoFocus
+                type="text"
+                placeholder="Search posts or friends..."
+                className="w-full bg-gray-900 border border-blue-500/30 rounded-2xl py-4 pl-14 pr-12 text-sm outline-none shadow-2xl shadow-blue-900/10"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <button 
+                onClick={() => {setIsSearching(false); setSearchQuery("");}}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white"
+              >
+                <X size={18} />
+              </button>
+            </div>
+          )}
+
+          {/* Post Creation Area */}
           <div className="bg-gray-900 border border-gray-800 rounded-[2rem] p-5 shadow-2xl">
             <div className="flex gap-4">
               <div className="w-12 h-12 rounded-2xl bg-blue-600/10 flex-shrink-0 flex items-center justify-center text-blue-500 border border-blue-500/20">
@@ -165,6 +220,7 @@ export default function CommunityPage() {
             </div>
             <div className="flex justify-end items-center mt-4 pt-4 border-t border-gray-800">
               <button 
+                onClick={handlePost}
                 disabled={!newPost.trim()}
                 className="bg-blue-600 hover:bg-blue-500 disabled:opacity-30 disabled:grayscale text-white px-10 py-2.5 rounded-2xl text-sm font-black transition-all shadow-lg shadow-blue-900/20 uppercase tracking-widest"
               >
@@ -177,7 +233,11 @@ export default function CommunityPage() {
             <div className="flex justify-center p-12"><Loader2 className="animate-spin text-blue-500" /></div>
           ) : (
             <div className="space-y-4">
-               {posts.map(post => <PostCard key={post.id} post={post} onLike={() => handleLike(post.id)} />)}
+               {filteredPosts.length > 0 ? (
+                 filteredPosts.map(post => <PostCard key={post.id} post={post} onLike={() => handleLike(post.id)} />)
+               ) : (
+                 <div className="text-center py-20 text-gray-600">No posts found matching your search.</div>
+               )}
             </div>
           )}
         </main>
@@ -198,16 +258,23 @@ export default function CommunityPage() {
       </div>
 
       {/* MOBILE BOTTOM NAVIGATION BAR */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-gray-900/80 backdrop-blur-xl border-t border-gray-800 px-6 py-3 flex justify-between items-center z-50">
-        <MobileNavItem icon={<Home size={22}/>} label="Home" href="/community" active={true} />
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-gray-900/80 backdrop-blur-xl border-t border-gray-800 px-8 py-4 flex justify-between items-center z-50">
+        <MobileNavItem icon={<Home size={22}/>} label="Home" href="/community" active={!isSearching} />
         <MobileNavItem icon={<Users size={22}/>} label="Groups" href="/students/department" />
-        <div className="relative -top-8">
-           <button className="bg-blue-600 p-4 rounded-2xl shadow-xl shadow-blue-900/40 border-4 border-gray-950 text-white">
-              <Plus size={24} strokeWidth={3} />
-           </button>
-        </div>
         <MobileNavItem icon={<Video size={22}/>} label="Live" href="/students/live" />
-        <MobileNavItem icon={<Bell size={22}/>} label="Alerts" href="/notifications" />
+        
+        {/* Functional Search Toggle replaces Alerts */}
+        <button 
+          onClick={() => setIsSearching(!isSearching)}
+          className="flex flex-col items-center gap-1"
+        >
+          <div className={`${isSearching ? 'text-blue-500' : 'text-gray-500'}`}>
+            <Search size={22}/>
+          </div>
+          <span className={`text-[10px] font-black uppercase tracking-tighter ${isSearching ? 'text-blue-500' : 'text-gray-600'}`}>
+            Search
+          </span>
+        </button>
       </div>
     </div>
   );
@@ -259,7 +326,7 @@ function PostCard({ post, onLike }: { post: Post, onLike: () => void }) {
           </div>
         </div>
         <button className="text-gray-600 hover:text-white p-2 rounded-xl hover:bg-gray-800 transition-all">
-          <MoreHorizontal size={20}/>
+          < MoreHorizontal size={20}/>
         </button>
       </div>
       
