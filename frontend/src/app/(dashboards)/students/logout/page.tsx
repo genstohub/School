@@ -104,7 +104,7 @@ export default function LogoutPage() {
 
               <div className="pt-4 space-y-3">
                 <Link 
-                  href="/auth/login" 
+                  href="/signin" 
                   className="w-full bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-900/20"
                 >
                   Log Back In <ArrowRight size={18} />
