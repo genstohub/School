@@ -121,7 +121,7 @@ export default function LogoutPage() {
         </div>
         
         <p className="text-center text-gray-600 text-xs mt-8 font-medium">
-          &copy; 2026 Your Edu-Platform. See you tomorrow!
+        &copy; {new Date().getFullYear()} BASE Platform. See you tomorrow!
         </p>
       </div>
     </div>
