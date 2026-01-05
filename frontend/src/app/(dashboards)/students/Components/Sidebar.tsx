@@ -12,6 +12,7 @@ import {
   Menu,
   Bookmark,
   Settings,
+  LogOut,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -30,10 +31,10 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
     { name: "Live Sessions", href: "/students/live", icon: Video },
     { name: "Community", href: "/students/community", icon: Users },
     { name: "Study Mate", href: "/students/study-mate", icon: Group },
-    { name: "Chat", href: "/students/chat", icon: MessageSquare },
     { name: "BookMark", href: "/students/bookmark", icon: Bookmark },
     { name: "Support", href: "/students/support", icon: LifeBuoy },
-     { name: "Settings", href: "/students/settings", icon: Settings },
+    { name: "Settings", href: "/students/settings", icon: Settings },
+      { name: "Logout", href: "/students/logout", icon: LogOut },
   ];
 
   return (
