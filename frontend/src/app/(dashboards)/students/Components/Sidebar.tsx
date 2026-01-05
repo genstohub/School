@@ -27,7 +27,6 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
 
   const navItems = [
     { name: "Dashboard", href: "/students", icon: Home },
-    { name: "Courses", href: "/students/courses", icon: BookOpen },
     { name: "Live Sessions", href: "/students/live", icon: Video },
     { name: "Community", href: "/students/community", icon: Users },
     { name: "Study Mate", href: "/students/study-mate", icon: Group },
