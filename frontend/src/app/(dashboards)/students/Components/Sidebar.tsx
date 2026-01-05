@@ -54,7 +54,7 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
       >
         {/* Sidebar Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-700">
-          <h2 className="text-xl font-bold text-white">Prep Center</h2>
+          <h2 className="text-xl font-bold text-white">BASE</h2>
           <button
             className="text-gray-300 lg:hidden"
             onClick={() => setIsOpen(false)}
