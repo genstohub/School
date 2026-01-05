@@ -1,12 +1,21 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { 
   Send, Users, MessageSquare, Mic, MicOff, 
   Hand, ArrowLeft, Loader2, Maximize2, Settings 
 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+
+// --- Interfaces ---
+interface Message {
+  id: string;
+  user: string;
+  text: string;
+  isSystem?: boolean;
+  timestamp: Date;
+}
 
 interface SessionData {
   id: string;
@@ -19,25 +28,38 @@ interface SessionData {
 export default function LiveClassroom() {
   const params = useParams();
   const sessionId = params.sessionId as string;
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   const [activeTab, setActiveTab] = useState<"chat" | "qa">("chat");
   const [isMicOn, setIsMicOn] = useState(false);
   const [handRaised, setHandRaised] = useState(false);
-  const [message, setMessage] = useState("");
+  const [messageInput, setMessageInput] = useState("");
   const [sessionData, setSessionData] = useState<SessionData | null>(null);
   const [loading, setLoading] = useState(true);
+  
+  // State for live messages
+  const [messages, setMessages] = useState<Message[]>([
+    { id: "1", user: "System", text: "Welcome to the live session! Please be respectful in the chat.", isSystem: true, timestamp: new Date() },
+    { id: "2", user: "John Doe", text: "Will the slides be available after the class?", timestamp: new Date() },
+    { id: "3", user: "Amina", text: "Yes John, check the resources tab later.", timestamp: new Date() },
+  ]);
+
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages, activeTab]);
 
   useEffect(() => {
     async function fetchLiveDetails() {
       try {
         setLoading(true);
-        // Using the dynamic sessionId from the URL
         const res = await fetch(`/api/students/live-sessions/${sessionId}`); 
         if (!res.ok) throw new Error("Failed to fetch");
         const data: SessionData = await res.json();
         setSessionData(data);
       } catch (err) {
-        // Fallback data for testing - formatted based on URL
         setSessionData({ 
           id: sessionId,
           title: sessionId.replace("-", " ").toUpperCase(), 
@@ -49,6 +71,27 @@ export default function LiveClassroom() {
     }
     fetchLiveDetails();
   }, [sessionId]);
+
+  // --- Handlers ---
+  const handleSendMessage = () => {
+    if (!messageInput.trim()) return;
+
+    const newMessage: Message = {
+      id: Date.now().toString(),
+      user: "Me", // This would ideally come from your auth context/user hook
+      text: messageInput,
+      timestamp: new Date(),
+    };
+
+    setMessages((prev) => [...prev, newMessage]);
+    setMessageInput("");
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handleSendMessage();
+    }
+  };
 
   const handleRaiseHand = () => setHandRaised(!handRaised);
 
@@ -62,7 +105,6 @@ export default function LiveClassroom() {
 
   return (
     <div className="h-screen bg-gray-950 text-white flex flex-col overflow-hidden">
-      {/* Dynamic Header */}
       <header className="bg-gray-900/50 backdrop-blur-md border-b border-gray-800 p-4 flex justify-between items-center shrink-0">
         <div className="flex items-center gap-4">
           <Link href="/students/live" className="p-2 hover:bg-gray-800 rounded-lg text-gray-400 transition-colors">
@@ -89,7 +131,6 @@ export default function LiveClassroom() {
         {/* Main Video Section */}
         <div className="flex-1 flex flex-col relative bg-black group">
           <div className="flex-1 flex items-center justify-center border-b lg:border-b-0 border-gray-800">
-             {/* VIDEO PLACEHOLDER */}
              <div className="text-center p-6">
                 <div className="w-20 h-20 bg-blue-600/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-blue-500/30">
                    <Users className="text-blue-500" size={32} />
@@ -122,7 +163,7 @@ export default function LiveClassroom() {
           </div>
         </div>
 
-        {/* Dynamic Sidebar (Responsive Height on Mobile) */}
+        {/* Dynamic Sidebar */}
         <div className="w-full lg:w-96 bg-gray-900 border-t lg:border-t-0 lg:border-l border-gray-800 flex flex-col h-[40vh] lg:h-full">
           <div className="flex border-b border-gray-800 shrink-0">
             {(["chat", "qa"] as const).map((tab) => (
@@ -138,12 +179,12 @@ export default function LiveClassroom() {
             ))}
           </div>
 
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
+          <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
             {activeTab === "chat" ? (
               <div className="space-y-3">
-                <MessageBubble user="System" text="Welcome to the live session! Please be respectful in the chat." isSystem />
-                <MessageBubble user="John Doe" text="Will the slides be available after the class?" />
-                <MessageBubble user="Amina" text="Yes John, check the resources tab later." />
+                {messages.map((msg) => (
+                  <MessageBubble key={msg.id} user={msg.user} text={msg.text} isSystem={msg.isSystem} />
+                ))}
               </div>
             ) : (
               <div className="space-y-4 pt-2">
@@ -157,17 +198,22 @@ export default function LiveClassroom() {
             )}
           </div>
 
-          {/* Improved Input Area */}
+          {/* Functional Input Area */}
           <div className="p-4 bg-gray-900/80 border-t border-gray-800">
             <div className="relative flex items-center gap-2">
               <input 
                 type="text" 
                 placeholder={activeTab === "chat" ? "Message classmates..." : "Ask the tutor..."}
                 className="flex-1 bg-gray-950 border border-gray-800 rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-blue-600 outline-none"
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
+                value={messageInput}
+                onChange={(e) => setMessageInput(e.target.value)}
+                onKeyDown={handleKeyPress}
               />
-              <button className="bg-blue-600 p-3 rounded-xl text-white hover:bg-blue-500 transition-all">
+              <button 
+                onClick={handleSendMessage}
+                disabled={!messageInput.trim()}
+                className="bg-blue-600 p-3 rounded-xl text-white hover:bg-blue-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
                 <Send size={18} />
               </button>
             </div>
@@ -178,10 +224,9 @@ export default function LiveClassroom() {
   );
 }
 
-// Helper Component for Chat
 function MessageBubble({ user, text, isSystem = false }: { user: string, text: string, isSystem?: boolean }) {
   return (
-    <div className={`p-3 rounded-xl border ${isSystem ? 'bg-gray-800/30 border-gray-700/50' : 'bg-gray-800/50 border-transparent'}`}>
+    <div className={`p-3 rounded-xl border animate-in fade-in slide-in-from-bottom-1 duration-300 ${isSystem ? 'bg-gray-800/30 border-gray-700/50' : 'bg-gray-800/50 border-transparent'}`}>
       <span className={`text-[10px] font-black uppercase tracking-tighter block mb-1 ${isSystem ? 'text-gray-500' : 'text-blue-500'}`}>
         {user}
       </span>
