@@ -57,7 +57,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
               <ul className="py-2 text-sm text-gray-200">
                 <li>
                   <a
-                    href="/dashboards/students/profile"
+                    href="/students/profile"
                     className="block px-4 py-2 hover:bg-gray-600"
                   >
                     View Profile
@@ -65,7 +65,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
                 </li>
                 <li>
                   <a
-                    href="/dashboards/students/settings"
+                    href="/students/settings"
                     className="block px-4 py-2 hover:bg-gray-600"
                   >
                     Settings
