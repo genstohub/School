@@ -4,11 +4,11 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { 
   LogOut, 
-  Loader2, 
   CheckCircle2, 
   ArrowRight,
   Trophy,
-  Clock
+  Clock,
+  Home
 } from "lucide-react";
 import Link from "next/link";
 
@@ -22,7 +22,8 @@ export default function LogoutPage() {
   const router = useRouter();
   const [status, setStatus] = useState<"processing" | "success">("processing");
 
-  // Mock session data - in a real app, you'd fetch this from state or local storage before clearing
+  // Mock session data: In production, pull this from your Auth Context 
+  // before the token is destroyed.
   const summary: SessionSummary = {
     hoursSpent: 2.5,
     lessonsCompleted: 4,
@@ -32,18 +33,20 @@ export default function LogoutPage() {
   useEffect(() => {
     const performLogout = async () => {
       try {
-        // 1. Logic for Backend Engineer:
+        // 1. Call your Cloudflare Worker / API logout endpoint
         // await fetch('/api/auth/logout', { method: 'POST' });
         
-        // 2. Clear local storage/cookies
-        // localStorage.removeItem('token');
+        // 2. Clear local storage, cookies, and state
+        // localStorage.clear(); 
         
-        // Simulate a brief delay for a "clean" logout feel
+        // Brief delay to allow the user to see the "Processing" state 
+        // which confirms their data is being saved.
         setTimeout(() => {
           setStatus("success");
-        }, 2000);
+        }, 1800);
       } catch (error) {
-        console.error("Logout failed", error);
+        console.error("Logout error:", error);
+        // If logout fails, redirect back to safety
         router.push("/students/dashboard");
       }
     };
@@ -52,67 +55,71 @@ export default function LogoutPage() {
   }, [router]);
 
   return (
-    <div className="min-h-screen bg-gray-950 text-gray-100 flex items-center justify-center p-6">
-      <div className="max-w-md w-full">
-        <div className="bg-gray-900 border border-gray-800 rounded-3xl p-8 shadow-2xl text-center relative overflow-hidden">
+    <div className="fixed inset-0 z-[9999] bg-gray-950 text-gray-100 flex items-center justify-center p-6">
+      <div className="max-w-md w-full animate-in fade-in zoom-in duration-300">
+        <div className="bg-gray-900 border border-gray-800 rounded-[2.5rem] p-8 md:p-10 shadow-2xl text-center relative overflow-hidden">
           
-          {/* Decorative background glow */}
-          <div className="absolute -top-24 -left-24 w-48 h-48 bg-blue-600/10 rounded-full blur-3xl"></div>
+          {/* Background Ambient Glow */}
+          <div className="absolute -top-24 -left-24 w-64 h-64 bg-blue-600/10 rounded-full blur-[80px]"></div>
           
           {status === "processing" ? (
-            <div className="space-y-6 py-8">
+            <div className="space-y-6 py-10">
               <div className="relative inline-block">
-                <div className="w-20 h-20 border-4 border-gray-800 border-t-blue-600 rounded-full animate-spin"></div>
-                <LogOut className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-gray-400" size={24} />
+                <div className="w-24 h-24 border-4 border-gray-800 border-t-blue-500 rounded-full animate-spin"></div>
+                <LogOut className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-gray-500" size={28} />
               </div>
-              <div>
-                <h1 className="text-2xl font-bold mb-2">Logging you out...</h1>
-                <p className="text-gray-500 text-sm">Safely saving your progress and closing your session.</p>
+              <div className="space-y-2">
+                <h1 className="text-2xl font-bold tracking-tight">Ending Session</h1>
+                <p className="text-gray-500 text-sm leading-relaxed">
+                  We&apos;re safely logging you out and <br /> syncing your latest progress...
+                </p>
               </div>
             </div>
           ) : (
-            <div className="space-y-8">
+            <div className="space-y-8 animate-in slide-in-from-bottom-4 duration-500">
               <div className="flex justify-center">
-                <div className="w-20 h-20 bg-green-600/20 text-green-500 rounded-full flex items-center justify-center shadow-[0_0_30px_rgba(34,197,94,0.2)]">
-                  <CheckCircle2 size={40} />
+                <div className="w-20 h-20 bg-green-500/10 text-green-500 rounded-3xl flex items-center justify-center shadow-[0_0_40px_rgba(34,197,94,0.15)] rotate-3">
+                  <CheckCircle2 size={40} strokeWidth={2.5} />
                 </div>
               </div>
 
-              <div>
-                <h1 className="text-3xl font-bold mb-2">Great work today!</h1>
-                <p className="text-gray-400">You&apos;ve been successfully logged out.</p>
+              <div className="space-y-2">
+                <h1 className="text-3xl font-extrabold tracking-tight">See you soon!</h1>
+                <p className="text-gray-400 font-medium">Your session summary for today:</p>
               </div>
 
               {/* Session Summary Card */}
-              <div className="bg-gray-950/50 border border-gray-800 rounded-2xl p-4 grid grid-cols-3 gap-2">
-                <div className="text-center">
-                  <Clock className="mx-auto text-blue-400 mb-1" size={16} />
-                  <p className="text-lg font-bold">{summary.hoursSpent}h</p>
-                  <p className="text-[10px] text-gray-500 uppercase font-bold">Study</p>
+              <div className="bg-gray-950/40 border border-white/5 rounded-3xl p-5 grid grid-cols-3 gap-2 backdrop-blur-sm">
+                <div className="space-y-1">
+                  <Clock className="mx-auto text-blue-400" size={18} />
+                  <p className="text-xl font-bold">{summary.hoursSpent}h</p>
+                  <p className="text-[10px] text-gray-500 uppercase tracking-widest font-black">Study</p>
                 </div>
-                <div className="text-center border-x border-gray-800">
-                  <CheckCircle2 className="mx-auto text-green-400 mb-1" size={16} />
-                  <p className="text-lg font-bold">{summary.lessonsCompleted}</p>
-                  <p className="text-[10px] text-gray-500 uppercase font-bold">Lessons</p>
+                <div className="space-y-1 border-x border-white/5">
+                  <CheckCircle2 className="mx-auto text-green-400" size={18} />
+                  <p className="text-xl font-bold">{summary.lessonsCompleted}</p>
+                  <p className="text-[10px] text-gray-500 uppercase tracking-widest font-black">Lessons</p>
                 </div>
-                <div className="text-center">
-                  <Trophy className="mx-auto text-yellow-500 mb-1" size={16} />
-                  <p className="text-lg font-bold">+{summary.pointsEarned}</p>
-                  <p className="text-[10px] text-gray-500 uppercase font-bold">XP</p>
+                <div className="space-y-1">
+                  <Trophy className="mx-auto text-yellow-500" size={18} />
+                  <p className="text-xl font-bold">+{summary.pointsEarned}</p>
+                  <p className="text-[10px] text-gray-500 uppercase tracking-widest font-black">Points</p>
                 </div>
               </div>
 
-              <div className="pt-4 space-y-3">
+              <div className="pt-4 space-y-4">
                 <Link 
                   href="/signin" 
-                  className="w-full bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-900/20"
+                  className="w-full bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all shadow-xl shadow-blue-900/20 active:scale-[0.98]"
                 >
                   Log Back In <ArrowRight size={18} />
                 </Link>
+                
                 <Link 
                   href="/" 
-                  className="w-full text-gray-500 hover:text-white text-sm font-medium transition-colors"
+                  className="w-full text-gray-500 hover:text-white text-sm font-bold flex items-center justify-center gap-2 transition-colors group"
                 >
+                  <Home size={16} className="group-hover:-translate-y-0.5 transition-transform" /> 
                   Back to Homepage
                 </Link>
               </div>
@@ -120,8 +127,8 @@ export default function LogoutPage() {
           )}
         </div>
         
-        <p className="text-center text-gray-600 text-xs mt-8 font-medium">
-        &copy; {new Date().getFullYear()} BASE Platform. See you tomorrow!
+        <p className="text-center text-gray-700 text-xs mt-10 font-bold uppercase tracking-[0.2em]">
+          &copy; 2026 BASE PLATFORM
         </p>
       </div>
     </div>
