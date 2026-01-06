@@ -311,7 +311,7 @@ function PostCard({ post, onLike }: { post: Post, onLike: () => void }) {
   const [isReplying, setIsReplying] = useState(false);
 
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-[2rem] p-6 hover:border-gray-700 transition-all shadow-sm">
+    <div className="bg-gray-900 rounded-2xl border border-gray-800 p-6 hover:border-gray-700 transition-all shadow-sm">
       <div className="flex justify-between items-start mb-5">
         <div className="flex gap-4">
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center font-bold text-white">
