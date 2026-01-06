@@ -57,8 +57,8 @@ export default function StudentDashboard() {
   const courseItems = [
     { name: "Course Material", icon: BookOpen, href: "/students/courses/material" },
     { name: "Course Video", icon: MonitorPlay, href: "/students/courses/video" },
-    { name: "Course Practical", icon: FlaskConical, href: "/students/courses/practical" },
-    { name: "Course Live Session", icon: Video, href: "/students/courses/live-session" },
+    
+    
     { name: "Course Mentor", icon: UsersRound, href: "/students/courses/mentor" },
     { name: "Course Quiz", icon: ClipboardList, href: "/students/courses/quiz" },
     { name: "Course Test", icon: PenLine, href: "/students/courses/test" },
