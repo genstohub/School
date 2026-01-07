@@ -1,238 +1,200 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import Link from "next/link";
 import { 
-  Search, BookOpen, Calculator, Atom, FlaskConical, 
-  Binary, Languages, Sprout, 
-  BarChart3, ShieldAlert, X, Loader2, RefreshCcw, WifiOff,
-  LucideIcon
+  BookOpen, Calculator, FlaskConical, PenTool, 
+  Cpu, Microscope, Leaf, Globe, Search, Filter 
 } from "lucide-react";
 
-// --- Types & Interfaces ---
+// --- Types ---
 interface Course {
-  id: string;
+  code: string;
   title: string;
-  desc: string;
+  description: string;
+  level: "100L" | "200L";
 }
 
-interface Topic {
-  title: string;
-  slug: string;
-}
-
-// --- Icons Mapping for Courses ---
-const getIcon = (title: string): LucideIcon => {
-  const code = title.split(" ")[0].toUpperCase();
-  if (code === "MTH") return Calculator;
-  if (code === "PHY") return Atom;
-  if (code === "CHM") return FlaskConical;
-  if (code === "BIO") return BookOpen;
-  if (code === "STA") return BarChart3;
-  if (code === "CMP") return Binary;
-  if (code === "GST") return Languages;
-  if (code === "AGR") return Sprout;
-  return BookOpen;
-};
-
-const courses: Course[] = [
+// --- Data ---
+const courseData: Course[] = [
   // 100 Level
-  { id: "mth101", title: "MTH 101", desc: "General Mathematics I" },
-  { id: "mth102", title: "MTH 102", desc: "General Mathematics II" },
-  { id: "sta101", title: "STA 101", desc: "Introduction to Statistics" },
-  { id: "cmp101", title: "CMP 101", desc: "Introduction to Computer Science" },
-  { id: "cmp102", title: "CMP 102", desc: "Computer Programming I" },
-  { id: "gst109", title: "GST 109", desc: "Information & Digital Literacy" },
-  { id: "bio101", title: "BIO 101", desc: "General Biology I" },
-  { id: "bio102", title: "BIO 102", desc: "General Biology II" },
-  { id: "chm101", title: "CHM 101", desc: "General Chemistry I" },
-  { id: "chm102", title: "CHM 102", desc: "General Chemistry II" },
-  { id: "phy101", title: "PHY 101", desc: "General Physics I" },
-  { id: "phy102", title: "PHY 102", desc: "General Physics II" },
-  { id: "bio107", title: "BIO 107", desc: "Practical Biology I" },
-  { id: "chm107", title: "CHM 107", desc: "Practical Chemistry I" },
-  { id: "gst101", title: "GST 101", desc: "Use of English I" },
-  { id: "gst102", title: "GST 102", desc: "Use of English II" },
-  { id: "gst103", title: "GST 103", desc: "Nigerian Peoples and Culture" },
-  { id: "gst104", title: "GST 104", desc: "Study Skills & ICT" },
-  { id: "gst105", title: "GST 105", desc: "History & Philosophy of Science" },
-  { id: "gst106", title: "GST 106", desc: "Logic & Human Existence" },
-  { id: "gst107", title: "GST 107", desc: "Peace & Conflict Studies" },
-  { id: "gst108", title: "GST 108", desc: "Entrepreneurship Studies I" },
-  { id: "agr101", title: "AGR 101", desc: "Introduction to Agriculture" },
-  { id: "agr102", title: "AGR 102", desc: "Principles of Crop Production" },
-  { id: "agr103", title: "AGR 103", desc: "Principles of Animal Production" },
-  { id: "agr104", title: "AGR 104", desc: "Introduction to Soil Science" },
-  { id: "agr105", title: "AGR 105", desc: "Agric Economics & Extension" },
-  { id: "agr106", title: "AGR 106", desc: "Forestry & Wildlife" },
-  { id: "agr107", title: "AGR 107", desc: "Practical Agriculture I" },
-  { id: "agr108", title: "AGR 108", desc: "Agricultural Biochemistry" },
+  { code: "MTH101", title: "General Mathematics I", description: "Algebra, geometry, and foundations of calculus.", level: "100L" },
+  { code: "MTH102", title: "General Mathematics II", description: "Calculus and analytical geometry.", level: "100L" },
+  { code: "STA101", title: "Introduction to Statistics", description: "Data collection, analysis and probability basics.", level: "100L" },
+  { code: "CMP101", title: "Introduction to Computer Science", description: "History and basics of computing systems.", level: "100L" },
+  { code: "CMP102", title: "Computer Programming I", description: "Introduction to logic and structured programming.", level: "100L" },
+  { code: "GST109", title: "Information & Digital Literacy Skills", description: "Navigating digital information environments.", level: "100L" },
+  { code: "BIO101", title: "General Biology I", description: "Cellular biology and molecules of life.", level: "100L" },
+  { code: "BIO102", title: "General Biology II", description: "Organismal biology and ecosystems.", level: "100L" },
+  { code: "CHM101", title: "General Chemistry I", description: "Inorganic and physical chemistry fundamentals.", level: "100L" },
+  { code: "CHM102", title: "General Chemistry II", description: "Organic and physical chemistry basics.", level: "100L" },
+  { code: "PHY101", title: "General Physics I", description: "Mechanics, heat and properties of matter.", level: "100L" },
+  { code: "PHY102", title: "General Physics II", description: "Electricity, magnetism and modern physics.", level: "100L" },
+  { code: "BIO107", title: "Practical Biology I", description: "Laboratory techniques for biology.", level: "100L" },
+  { code: "CHM107", title: "Practical Chemistry I", description: "Laboratory techniques for chemistry.", level: "100L" },
+  { code: "GST101", title: "Use of English I", description: "Communication and grammar skills.", level: "100L" },
+  { code: "GST102", title: "Use of English II", description: "Writing and composition skills.", level: "100L" },
+  { code: "GST103", title: "Nigerian Peoples and Culture", description: "Social and cultural history of Nigeria.", level: "100L" },
+  { code: "GST104", title: "Study Skills & ICT", description: "Effective learning and computer tools.", level: "100L" },
+  { code: "GST105", title: "History & Philosophy of Science", description: "Evolution of scientific thought.", level: "100L" },
+  { code: "GST106", title: "Logic, Philosophy & Human Existence", description: "Critical thinking and philosophical basics.", level: "100L" },
+  { code: "GST107", title: "Peace & Conflict Studies", description: "Conflict resolution and peace building.", level: "100L" },
+  { code: "GST108", title: "Entrepreneurship Studies I", description: "Foundations of starting a business.", level: "100L" },
+  { code: "AGR101", title: "Introduction to Agriculture", description: "Overview of agricultural systems.", level: "100L" },
+  { code: "AGR102", title: "Principles of Crop Production", description: "Plant growth and farm management.", level: "100L" },
+  { code: "AGR103", title: "Principles of Animal Production", description: "Livestock management and breeding.", level: "100L" },
+  { code: "AGR104", title: "Introduction to Soil Science", description: "Soil properties and fertility.", level: "100L" },
+  { code: "AGR105", title: "Agricultural Economics & Extension", description: "Agri-business and community teaching.", level: "100L" },
+  { code: "AGR106", title: "Introduction to Forestry & Wildlife", description: "Conservation and forest management.", level: "100L" },
+  { code: "AGR107", title: "Practical Agriculture I", description: "On-farm practical applications.", level: "100L" },
+  { code: "AGR108", title: "Agricultural Biochemistry Basics", description: "Chemical processes in living organisms.", level: "100L" },
+
   // 200 Level
-  { id: "mth201", title: "MTH 201", desc: "Mathematical Methods I" },
-  { id: "mth202", title: "MTH 202", desc: "Mathematical Methods II" },
-  { id: "sta201", title: "STA 201", desc: "Probability Theory" },
-  { id: "cmp201", title: "CMP 201", desc: "Computer Programming II (OOP)" },
-  { id: "cmp202", title: "CMP 202", desc: "Data Structures & Algorithms" },
-  { id: "bio201", title: "BIO 201", desc: "Cell Biology & Genetics" },
-  { id: "bio202", title: "BIO 202", desc: "Ecology & Environmental Biology" },
-  { id: "bio207", title: "BIO 207", desc: "Biological Techniques" },
-  { id: "chm201", title: "CHM 201", desc: "Organic Chemistry I" },
-  { id: "chm202", title: "CHM 202", desc: "Physical Chemistry II" },
-  { id: "phy201", title: "PHY 201", desc: "Electricity & Modern Physics" },
-  { id: "phy202", title: "PHY 202", desc: "Waves, Optics & Thermo" },
-  { id: "chm207", title: "CHM 207", desc: "Practical Chemistry II" },
+  { code: "MTH201", title: "Mathematical Methods I", description: "Advanced calculus and vector analysis.", level: "200L" },
+  { code: "MTH202", title: "Mathematical Methods II", description: "Complex variables and differential equations.", level: "200L" },
+  { code: "STA201", title: "Probability Theory & Distributions", description: "Mathematical foundations of probability.", level: "200L" },
+  { code: "CMP201", title: "Computer Programming II (OOP)", description: "Object-oriented concepts and languages.", level: "200L" },
+  { code: "CMP202", title: "Data Structures & Algorithms", description: "Optimizing code and data organization.", level: "200L" },
+  { code: "BIO201", title: "Cell Biology & Genetics", description: "Inheritance and cellular mechanics.", level: "200L" },
+  { code: "BIO202", title: "Ecology & Environmental Biology", description: "Nature's systems and conservation.", level: "200L" },
+  { code: "BIO207", title: "Biological Techniques", description: "Advanced biological laboratory methods.", level: "200L" },
+  { code: "CHM201", title: "Organic Chemistry I", description: "Structure and reaction of carbon compounds.", level: "200L" },
+  { code: "CHM202", title: "Physical Chemistry II", description: "Thermodynamics and kinetics.", level: "200L" },
+  { code: "PHY201", title: "Electricity & Magnetism", description: "Advanced modern physics concepts.", level: "200L" },
+  { code: "PHY202", title: "Waves, Optics & Thermodynamics", description: "Behavior of light, sound, and heat.", level: "200L" },
+  { code: "CHM207", title: "Practical Chemistry II", description: "Quantitative chemical analysis lab.", level: "200L" },
 ];
 
-export default function StudyMatePage() {
+// Helper to assign icons based on course code prefix
+const getIcon = (code: string) => {
+  const prefix = code.substring(0, 3).toUpperCase();
+  switch (prefix) {
+    case 'MTH': case 'STA': return Calculator;
+    case 'CHM': return FlaskConical;
+    case 'PHY': return FlaskConical;
+    case 'BIO': return Microscope;
+    case 'CMP': return Cpu;
+    case 'AGR': return Leaf;
+    case 'GST': return PenTool;
+    default: return BookOpen;
+  }
+};
+
+export default function CourseMaterialPage() {
+  const router = useRouter();
   const [search, setSearch] = useState("");
-  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
-  const [topics, setTopics] = useState<Topic[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [levelFilter, setLevelFilter] = useState<"All" | "100L" | "200L">("All");
 
-  const fetchTopics = async (courseId: string) => {
-    setLoading(true);
-    setError(null);
-    setTopics([]);
-    
-    try {
-      const response = await fetch(`/api/courses/${courseId}/topics`);
-      
-      if (!response.ok) throw new Error("Could not connect to server");
-      
-      const data = await response.json();
-      setTopics(data.topics || []);
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("Failed to fetch topics. Please check your network connection.");
-      }
-    } finally {
-      setLoading(false);
-    }
+  const handleNavigate = (courseCode: string) => {
+    router.push(`/students/courses/material/${courseCode.toLowerCase()}/topics`);
   };
 
-  const handleCourseClick = (course: Course) => {
-    setSelectedCourse(course);
-    fetchTopics(course.id);
-  };
-
-  const filteredCourses = courses.filter(
-    (course) =>
-      course.title.toLowerCase().includes(search.toLowerCase()) ||
-      course.desc.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredCourses = courseData.filter(course => {
+    const matchesSearch = course.code.toLowerCase().includes(search.toLowerCase()) || 
+                          course.title.toLowerCase().includes(search.toLowerCase());
+    const matchesLevel = levelFilter === "All" || course.level === levelFilter;
+    return matchesSearch && matchesLevel;
+  });
 
   return (
-    <section className="min-h-screen bg-black p-4 sm:p-6 md:p-10 relative">
-      <motion.h1 className="text-3xl md:text-4xl font-bold text-center text-gray-300 mb-6">
-        Study Mate
-      </motion.h1>
-
-      {/* Search Bar */}
-      <div className="max-w-xl mx-auto mb-10">
-        <div className="relative">
-          <Search className="absolute left-3 top-3 text-gray-500 w-5 h-5" />
-          <input
-            type="text"
-            placeholder="Search courses..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-3 py-3 rounded-xl bg-gray-900 border border-gray-700 text-gray-100 focus:ring-2 focus:ring-blue-500 outline-none transition"
-          />
+    <main className="min-h-screen bg-gray-950 p-4 sm:p-6 md:p-10 text-gray-100">
+      <div className="max-w-6xl mx-auto">
+        
+        {/* Header */}
+        <div className="text-center mb-10">
+          <h1 className="text-3xl sm:text-4xl font-black tracking-tight mb-4">
+            Materials
+          </h1>
+          <p className="text-gray-500 max-w-2xl mx-auto text-sm sm:text-base">
+            Search and select your course to access the materials.
+          </p>
         </div>
-      </div>
 
-      {/* Course Cards Grid */}
-      <div className="max-w-7xl mx-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-        {filteredCourses.map((course, index) => {
-          const Icon = getIcon(course.title);
-          return (
-            <motion.div
-              key={course.id}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: index * 0.02 }}
-              onClick={() => handleCourseClick(course)}
-              className="cursor-pointer group bg-gray-800 rounded-2xl p-5 min-h-[160px] border border-gray-700 hover:border-blue-500 transition-all flex flex-col items-center justify-center text-center shadow-lg"
-            >
-              <Icon className="text-blue-500 group-hover:text-blue-400 w-8 h-8 mb-3 transition-colors" />
-              <h2 className="text-white font-bold text-lg">{course.title}</h2>
-              <p className="text-gray-400 text-xs mt-2 line-clamp-2">{course.desc}</p>
-            </motion.div>
-          );
-        })}
-      </div>
+        {/* Controls: Search and Filters */}
+        <div className="flex flex-col md:flex-row gap-4 mb-12 items-center justify-between">
+          <div className="relative w-full md:max-w-md">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
+            <input 
+              type="text"
+              placeholder="Search by code or title (e.g. MTH 101)..."
+              className="w-full bg-gray-900 border border-gray-800 rounded-2xl py-3 pl-12 pr-4 outline-none focus:ring-2 focus:ring-[#035b77] transition-all"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
 
-      {/* Topic Selection Modal */}
-      <AnimatePresence>
-        {selectedCourse && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-            <motion.div 
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 50 }}
-              className="bg-gray-900 border border-gray-700 w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl"
-            >
-              <div className="p-6 border-b border-gray-800 flex justify-between items-center bg-gray-800/50">
-                <div>
-                  <h2 className="text-xl font-bold text-white">{selectedCourse.title}</h2>
-                  <p className="text-gray-400 text-sm">{selectedCourse.desc}</p>
-                </div>
-                <button 
-                  onClick={() => setSelectedCourse(null)}
-                  className="p-2 hover:bg-gray-700 rounded-full transition text-gray-400 hover:text-white"
+          <div className="flex bg-gray-900 p-1 rounded-2xl border border-gray-800">
+            {(["All", "100L", "200L"] as const).map((lvl) => (
+              <button
+                key={lvl}
+                onClick={() => setLevelFilter(lvl)}
+                className={`px-6 py-2 rounded-xl text-xs font-bold transition-all ${
+                  levelFilter === lvl ? "bg-[#035b77] text-white shadow-lg" : "text-gray-500 hover:text-gray-300"
+                }`}
+              >
+                {lvl}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Courses Grid */}
+        <motion.div 
+          layout
+          className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+        >
+          <AnimatePresence>
+            {filteredCourses.map((course, index) => {
+              const Icon = getIcon(course.code);
+              return (
+                <motion.div
+                  key={course.code}
+                  layout
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{ duration: 0.2 }}
+                  whileHover={{ y: -5 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="cursor-pointer bg-gray-900 rounded-3xl p-6 border border-gray-800 hover:border-[#035b77]/50 transition-all flex flex-col items-center text-center relative overflow-hidden group shadow-xl"
+                  onClick={() => handleNavigate(course.code)}
                 >
-                  <X size={24} />
-                </button>
-              </div>
+                  {/* Decorative Background Blur */}
+                  <div className="absolute -right-4 -top-4 w-16 h-16 bg-[#035b77]/10 blur-2xl rounded-full transition-all group-hover:bg-[#035b77]/20" />
+                  
+                  <div className="bg-[#035b77]/10 p-4 rounded-2xl mb-5 text-[#035b77] group-hover:bg-[#035b77] group-hover:text-white transition-colors">
+                    <Icon size={28} />
+                  </div>
 
-              <div className="p-6 max-h-[60vh] overflow-y-auto">
-                {loading ? (
-                  <div className="flex flex-col items-center py-10">
-                    <Loader2 className="animate-spin text-blue-500 w-10 h-10 mb-2" />
-                    <p className="text-gray-400">Fetching topics...</p>
-                  </div>
-                ) : error ? (
-                  <div className="flex flex-col items-center py-10 text-center">
-                    <WifiOff className="text-red-500 w-12 h-12 mb-4" />
-                    <p className="text-gray-300 mb-4">{error}</p>
-                    <button 
-                      onClick={() => fetchTopics(selectedCourse.id)}
-                      className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-xl transition"
-                    >
-                      <RefreshCcw size={18} /> Retry
-                    </button>
-                  </div>
-                ) : topics.length > 0 ? (
-                  <div className="space-y-3">
-                    {topics.map((topic, i) => (
-                      <Link 
-                        key={i} 
-                        href={`/students/study-mate/${selectedCourse.id}/${topic.slug}`}
-                        className="block p-4 bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-blue-500/50 rounded-xl transition group"
-                      >
-                        <div className="flex justify-between items-center">
-                          <span className="text-gray-200 group-hover:text-white font-medium">{topic.title}</span>
-                          <span className="text-xs text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity">Study Now →</span>
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center py-10 text-center">
-                    <ShieldAlert className="text-yellow-500 w-12 h-12 mb-4" />
-                    <p className="text-gray-300 font-medium">No topics available yet</p>
-                    <p className="text-gray-500 text-sm mt-1">Our team is currently uploading materials for this course.</p>
-                  </div>
-                )}
-              </div>
-            </motion.div>
+                  <span className="text-[10px] font-black tracking-widest text-[#035b77] uppercase mb-1">
+                    {course.level}
+                  </span>
+                  
+                  <h2 className="text-xl font-bold text-white mb-2">
+                    {course.code}
+                  </h2>
+                  
+                  <p className="text-sm font-medium text-gray-400 mb-4 line-clamp-1">
+                    {course.title}
+                  </p>
+                  
+                  <p className="text-xs text-gray-600 line-clamp-2 leading-relaxed">
+                    {course.description}
+                  </p>
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
+        </motion.div>
+
+        {/* Empty State */}
+        {filteredCourses.length === 0 && (
+          <div className="text-center py-20">
+            <p className="text-gray-500 font-medium">No courses match your search or filter.</p>
           </div>
         )}
-      </AnimatePresence>
-    </section>
+      </div>
+    </main>
   );
 }
