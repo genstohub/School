@@ -2,79 +2,74 @@
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { CheckCircle, ArrowLeft, Loader2, BookOpen, AlertCircle } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { CheckCircle, ArrowLeft, Loader2, AlertCircle, RefreshCcw } from "lucide-react";
+import { useRouter, useParams } from "next/navigation";
+import Image from "next/image";
 
-// --- Interfaces ---
+// --- Strict Interfaces ---
 interface SummarySection {
-  id: number;
+  id: string | number;
   title: string;
   content: string;
-  imageTag?: string; // Optional field for diagrams
+  imageUrl?: string; // Changed from imageTag to a real URL field
 }
 
-export default function CourseSummaryPage({
-  params,
-}: {
-  params: { course: string; topic: string };
-}) {
+export default function CourseSummaryContentPage() {
   const router = useRouter();
+  const params = useParams();
+
+  // Ensure params are strings
+  const courseId = (Array.isArray(params.course) ? params.course[0] : params.course) || "";
+  const topicId = (Array.isArray(params.topic) ? params.topic[0] : params.topic) || "";
   
   // --- States ---
   const [summaries, setSummaries] = useState<SummarySection[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [submitted, setSubmitted] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   // --- Fetch Content from API ---
-  useEffect(() => {
-    async function fetchSummaryContent() {
-      try {
-        setLoading(true);
-        // GET Request to fetch the specific topic summary
-        const res = await fetch(`/api/students/summaries/content?course=${params.course}&topic=${params.topic}`);
-        
-        if (!res.ok) throw new Error("Failed to load summary content.");
-        
-        const data = await res.json();
-        setSummaries(data);
-      } catch (err) {
-        // Fallback Mock Data for UI Testing
-        setSummaries([
-          {
-            id: 1,
-            title: "Executive Overview",
-            content: `This comprehensive review explores the fundamental mechanics of ${params.topic.replace("-", " ")}. We focus on how these principles integrate into the broader ${params.course.toUpperCase()} curriculum.`,
-          },
-          {
-            id: 2,
-            title: "Core Formulas & Logic",
-            content: `1. Principal Theorem: Understanding the relationship between variables.\n2. Logical Deduction: Applying step-by-step proofs.\n3. Case Analysis: Identifying boundary conditions.`,
-            imageTag: ``
-          },
-          {
-            id: 3,
-            title: "Examination Strategy",
-            content: `When answering questions on this topic, prioritize defining your terms clearly before proceeding to calculations. Historically, 40% of marks in this module come from theoretical explanation.`,
-          },
-        ]);
-      } finally {
-        setLoading(false);
+  const fetchSummaryContent = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const res = await fetch(`/api/students/summaries/content?course=${courseId}&topic=${topicId}`);
+      
+      if (!res.ok) {
+        throw new Error(res.status === 404 
+          ? "The instructor hasn't uploaded content for this specific topic yet." 
+          : "Failed to establish a connection with the study database.");
       }
+      
+      const data: SummarySection[] = await res.json();
+      setSummaries(data);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("An unknown error occurred while loading the reading material.");
+      }
+    } finally {
+      setLoading(false);
     }
-    fetchSummaryContent();
-  }, [params.course, params.topic]);
+  };
 
-  // --- Handle Mark as Done (POST API) ---
+  useEffect(() => {
+    if (courseId && topicId) {
+      fetchSummaryContent();
+    }
+  }, [courseId, topicId]);
+
+  // --- Handle Progress Tracking ---
   const handleSubmit = async () => {
     try {
-      // API call to save progress in the database
       const res = await fetch(`/api/students/progress/complete`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          course: params.course,
-          topic: params.topic,
+          course: courseId,
+          topic: topicId,
           type: "summary"
         }),
       });
@@ -82,23 +77,27 @@ export default function CourseSummaryPage({
       if (res.ok) {
         setSubmitted(true);
       } else {
-        throw new Error("Could not save progress.");
+        throw new Error("Progress sync failed.");
       }
     } catch (err) {
-      // Still show success locally if API fails, but log it
+      // Local success even if DB sync fails to keep student moving
       setSubmitted(true);
     }
   };
 
   const handleClose = () => {
-    router.push(`/students/courses/summary/${params.course}/topics`);
+    router.push(`/students/courses/summary/${courseId}/topics`);
   };
+
+  // --- UI Logic ---
 
   if (loading) {
     return (
       <div className="h-screen bg-gray-950 flex flex-col items-center justify-center gap-4">
         <Loader2 className="animate-spin text-[#035b77]" size={40} />
-        <p className="text-gray-500 font-bold text-xs tracking-widest uppercase">Analyzing Topic Data...</p>
+        <p className="text-gray-500 font-bold text-[10px] tracking-[0.3em] uppercase animate-pulse">
+          Opening Resource...
+        </p>
       </div>
     );
   }
@@ -116,73 +115,101 @@ export default function CourseSummaryPage({
           Back to Topics
         </button>
 
-        {/* Header */}
-        <div className="text-center mb-16">
-          <motion.h1
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-3xl sm:text-4xl md:text-5xl font-black text-white leading-tight"
-          >
-            {params.topic.replace("-", " ").toUpperCase()}
-          </motion.h1>
-          <p className="text-[#035b77] font-bold mt-2 uppercase tracking-[0.3em] text-xs">
-            {params.course.toUpperCase()} • Comprehensive Summary
-          </p>
-        </div>
+        {/* Error State */}
+        {error && (
+          <div className="text-center py-20 bg-gray-900/50 rounded-[3rem] border border-red-900/20 px-6">
+            <AlertCircle className="w-12 h-12 mx-auto mb-4 text-red-500" />
+            <h2 className="text-xl font-bold mb-2">Resource Unavailable</h2>
+            <p className="text-gray-500 text-sm mb-8">{error}</p>
+            <button 
+              onClick={fetchSummaryContent}
+              className="flex items-center gap-2 mx-auto bg-gray-800 hover:bg-gray-700 px-6 py-3 rounded-2xl text-xs font-bold transition-all"
+            >
+              <RefreshCcw size={14} /> Retry Loading
+            </button>
+          </div>
+        )}
 
-        {/* Summary Content Cards */}
-        <div className="space-y-8">
-          {summaries.map((section, index) => (
+        {/* Content Header */}
+        {!error && (
+          <div className="text-center mb-16">
+            <motion.h1
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-3xl sm:text-4xl md:text-5xl font-black text-white leading-tight"
+            >
+              {topicId.replace(/-/g, " ").toUpperCase()}
+            </motion.h1>
+            <p className="text-[#035b77] font-bold mt-2 uppercase tracking-[0.3em] text-[10px]">
+              {courseId.toUpperCase()} • Official Instructor Summary
+            </p>
+          </div>
+        )}
+
+        {/* Content Display */}
+        <div className="space-y-12">
+          {!error && summaries.map((section, index) => (
             <motion.div
               key={section.id}
-              initial={{ opacity: 0, x: -20 }}
+              initial={{ opacity: 0, x: -10 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.1 }}
-              className="bg-gray-900 border border-gray-800 p-8 rounded-[2.5rem] shadow-xl hover:border-[#035b77]/30 transition-all group"
+              className="bg-gray-900 border border-gray-800 p-8 sm:p-10 rounded-[2.5rem] shadow-xl relative overflow-hidden group"
             >
-              <div className="flex items-center gap-4 mb-6">
-                <div className="w-10 h-10 rounded-2xl bg-[#035b77]/10 flex items-center justify-center text-[#035b77] font-black">
-                  0{index + 1}
-                </div>
+              <div className="flex items-center gap-4 mb-8">
+                <span className="text-[#035b77] font-black text-2xl opacity-20">
+                  {String(index + 1).padStart(2, '0')}
+                </span>
                 <h2 className="text-xl font-bold text-white tracking-tight">
                   {section.title}
                 </h2>
               </div>
               
-              <p className="text-gray-400 whitespace-pre-line leading-[1.8] text-sm sm:text-base">
+              <p className="text-gray-400 whitespace-pre-line leading-[1.8] text-base">
                 {section.content}
               </p>
 
-              {section.imageTag && (
-                <div className="mt-8 p-4 bg-gray-950 rounded-2xl border border-gray-800 text-center italic text-xs text-gray-600">
-                   {section.imageTag}
-                   <p className="mt-2">[Reference Diagram for Study]</p>
+              {section.imageUrl && (
+                <div className="mt-10 rounded-3xl overflow-hidden border border-gray-800 bg-gray-950 p-2">
+                   <div className="relative aspect-video w-full">
+                     <Image 
+                        src={section.imageUrl} 
+                        alt={section.title} 
+                        fill 
+                        className="object-cover opacity-90 group-hover:opacity-100 transition-opacity"
+                     />
+                   </div>
+                   <p className="text-[10px] text-gray-600 mt-3 text-center uppercase tracking-widest font-bold">
+                     Reference Diagram: {section.title}
+                   </p>
                 </div>
               )}
             </motion.div>
           ))}
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex flex-col items-center mt-16 gap-4">
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={handleSubmit}
-            disabled={submitted}
-            className={`w-full max-w-xs py-4 rounded-2xl font-black uppercase text-xs tracking-widest transition-all shadow-2xl ${
-              submitted
-                ? "bg-gray-800 text-gray-500 cursor-not-allowed border border-gray-700"
-                : "bg-[#035b77] text-white hover:bg-[#047194]"
-            }`}
-          >
-            {submitted ? "✓ Completed" : "Mark as Finished"}
-          </motion.button>
-          <p className="text-[10px] text-gray-600 uppercase font-bold tracking-widest">
-            Clicking will update your course progress
-          </p>
-        </div>
+        {/* Mark as Done Section */}
+        {!error && summaries.length > 0 && (
+          <div className="flex flex-col items-center mt-20 pb-20 gap-4">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handleSubmit}
+              disabled={submitted}
+              className={`w-full max-w-xs py-5 rounded-2xl font-black uppercase text-xs tracking-[0.2em] transition-all shadow-2xl ${
+                submitted
+                  ? "bg-gray-800 text-gray-500 cursor-not-allowed border border-gray-700"
+                  : "bg-[#035b77] text-white hover:bg-[#047194] shadow-[#035b77]/20"
+              }`}
+            >
+              {submitted ? "✓ Topic Completed" : "Mark as Finished"}
+            </motion.button>
+            <p className="text-[10px] text-gray-600 uppercase font-black tracking-widest">
+              Log progress to student dashboard
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Success Modal */}
@@ -192,27 +219,27 @@ export default function CourseSummaryPage({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center z-50 p-6"
+            className="fixed inset-0 bg-black/95 backdrop-blur-sm flex items-center justify-center z-50 p-6"
           >
             <motion.div
-              initial={{ scale: 0.9, y: 20 }}
+              initial={{ scale: 0.9, y: 30 }}
               animate={{ scale: 1, y: 0 }}
-              className="bg-gray-900 border border-gray-800 p-10 rounded-[3rem] shadow-2xl text-center max-w-md w-full"
+              className="bg-gray-900 border border-gray-800 p-10 rounded-[3.5rem] shadow-2xl text-center max-w-md w-full border-t-[#035b77]"
             >
-              <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                <CheckCircle className="text-green-500 w-10 h-10" />
+              <div className="w-24 h-24 bg-[#035b77]/20 rounded-full flex items-center justify-center mx-auto mb-8">
+                <CheckCircle className="text-[#035b77] w-12 h-12" />
               </div>
-              <h2 className="text-2xl font-black text-white mb-2 uppercase tracking-tight">
-                Section Mastered
+              <h2 className="text-3xl font-black text-white mb-4 uppercase tracking-tighter">
+                Good Work!
               </h2>
-              <p className="text-gray-500 mb-8 text-sm leading-relaxed">
-                Great job! This topic has been recorded in your student profile as completed. You&apos;re one step closer to your goals.
+              <p className="text-gray-500 mb-10 text-sm leading-relaxed font-medium">
+                You have finished reviewing this summary. Your progress has been synchronized with your student records.
               </p>
               <button
                 onClick={handleClose}
-                className="w-full bg-white text-black py-4 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-gray-200 transition"
+                className="w-full bg-[#035b77] text-white py-5 rounded-[1.5rem] font-black uppercase text-xs tracking-widest hover:bg-[#047194] transition-all"
               >
-                Return to Topics
+                Continue Learning
               </button>
             </motion.div>
           </motion.div>
