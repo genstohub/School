@@ -1,4 +1,6 @@
-export const REST_API = "https://prep-backend-two.vercel.app/api";
+export const REST_API = 
+// "http://localhost:4000/api"
+"https://prep-backend-two.vercel.app/api";
 
 export const countries = [
   { name: "Albania", code: "AL" },
@@ -1796,4 +1798,52 @@ export const countryCode = [
     phoneCode: "+263",
     flagEmoji: "🇿🇼",
   },
+];
+
+export const courses = [
+  // 100 Level
+  { id: "mth101", title: "MTH 101", desc: "General Mathematics I" },
+  { id: "mth102", title: "MTH 102", desc: "General Mathematics II" },
+  { id: "sta101", title: "STA 101", desc: "Introduction to Statistics" },
+  { id: "cmp101", title: "CMP 101", desc: "Introduction to Computer Science" },
+  { id: "cmp102", title: "CMP 102", desc: "Computer Programming I" },
+  { id: "gst109", title: "GST 109", desc: "Information & Digital Literacy" },
+  { id: "bio101", title: "BIO 101", desc: "General Biology I" },
+  { id: "bio102", title: "BIO 102", desc: "General Biology II" },
+  { id: "chm101", title: "CHM 101", desc: "General Chemistry I" },
+  { id: "chm102", title: "CHM 102", desc: "General Chemistry II" },
+  { id: "phy101", title: "PHY 101", desc: "General Physics I" },
+  { id: "phy102", title: "PHY 102", desc: "General Physics II" },
+  { id: "bio107", title: "BIO 107", desc: "Practical Biology I" },
+  { id: "chm107", title: "CHM 107", desc: "Practical Chemistry I" },
+  { id: "gst101", title: "GST 101", desc: "Use of English I" },
+  { id: "gst102", title: "GST 102", desc: "Use of English II" },
+  { id: "gst103", title: "GST 103", desc: "Nigerian Peoples and Culture" },
+  { id: "gst104", title: "GST 104", desc: "Study Skills & ICT" },
+  { id: "gst105", title: "GST 105", desc: "History & Philosophy of Science" },
+  { id: "gst106", title: "GST 106", desc: "Logic & Human Existence" },
+  { id: "gst107", title: "GST 107", desc: "Peace & Conflict Studies" },
+  { id: "gst108", title: "GST 108", desc: "Entrepreneurship Studies I" },
+  { id: "agr101", title: "AGR 101", desc: "Introduction to Agriculture" },
+  { id: "agr102", title: "AGR 102", desc: "Principles of Crop Production" },
+  { id: "agr103", title: "AGR 103", desc: "Principles of Animal Production" },
+  { id: "agr104", title: "AGR 104", desc: "Introduction to Soil Science" },
+  { id: "agr105", title: "AGR 105", desc: "Agric Economics & Extension" },
+  { id: "agr106", title: "AGR 106", desc: "Forestry & Wildlife" },
+  { id: "agr107", title: "AGR 107", desc: "Practical Agriculture I" },
+  { id: "agr108", title: "AGR 108", desc: "Agricultural Biochemistry" },
+  // 200 Level
+  { id: "mth201", title: "MTH 201", desc: "Mathematical Methods I" },
+  { id: "mth202", title: "MTH 202", desc: "Mathematical Methods II" },
+  { id: "sta201", title: "STA 201", desc: "Probability Theory" },
+  { id: "cmp201", title: "CMP 201", desc: "Computer Programming II (OOP)" },
+  { id: "cmp202", title: "CMP 202", desc: "Data Structures & Algorithms" },
+  { id: "bio201", title: "BIO 201", desc: "Cell Biology & Genetics" },
+  { id: "bio202", title: "BIO 202", desc: "Ecology & Environmental Biology" },
+  { id: "bio207", title: "BIO 207", desc: "Biological Techniques" },
+  { id: "chm201", title: "CHM 201", desc: "Organic Chemistry I" },
+  { id: "chm202", title: "CHM 202", desc: "Physical Chemistry II" },
+  { id: "phy201", title: "PHY 201", desc: "Electricity & Modern Physics" },
+  { id: "phy202", title: "PHY 202", desc: "Waves, Optics & Thermo" },
+  { id: "chm207", title: "CHM 207", desc: "Practical Chemistry II" },
 ];
