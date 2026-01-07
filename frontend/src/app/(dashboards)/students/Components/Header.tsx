@@ -81,8 +81,8 @@ export default function Header({ onMenuClick }: HeaderProps) {
 
           <Link href="/students/profile" className="flex items-center gap-2 text-gray-300 hover:text-white transition-colors group">
             <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center group-hover:bg-blue-600 transition-colors overflow-hidden border border-gray-700">
-              {user?.profile_pic ? (
-                <img src={user.profile_pic} alt="Avatar" className="w-full h-full object-cover" />
+              {user?.avatar ? (
+                <img src={user.avatar} alt="Avatar" className="w-full h-full object-cover" />
               ) : (
                 <User size={18} />
               )}
