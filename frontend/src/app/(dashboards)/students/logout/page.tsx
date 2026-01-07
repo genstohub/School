@@ -24,7 +24,7 @@ export default function LogoutPage() {
     const [status, setStatus] = useState<"processing" | "success">(
         "processing"
     );
-    const [confirmLogout, setConfirmLogout] = useState<Boolean>(true);
+    const [confirmLogout, setConfirmLogout] = useState<boolean>(true);
 
     // Mock session data: In production, pull this from your Auth Context
     // before the token is destroyed.
