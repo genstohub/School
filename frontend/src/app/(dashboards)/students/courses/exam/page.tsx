@@ -89,7 +89,7 @@ export default function AssignmentsPage() {
   }, [search, levelFilter]);
 
   const handleNavigate = (courseId: string) => {
-    router.push(`/students/courses/assignments/${courseId}/topics`);
+    router.push(`/students/courses/exam/${courseId}/topics`);
   };
 
   return (
@@ -100,7 +100,7 @@ export default function AssignmentsPage() {
         <header className="mb-12 border-l-4 border-blue-600 pl-6">
           <span className="text-blue-500 text-[10px] font-black uppercase tracking-[0.3em]">Academic Portal</span>
           <h1 className="text-3xl md:text-5xl font-black text-white mt-2 tracking-tighter">
-            COURSE ASSIGNMENTS
+            COURSE Exam
           </h1>
           <p className="text-gray-500 text-sm mt-2 max-w-xl">
             Access and submit your continuous assessment tasks for both 100L and 200L modules.
