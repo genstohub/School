@@ -7,7 +7,9 @@ import {
   Search, 
   ChevronRight, 
   Hash, 
-  ClipboardCheck
+  ClipboardCheck,
+  ShieldCheck,
+  BookOpen
 } from "lucide-react";
 
 // 1. Define Types for strict Type-Safety
@@ -71,12 +73,11 @@ const courseData: Course[] = [
   { id: "chm207", code: "CHM207", level: "200L", title: "Practical Chemistry II", description: "Advanced analytical and synthetic chemical laboratory." },
 ];
 
-export default function AssignmentsPage() {
+export default function ExamSelectionPage() {
   const router = useRouter();
   const [search, setSearch] = useState("");
   const [levelFilter, setLevelFilter] = useState<Level>("ALL");
 
-  // Helper for type-safe levels
   const levels: Level[] = ["ALL", "100L", "200L"];
 
   const filteredCourses = useMemo(() => {
@@ -88,8 +89,10 @@ export default function AssignmentsPage() {
     });
   }, [search, levelFilter]);
 
-  const handleNavigate = (courseId: string) => {
-    router.push(`/students/courses/exam/${courseId}/topics`);
+  // Navigate to the specific Exam Topics page
+  const handleNavigate = (courseCode: string) => {
+    const formattedCode = courseCode.toLowerCase();
+    router.push(`/students/courses/exam/${formattedCode}/topics`);
   };
 
   return (
@@ -98,12 +101,17 @@ export default function AssignmentsPage() {
         
         {/* Header Section */}
         <header className="mb-12 border-l-4 border-blue-600 pl-6">
-          <span className="text-blue-500 text-[10px] font-black uppercase tracking-[0.3em]">Academic Portal</span>
-          <h1 className="text-3xl md:text-5xl font-black text-white mt-2 tracking-tighter">
-            COURSE Exam
+          <div className="flex items-center gap-2 mb-2">
+            <ShieldCheck size={14} className="text-blue-500" />
+            <span className="text-blue-500 text-[10px] font-black uppercase tracking-[0.3em]">
+              Authorized Assessment Stream
+            </span>
+          </div>
+          <h1 className="text-3xl md:text-5xl font-black text-white tracking-tighter uppercase">
+            Examination <span className="text-gray-800 text-2xl md:text-4xl">Registry</span>
           </h1>
-          <p className="text-gray-500 text-sm mt-2 max-w-xl">
-            Access and submit your continuous assessment tasks for both 100L and 200L modules.
+          <p className="text-gray-500 text-sm mt-3 max-w-xl font-medium leading-relaxed">
+            Select a course module to access available examination topics. Ensure your session is secure before proceeding.
           </p>
         </header>
 
@@ -113,14 +121,14 @@ export default function AssignmentsPage() {
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600" size={18} />
             <input 
               type="text" 
-              placeholder="Search course code or title..."
-              className="w-full bg-gray-900/50 border border-gray-800 rounded-2xl py-4 pl-12 pr-4 text-sm outline-none focus:border-blue-600 focus:bg-gray-900 transition-all placeholder:text-gray-700"
+              placeholder="Search registry (e.g. MTH101)..."
+              className="w-full bg-gray-900/50 border border-gray-800 rounded-2xl py-4 pl-12 pr-4 text-sm outline-none focus:border-blue-600 focus:bg-gray-900 transition-all placeholder:text-gray-700 font-bold"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
           
-          <div className="flex gap-2 p-1 bg-gray-900/50 border border-gray-800 rounded-2xl">
+          <div className="flex gap-2 p-1 bg-gray-900/50 border border-gray-800 rounded-2xl shrink-0">
             {levels.map((lvl) => (
               <button
                 key={lvl}
@@ -138,43 +146,48 @@ export default function AssignmentsPage() {
         </div>
 
         {/* Courses Grid */}
-        <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-5 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
           <AnimatePresence mode="popLayout">
             {filteredCourses.map((course, index) => (
               <motion.div
                 layout
                 key={course.id}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ duration: 0.2, delay: index * 0.02 }}
-                onClick={() => handleNavigate(course.id)}
-                className="group cursor-pointer bg-gray-900/30 border border-gray-800 p-6 rounded-[2rem] hover:border-blue-500/50 hover:bg-gray-900 transition-all flex flex-col justify-between"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.3, delay: index * 0.01 }}
+                onClick={() => handleNavigate(course.code)}
+                className="group cursor-pointer bg-gray-950 border border-gray-900 p-8 rounded-[2.5rem] hover:border-blue-600/50 hover:bg-blue-600/5 transition-all duration-500 flex flex-col h-full shadow-2xl relative overflow-hidden"
               >
-                <div>
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="bg-gray-950 p-3 rounded-xl text-blue-500 group-hover:scale-110 transition-transform">
-                      <ClipboardCheck size={20} />
-                    </div>
-                    <span className="text-[9px] font-black px-3 py-1 bg-gray-950 border border-gray-800 rounded-full text-gray-500 tracking-widest group-hover:border-blue-500/30">
-                      {course.level}
-                    </span>
+                {/* Subtle Background Glow on Hover */}
+                <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/5 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-blue-600/10 transition-colors" />
+
+                <div className="flex justify-between items-start mb-6 relative z-10">
+                  <div className="bg-gray-900 border border-gray-800 p-4 rounded-2xl text-blue-500 group-hover:bg-blue-600 group-hover:text-white transition-all duration-500">
+                    <BookOpen size={24} />
                   </div>
-                  
-                  <h2 className="text-xl font-black text-white group-hover:text-blue-500 transition-colors uppercase tracking-tight">
+                  <span className="text-[9px] font-black px-4 py-1.5 bg-black border border-gray-800 rounded-full text-gray-500 tracking-[0.2em] group-hover:border-blue-500/30 group-hover:text-blue-400 transition-all uppercase">
+                    {course.level}
+                  </span>
+                </div>
+                
+                <div className="relative z-10 flex-grow">
+                  <h2 className="text-2xl font-black text-white group-hover:text-blue-500 transition-colors uppercase tracking-tight leading-none mb-2">
                     {course.code}
                   </h2>
-                  <p className="text-xs font-bold text-gray-400 mt-1 mb-3">
+                  <p className="text-xs font-bold text-gray-400 mb-4 tracking-wide uppercase">
                     {course.title}
                   </p>
-                  <p className="text-[11px] leading-relaxed text-gray-600 line-clamp-2">
+                  <p className="text-[11px] leading-relaxed text-gray-600 line-clamp-2 font-medium">
                     {course.description}
                   </p>
                 </div>
 
-                <div className="mt-6 pt-4 border-t border-gray-800/50 flex items-center justify-between">
-                  <span className="text-[9px] font-black uppercase tracking-widest text-gray-500">View Tasks</span>
-                  <ChevronRight size={16} className="text-gray-700 group-hover:translate-x-1 group-hover:text-blue-500 transition-all" />
+                <div className="mt-8 pt-6 border-t border-gray-900 flex items-center justify-between relative z-10">
+                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-700 group-hover:text-blue-500 transition-colors">
+                    Access Topics
+                  </span>
+                  <ChevronRight size={18} className="text-gray-800 group-hover:translate-x-2 group-hover:text-blue-500 transition-all duration-300" />
                 </div>
               </motion.div>
             ))}
@@ -183,10 +196,15 @@ export default function AssignmentsPage() {
 
         {/* Empty State */}
         {filteredCourses.length === 0 && (
-          <div className="text-center py-20 bg-gray-900/10 border border-dashed border-gray-800 rounded-[3rem]">
-            <Hash className="mx-auto text-gray-800 mb-4" size={40} />
-            <p className="text-gray-500 font-black text-[10px] uppercase tracking-widest">No matching courses found</p>
-          </div>
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center py-32 bg-gray-900/10 border border-dashed border-gray-800 rounded-[3rem]"
+          >
+            <Hash className="mx-auto text-gray-800 mb-4" size={48} />
+            <h3 className="text-white font-black uppercase text-xs tracking-widest mb-1">Null Result</h3>
+            <p className="text-gray-600 font-bold text-[10px] uppercase tracking-widest">No matching courses found in the current registry.</p>
+          </motion.div>
         )}
 
       </div>
