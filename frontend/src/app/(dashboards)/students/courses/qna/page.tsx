@@ -66,7 +66,7 @@ export default function QnaCoursesPage() {
   const [activeFilter, setActiveFilter] = useState<"All" | "100L" | "200L">("All");
 
   const handleNavigate = (courseCode: string) => {
-    router.push(`/students/courses/qna/${courseCode.toLowerCase()}/topics`);
+    router.push(`/students/course/qna/${courseCode.toLowerCase()}/topics`);
   };
 
   const filteredCourses = allCourses.filter((course) => {

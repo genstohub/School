@@ -14,8 +14,9 @@ import {
   BarChart3,
   Dna,
   Zap,
+  Video, // Added Video icon for the cards
 } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 // Interface for TypeScript type safety
 interface CourseVideo {
@@ -72,12 +73,11 @@ const courses: CourseVideo[] = [
   { id: "chm207", title: "CHM 207", desc: "Practical Chemistry II" },
 ];
 
-// Dynamic Icon Selector
 const getCourseIcon = (title: string) => {
   const prefix = title.split(" ")[0].toUpperCase();
   switch (prefix) {
     case "MTH": return Calculator;
-    case "PHY": return Zap; // Modern Physics/Electricity feel
+    case "PHY": return Zap;
     case "CHM": return FlaskConical;
     case "BIO": return Dna;
     case "STA": return BarChart3;
@@ -103,76 +103,91 @@ export default function CourseVideosPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 px-4 sm:px-6 py-8 lg:px-12 text-white">
-      {/* Hero Section */}
+    <div className="min-h-screen bg-black px-4 sm:px-8 py-12 lg:px-16 text-white">
+      {/* Hero Header */}
       <motion.div
-        className="text-center mb-10"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
+        className="text-left mb-16 border-l-4 border-blue-600 pl-6"
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
       >
-        <h1 className="text-3xl font-extrabold text-blue-500">
-          📽 Course Videos
+        <span className="text-blue-500 font-black text-[10px] uppercase tracking-[0.4em] mb-2 block">
+          Digital Learning Archive
+        </span>
+        <h1 className="text-4xl md:text-6xl font-black tracking-tighter uppercase leading-none">
+          Course <span className="text-gray-700 text-outline">Videos</span>
         </h1>
-        <p className="text-gray-400 mt-2 max-w-xl mx-auto">
-          Watch detailed video lessons for each course. Choose a course to
-          explore its video materials.
+        <p className="text-gray-500 mt-4 max-w-xl text-sm font-medium leading-relaxed">
+          Access high-definition recorded lectures and visual guides for all faculty modules.
         </p>
       </motion.div>
 
-      {/* Search Bar */}
-      <div className="flex justify-center mb-8">
-        <div className="relative w-full max-w-md">
-          <Search className="absolute left-3 top-2.5 text-gray-500" size={20} />
+      {/* Search Bar - Integrated with your style */}
+      <div className="flex justify-start mb-12">
+        <div className="relative w-full max-w-lg">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-700" size={18} />
           <input
             type="text"
-            placeholder="Search course by name or code..."
+            placeholder="FILTER BY CODE OR TITLE..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:outline-none placeholder:text-gray-500"
+            className="w-full pl-12 pr-4 py-4 bg-gray-900/40 border border-gray-800 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white focus:border-blue-600 focus:outline-none placeholder:text-gray-700 transition-all"
           />
         </div>
       </div>
 
-      {/* Course List */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-6xl mx-auto">
-        {filteredCourses.map((course) => {
-          const Icon = getCourseIcon(course.title);
-          return (
-            <motion.div
-              key={course.id}
-              whileHover={{ scale: 1.02 }}
-              onClick={() => handleNavigation(course.id)}
-              className="flex items-center justify-between bg-gray-800 border border-gray-700 p-4 rounded-xl shadow-md cursor-pointer hover:bg-blue-900/40 hover:border-blue-500 transition-all group"
-            >
-              <div className="flex items-center gap-4">
-                <div className="p-2 bg-gray-900 rounded-lg group-hover:bg-blue-600 transition-colors">
-                  <Icon size={24} className="text-blue-400 group-hover:text-white" />
+      {/* Course Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <AnimatePresence>
+          {filteredCourses.map((course, idx) => {
+            const Icon = getCourseIcon(course.title);
+            return (
+              <motion.div
+                key={course.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: idx * 0.02 }}
+                whileHover={{ y: -5 }}
+                onClick={() => handleNavigation(course.id)}
+                className="group relative flex items-center justify-between bg-gray-900/20 border border-gray-800 p-6 rounded-[2rem] cursor-pointer hover:bg-blue-600/5 hover:border-blue-600/50 transition-all duration-300"
+              >
+                <div className="flex items-center gap-5">
+                  <div className="w-14 h-14 bg-black border border-gray-800 rounded-2xl flex items-center justify-center text-gray-600 group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600 transition-all duration-500">
+                    <Icon size={24} />
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="font-black text-lg text-white group-hover:text-blue-500 transition-colors uppercase tracking-tight">
+                      {course.title}
+                    </h3>
+                    <p className="text-[10px] font-bold text-gray-600 uppercase tracking-tighter group-hover:text-gray-400">
+                      {course.desc}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-bold text-lg text-gray-100">{course.title}</h3>
-                  <p className="text-xs text-gray-400 line-clamp-1">{course.desc}</p>
+
+                {/* The Play Video Icon Button */}
+                <div className="flex flex-col items-center gap-1">
+                  <PlayCircle 
+                    size={28} 
+                    strokeWidth={1.5}
+                    className="text-gray-800 group-hover:text-blue-500 group-hover:scale-110 transition-all duration-500" 
+                  />
+                  <span className="text-[8px] font-black text-blue-500/0 group-hover:text-blue-500 transition-all uppercase">Play</span>
                 </div>
-              </div>
-              <PlayCircle size={24} className="text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity" />
-            </motion.div>
-          );
-        })}
+              </motion.div>
+            );
+          })}
+        </AnimatePresence>
       </div>
 
       {/* Empty State */}
       {filteredCourses.length === 0 && (
-        <div className="text-center py-20 text-gray-500">
-          No courses found matching &quot;{search}&quot;
+        <div className="text-center py-32 border border-dashed border-gray-900 rounded-[3rem]">
+          <Video size={48} className="mx-auto text-gray-800 mb-4 opacity-20" />
+          <p className="text-[10px] font-black tracking-widest text-gray-700 uppercase">
+            No session found for &quot;{search}&quot;
+          </p>
         </div>
       )}
-
-      {/* Footer Note */}
-      <div className="mt-10 border-t border-gray-800 pt-6">
-        <p className="text-center text-gray-500 text-sm">
-          Each course contains multiple video lessons and related resources.
-        </p>
-      </div>
     </div>
   );
 }

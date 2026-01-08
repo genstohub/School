@@ -2,8 +2,17 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
-import { MessageSquare, ArrowLeft, Loader2, AlertCircle, ChevronRight } from "lucide-react";
+import { useParams } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import { 
+  MessageSquare, 
+  ArrowLeft, 
+  Loader2, 
+  AlertCircle, 
+  ChevronRight,
+  Hash,
+  Users
+} from "lucide-react";
 
 // --- Interfaces ---
 interface Topic {
@@ -11,6 +20,7 @@ interface Topic {
   title: string;
   description: string;
   questionsCount: number;
+  activeUsers?: number;
 }
 
 interface CourseDetails {
@@ -18,9 +28,10 @@ interface CourseDetails {
   title: string;
 }
 
-export default function QnaTopicsPage({ params }: { params: { course: string } }) {
-  const courseCode = params.course.toUpperCase();
-  
+export default function QnaTopicsPage() {
+  const params = useParams();
+  const courseParam = params.course as string;
+
   // States
   const [topics, setTopics] = useState<Topic[]>([]);
   const [courseInfo, setCourseInfo] = useState<CourseDetails | null>(null);
@@ -29,124 +40,137 @@ export default function QnaTopicsPage({ params }: { params: { course: string } }
 
   useEffect(() => {
     async function fetchTopics() {
+      if (!courseParam) return;
+      
       try {
         setLoading(true);
         setError(null);
         
-        // --- API INTEGRATION POINT ---
-        // Replace with your actual endpoint: e.g., `/api/courses/${params.course}/topics`
-        const response = await fetch(`/api/students/qna/topics?course=${params.course}`);
+        // --- API CALL ---
+        // Expected JSON structure: { course: { code: string, title: string }, topics: Topic[] }
+        const response = await fetch(`/api/students/qna/topics?course=${courseParam}`);
         
         if (!response.ok) {
-          throw new Error("Could not find topics for this course.");
+          const errorData = await response.json();
+          throw new Error(errorData.message || "Could not synchronize discussion modules.");
         }
         
         const data = await response.json();
-        setTopics(data.topics);
-        setCourseInfo(data.course);
+        setTopics(data.topics || []);
+        setCourseInfo(data.course || { code: courseParam.toUpperCase(), title: "Course Forum" });
+        
       } catch (err) {
-        // Fallback for development if API is not yet live
-        setTopics([
-          { id: "topic1", title: "Introduction & Overview", description: "Foundational concepts and course roadmap.", questionsCount: 12 },
-          { id: "topic2", title: "Key Concepts and Definitions", description: "Deep dive into core terminology.", questionsCount: 28 },
-          { id: "topic3", title: "Practical Applications", description: "How to apply theories in real-world scenarios.", questionsCount: 15 },
-          { id: "topic4", title: "Challenges and FAQs", description: "Common pain points and troubleshooting.", questionsCount: 42 },
-          { id: "topic5", title: "Final Review & Summary", description: "Exam prep and key takeaway discussion.", questionsCount: 9 },
-        ]);
-        setCourseInfo({ code: courseCode, title: "Course Materials" });
+        setError(err instanceof Error ? err.message : "A connection error occurred.");
       } finally {
         setLoading(false);
       }
     }
 
     fetchTopics();
-  }, [params.course, courseCode]);
+  }, [courseParam]);
 
   return (
-    <main className="min-h-screen bg-gray-950 text-gray-100 p-6 sm:p-8 md:p-10">
+    <main className="min-h-screen bg-black text-gray-100 p-6 sm:p-8 md:p-12">
       <div className="max-w-5xl mx-auto">
         
-        {/* Breadcrumbs / Back Navigation */}
+        {/* Navigation */}
         <Link 
           href="/students/courses/qna" 
-          className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-white transition-colors mb-8 group"
+          className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-gray-600 hover:text-white transition-colors mb-12 group"
         >
-          <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
-          Back to all courses
+          <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
+          Back to Hub
         </Link>
 
         {/* Header */}
-        <div className="mb-12">
-          <span className="text-[#035b77] font-black text-xs uppercase tracking-[0.2em] mb-2 block">
-            Discussion Forum
+        <header className="mb-16 border-l-4 border-[#035b77] pl-6">
+          <span className="text-[#035b77] font-black text-[10px] uppercase tracking-[0.4em] mb-2 block">
+            Academic Discussion Forum
           </span>
-          <h1 className="text-3xl sm:text-4xl font-black text-white mb-3">
-            {courseInfo?.code}: {courseInfo?.title}
+          <h1 className="text-3xl sm:text-5xl font-black text-white mb-4 tracking-tighter uppercase">
+            {courseInfo?.code} <span className="text-gray-700">/</span> {courseInfo?.title}
           </h1>
-          <p className="text-gray-500 max-w-2xl">
-            Join a specific module discussion below. Connect with tutors and students to solve problems in real-time.
+          <p className="text-gray-500 max-w-2xl text-sm leading-relaxed">
+            Select a specific module to browse existing questions or start a new discussion. 
+            Connect with peers and faculty experts in real-time.
           </p>
-        </div>
+        </header>
 
-        {/* Loading State */}
-        {loading && (
-          <div className="flex flex-col items-center justify-center py-20 gap-4">
-            <Loader2 className="animate-spin text-[#035b77]" size={40} />
-            <p className="text-gray-500 font-medium animate-pulse">Loading discussion modules...</p>
-          </div>
-        )}
-
-        {/* Error State */}
-        {error && !loading && (
-          <div className="bg-red-500/10 border border-red-500/20 p-6 rounded-3xl flex items-center gap-4 text-red-500">
-            <AlertCircle size={24} />
-            <p className="font-bold">{error}</p>
-          </div>
-        )}
-
-        {/* Topics List */}
-        {!loading && !error && (
-          <div className="grid gap-4">
-            {topics.map((topic, index) => (
-              <motion.div
-                key={topic.id}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.3, delay: index * 0.05 }}
-              >
-                <Link
-                  href={`/students/courses/qna/${params.course}/topics/${topic.id}`}
-                  className="group flex items-center justify-between bg-gray-900 border border-gray-800 p-6 rounded-[2rem] hover:border-[#035b77]/50 hover:bg-gray-900/50 transition-all shadow-xl"
+        {/* State Handling */}
+        <AnimatePresence mode="wait">
+          {loading ? (
+            <motion.div 
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="flex flex-col items-center justify-center py-32 gap-6"
+            >
+              <Loader2 className="animate-spin text-[#035b77]" size={40} />
+              <p className="text-[10px] font-black tracking-[0.3em] text-gray-600 uppercase">Synchronizing Modules...</p>
+            </motion.div>
+          ) : error ? (
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+              className="bg-red-500/5 border border-red-500/20 p-8 rounded-[2rem] flex items-center gap-6 text-red-500 max-w-2xl mx-auto"
+            >
+              <AlertCircle size={32} />
+              <div>
+                <h4 className="font-black uppercase text-xs tracking-widest mb-1">Sync Error</h4>
+                <p className="text-sm font-medium opacity-80">{error}</p>
+              </div>
+            </motion.div>
+          ) : topics.length === 0 ? (
+            <motion.div 
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+              className="text-center py-32 border border-dashed border-gray-900 rounded-[3rem]"
+            >
+              <MessageSquare size={48} className="mx-auto text-gray-800 mb-6" />
+              <p className="text-[10px] font-black tracking-widest text-gray-700 uppercase">No active discussion modules found</p>
+            </motion.div>
+          ) : (
+            <motion.div 
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+              className="grid gap-4"
+            >
+              {topics.map((topic, index) => (
+                <motion.div
+                  key={topic.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05 }}
                 >
-                  <div className="flex items-center gap-6">
-                    <div className="hidden sm:flex bg-[#035b77]/10 w-14 h-14 rounded-2xl items-center justify-center text-[#035b77] group-hover:bg-[#035b77] group-hover:text-white transition-all">
-                      <MessageSquare size={24} />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-bold text-white group-hover:text-[#035b77] transition-colors">
-                        {topic.title}
-                      </h3>
-                      <p className="text-sm text-gray-500 line-clamp-1">{topic.description}</p>
-                      <div className="flex items-center gap-3 mt-2">
-                        <span className="text-[10px] font-black uppercase tracking-widest bg-gray-950 px-2 py-1 rounded border border-gray-800 text-gray-400">
-                          {topic.questionsCount} Questions
-                        </span>
+                  <Link
+                    href={`/students/courses/qna/${courseParam}/topics/${topic.id}`}
+                    className="group flex items-center justify-between bg-gray-900/20 border border-gray-800/60 p-8 rounded-[2.5rem] hover:border-[#035b77]/50 hover:bg-gray-900/40 transition-all shadow-2xl"
+                  >
+                    <div className="flex items-center gap-8">
+                      <div className="hidden sm:flex bg-black border border-gray-800 w-16 h-16 rounded-2xl items-center justify-center text-gray-600 group-hover:bg-[#035b77] group-hover:text-white group-hover:border-[#035b77] transition-all duration-500">
+                        <Hash size={24} />
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-black text-white group-hover:text-[#035b77] transition-colors uppercase tracking-tight mb-1">
+                          {topic.title}
+                        </h3>
+                        <p className="text-xs text-gray-600 font-medium line-clamp-1 mb-4 group-hover:text-gray-400">
+                          {topic.description}
+                        </p>
+                        <div className="flex items-center gap-4">
+                          <span className="text-[9px] font-black uppercase tracking-widest bg-gray-950 px-3 py-1.5 rounded-full border border-gray-800 text-gray-500 flex items-center gap-2">
+                            <MessageSquare size={10} /> {topic.questionsCount} Threads
+                          </span>
+                          {topic.activeUsers && (
+                            <span className="text-[9px] font-black uppercase tracking-widest text-[#035b77] flex items-center gap-2">
+                              <Users size={10} /> {topic.activeUsers} Active
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <ChevronRight size={20} className="text-gray-700 group-hover:text-white group-hover:translate-x-1 transition-all" />
-                </Link>
-              </motion.div>
-            ))}
-          </div>
-        )}
-
-        {/* Empty State */}
-        {!loading && topics.length === 0 && (
-          <div className="text-center py-20 border border-dashed border-gray-800 rounded-[3rem]">
-            <p className="text-gray-500">No discussion topics found for this course yet.</p>
-          </div>
-        )}
+                    <ChevronRight size={20} className="text-gray-800 group-hover:text-white group-hover:translate-x-2 transition-all" />
+                  </Link>
+                </motion.div>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </main>
   );
