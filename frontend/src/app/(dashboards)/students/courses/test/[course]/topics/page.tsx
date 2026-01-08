@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -11,7 +11,9 @@ import {
   AlertCircle, 
   ArrowLeft,
   ChevronRight,
-  Clock
+  Clock,
+  RefreshCcw,
+  WifiOff
 } from "lucide-react";
 
 // --- Interfaces ---
@@ -37,33 +39,36 @@ export default function CourseTopicsPage() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    async function fetchCourseContent() {
-      if (!courseId) return;
+  // --- Fetch Logic (Memoized for Retry) ---
+  const fetchCourseContent = useCallback(async () => {
+    if (!courseId) return;
+    
+    try {
+      setLoading(true);
+      setError(null);
+
+      // --- PRODUCTION API CALL ---
+      const response = await fetch(`/api/students/courses/test/${courseId}`);
       
-      try {
-        setLoading(true);
-        setError(null);
-
-        // --- PRODUCTION API CALL ---
-        const response = await fetch(`/api/students/courses/test/${courseId}`);
-        
-        if (!response.ok) {
-          const errData = await response.json();
-          throw new Error(errData.message || "Failed to synchronize course modules.");
-        }
-
-        const result: CourseData = await response.json();
-        setData(result);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "A network anomaly occurred.");
-      } finally {
-        setLoading(false);
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.message || `Server Error: ${response.status}`);
       }
-    }
 
-    fetchCourseContent();
+      const result: CourseData = await response.json();
+      setData(result);
+    } catch (err) {
+      // Check if it's a browser network error vs an API error
+      const message = err instanceof Error ? err.message : "A network anomaly occurred.";
+      setError(message === "Failed to fetch" ? "Network unreachable. Check your internet connection." : message);
+    } finally {
+      setLoading(false);
+    }
   }, [courseId]);
+
+  useEffect(() => {
+    fetchCourseContent();
+  }, [fetchCourseContent]);
 
   return (
     <main className="min-h-screen bg-black p-6 sm:p-8 md:p-12 text-gray-100">
@@ -91,9 +96,10 @@ export default function CourseTopicsPage() {
           </p>
         </header>
 
-        {/* State Handling: Loading */}
+        {/* State Handling Container */}
         <AnimatePresence mode="wait">
           {loading ? (
+            /* 1. LOADING STATE */
             <motion.div 
               key="loading"
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -103,36 +109,45 @@ export default function CourseTopicsPage() {
               <p className="text-[10px] font-black tracking-[0.3em] text-gray-700 uppercase">Indexing Modules...</p>
             </motion.div>
           ) : error ? (
-            /* State Handling: Error */
+            /* 2. ERROR STATE (Network or Server) */
             <motion.div 
               key="error"
-              initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-              className="bg-red-500/5 border border-red-500/20 p-8 rounded-[2rem] flex items-center gap-6 text-red-500 max-w-2xl mx-auto"
+              initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+              className="bg-red-500/5 border border-red-500/20 p-12 rounded-[3rem] flex flex-col items-center text-center gap-6 max-w-xl mx-auto"
             >
-              <AlertCircle size={32} />
-              <div>
-                <h4 className="font-black uppercase text-xs tracking-widest mb-1">System Error</h4>
-                <p className="text-sm font-bold opacity-80">{error}</p>
+              <div className="bg-red-500/10 p-4 rounded-full">
+                <WifiOff size={40} className="text-red-500" />
               </div>
+              <div>
+                <h4 className="font-black uppercase text-sm tracking-widest text-red-500 mb-2">Synchronization Failed</h4>
+                <p className="text-sm font-medium text-gray-500 leading-relaxed">{error}</p>
+              </div>
+              <button 
+                onClick={fetchCourseContent}
+                className="flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white text-[10px] font-black uppercase tracking-widest px-8 py-4 rounded-2xl transition-all shadow-lg shadow-red-500/20"
+              >
+                <RefreshCcw size={14} /> Retry Connection
+              </button>
             </motion.div>
-          ) : data?.topics.length === 0 ? (
-            /* State Handling: Empty */
+          ) : !data || data.topics.length === 0 ? (
+            /* 3. EMPTY STATE (No Topics Uploaded) */
             <motion.div 
               key="empty"
               initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-              className="text-center py-32 border border-dashed border-gray-900 rounded-[3rem]"
+              className="text-center py-32 border border-dashed border-gray-900 rounded-[3rem] bg-gray-950/30"
             >
               <ClipboardList size={48} className="mx-auto text-gray-800 mb-6" />
-              <p className="text-[10px] font-black tracking-widest text-gray-700 uppercase">No active assessments found in this stream</p>
+              <h4 className="text-white font-black uppercase text-xs tracking-widest mb-2">No Content Available</h4>
+              <p className="text-[10px] font-bold tracking-widest text-gray-600 uppercase">This assessment stream is currently empty</p>
             </motion.div>
           ) : (
-            /* State Handling: Data Success */
+            /* 4. SUCCESS STATE (Render Grid) */
             <motion.div 
               key="grid"
               initial={{ opacity: 0 }} animate={{ opacity: 1 }}
               className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
             >
-              {data?.topics.map((topic, index) => (
+              {data.topics.map((topic, index) => (
                 <motion.div
                   key={topic.id}
                   initial={{ opacity: 0, y: 20 }}
@@ -143,7 +158,6 @@ export default function CourseTopicsPage() {
                     href={`/students/courses/test/${courseId}/topics/${topic.id}`}
                     className="group relative block bg-gray-900/20 border border-gray-800 rounded-[2.5rem] p-8 hover:border-[#035b77]/50 hover:bg-gray-900/40 transition-all shadow-2xl overflow-hidden h-full flex flex-col"
                   >
-                    {/* Visual Decor */}
                     <div className="absolute top-0 right-0 w-32 h-32 bg-[#035b77]/5 rounded-full -mr-12 -mt-12 blur-3xl group-hover:bg-[#035b77]/10 transition-all" />
                     
                     <div className="flex items-start justify-between mb-6">

@@ -80,7 +80,7 @@ const fetchExamTopics = async () => {
         <header className="mb-12 border-l-4 border-blue-600 pl-6">
           <span className="text-blue-500 text-[10px] font-black uppercase tracking-[0.3em]">Assessment Modules</span>
           <h1 className="text-3xl md:text-5xl font-black text-white mt-2">
-            {courseId} EXAMS
+            {courseId} Assignments
           </h1>
           <p className="text-gray-500 text-sm mt-2">Select a topic to begin your timed examination.</p>
         </header>
@@ -102,7 +102,7 @@ const fetchExamTopics = async () => {
                 <Loader2 className="animate-spin text-blue-600 relative z-10" size={50} />
               </div>
               <p className="text-gray-500 font-black text-[10px] uppercase tracking-[0.4em] animate-pulse">
-                Fetching Examination Papers...
+                Fetching Assignment Papers...
               </p>
             </motion.div>
           ) : error ? (
