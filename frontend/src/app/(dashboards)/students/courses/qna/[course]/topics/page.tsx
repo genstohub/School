@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -11,7 +11,9 @@ import {
   AlertCircle, 
   ChevronRight,
   Hash,
-  Users
+  Users,
+  RefreshCcw,
+  WifiOff
 } from "lucide-react";
 
 // --- Interfaces ---
@@ -38,36 +40,37 @@ export default function QnaTopicsPage() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    async function fetchTopics() {
-      if (!courseParam) return;
+  // --- Fetch Logic (Memoized for Retry) ---
+  const fetchTopics = useCallback(async () => {
+    if (!courseParam) return;
+    
+    try {
+      setLoading(true);
+      setError(null);
       
-      try {
-        setLoading(true);
-        setError(null);
-        
-        // --- API CALL ---
-        // Expected JSON structure: { course: { code: string, title: string }, topics: Topic[] }
-        const response = await fetch(`/api/students/qna/topics?course=${courseParam}`);
-        
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || "Could not synchronize discussion modules.");
-        }
-        
-        const data = await response.json();
-        setTopics(data.topics || []);
-        setCourseInfo(data.course || { code: courseParam.toUpperCase(), title: "Course Forum" });
-        
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "A connection error occurred.");
-      } finally {
-        setLoading(false);
+      // --- API CALL ---
+      const response = await fetch(`/api/students/qna/topics?course=${courseParam}`);
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `Forum unreachable: ${response.status}`);
       }
+      
+      const data = await response.json();
+      setTopics(data.topics || []);
+      setCourseInfo(data.course || { code: courseParam.toUpperCase(), title: "Course Forum" });
+      
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "A connection error occurred.";
+      setError(message === "Failed to fetch" ? "Network unreachable. Check your internet connection." : message);
+    } finally {
+      setLoading(false);
     }
-
-    fetchTopics();
   }, [courseParam]);
+
+  useEffect(() => {
+    fetchTopics();
+  }, [fetchTopics]);
 
   return (
     <main className="min-h-screen bg-black text-gray-100 p-6 sm:p-8 md:p-12">
@@ -90,7 +93,7 @@ export default function QnaTopicsPage() {
           <h1 className="text-3xl sm:text-5xl font-black text-white mb-4 tracking-tighter uppercase">
             {courseInfo?.code} <span className="text-gray-700">/</span> {courseInfo?.title}
           </h1>
-          <p className="text-gray-500 max-w-2xl text-sm leading-relaxed">
+          <p className="text-gray-500 max-w-2xl text-sm leading-relaxed font-medium">
             Select a specific module to browse existing questions or start a new discussion. 
             Connect with peers and faculty experts in real-time.
           </p>
@@ -99,34 +102,60 @@ export default function QnaTopicsPage() {
         {/* State Handling */}
         <AnimatePresence mode="wait">
           {loading ? (
+            /* 1. LOADING STATE */
             <motion.div 
+              key="loading"
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               className="flex flex-col items-center justify-center py-32 gap-6"
             >
               <Loader2 className="animate-spin text-[#035b77]" size={40} />
-              <p className="text-[10px] font-black tracking-[0.3em] text-gray-600 uppercase">Synchronizing Modules...</p>
+              <p className="text-[10px] font-black tracking-[0.3em] text-gray-600 uppercase">Synchronizing Forum...</p>
             </motion.div>
           ) : error ? (
+            /* 2. ERROR STATE (With Retry & Go Back) */
             <motion.div 
-              initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-              className="bg-red-500/5 border border-red-500/20 p-8 rounded-[2rem] flex items-center gap-6 text-red-500 max-w-2xl mx-auto"
+              key="error"
+              initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+              className="bg-red-500/5 border border-red-500/20 p-12 rounded-[3rem] flex flex-col items-center text-center gap-6 max-w-xl mx-auto"
             >
-              <AlertCircle size={32} />
+              <div className="bg-red-500/10 p-4 rounded-full">
+                <WifiOff size={40} className="text-red-500" />
+              </div>
               <div>
-                <h4 className="font-black uppercase text-xs tracking-widest mb-1">Sync Error</h4>
-                <p className="text-sm font-medium opacity-80">{error}</p>
+                <h4 className="font-black uppercase text-sm tracking-widest text-red-500 mb-2">Sync Error</h4>
+                <p className="text-sm font-medium text-gray-500 leading-relaxed">{error}</p>
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-center gap-4 w-full justify-center">
+                <button 
+                  onClick={fetchTopics}
+                  className="flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white text-[10px] font-black uppercase tracking-widest px-8 py-4 rounded-2xl transition-all shadow-lg shadow-red-500/20 w-full sm:w-auto"
+                >
+                  <RefreshCcw size={14} /> Retry Sync
+                </button>
+
+                <Link 
+                  href="/students/courses/qna"
+                  className="flex items-center gap-2 bg-transparent border border-gray-800 text-gray-500 hover:text-white hover:border-gray-600 text-[10px] font-black uppercase tracking-widest px-8 py-4 rounded-2xl transition-all w-full sm:w-auto text-center justify-center"
+                >
+                  <ArrowLeft size={14} /> Go Back
+                </Link>
               </div>
             </motion.div>
           ) : topics.length === 0 ? (
+            /* 3. EMPTY STATE */
             <motion.div 
+              key="empty"
               initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-              className="text-center py-32 border border-dashed border-gray-900 rounded-[3rem]"
+              className="text-center py-32 border border-dashed border-gray-900 rounded-[3rem] bg-gray-950/30"
             >
               <MessageSquare size={48} className="mx-auto text-gray-800 mb-6" />
-              <p className="text-[10px] font-black tracking-widest text-gray-700 uppercase">No active discussion modules found</p>
+              <p className="text-[10px] font-black tracking-widest text-gray-700 uppercase">No active discussion modules found in this stream</p>
             </motion.div>
           ) : (
+            /* 4. SUCCESS GRID */
             <motion.div 
+              key="grid"
               initial={{ opacity: 0 }} animate={{ opacity: 1 }}
               className="grid gap-4"
             >
