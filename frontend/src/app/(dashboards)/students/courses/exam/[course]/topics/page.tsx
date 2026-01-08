@@ -10,7 +10,9 @@ import {
   Send, 
   AlertCircle,
   Loader2,
-  Flag
+  Flag,
+  ArrowLeft,
+  WifiOff
 } from "lucide-react";
 
 // --- Types ---
@@ -39,32 +41,41 @@ export default function LiveExamEngine() {
   // Engine State
   const [exam, setExam] = useState<ExamSession | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [answers, setAnswers] = useState<Record<string, string>>({}); // { questionId: optionId }
+  const [answers, setAnswers] = useState<Record<string, string>>({}); 
   const [timeLeft, setTimeLeft] = useState<number>(0);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // 1. Fetch Exam Data
-  useEffect(() => {
-    async function initExam() {
-      try {
-        const res = await fetch(`/api/exams/start?course=${course}&topic=${topic}`, { method: 'POST' });
-        if (!res.ok) throw new Error("Unauthorized access to exam stream.");
-        const data: ExamSession = await res.json();
-        
-        setExam(data);
-        setTimeLeft(data.durationSeconds);
-        setLoading(false);
-      } catch (err) {
-        router.push(`/students/courses/exam/${course}/topics/${topic}`);
+  const initExam = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const res = await fetch(`/api/exams/start?course=${course}&topic=${topic}`, { method: 'POST' });
+      
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.message || "Unauthorized access to exam stream.");
       }
+      
+      const data: ExamSession = await res.json();
+      setExam(data);
+      setTimeLeft(data.durationSeconds);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to initialize assessment session.");
+    } finally {
+      setLoading(false);
     }
+  }, [course, topic]);
+
+  useEffect(() => {
     initExam();
-  }, [course, topic, router]);
+  }, [initExam]);
 
   // 2. Timer Logic
   useEffect(() => {
-    if (timeLeft <= 0 || loading) return;
+    if (timeLeft <= 0 || loading || !!error) return;
     const interval = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
@@ -76,7 +87,7 @@ export default function LiveExamEngine() {
       });
     }, 1000);
     return () => clearInterval(interval);
-  }, [timeLeft, loading]);
+  }, [timeLeft, loading, error]);
 
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60);
@@ -100,19 +111,47 @@ export default function LiveExamEngine() {
       router.push(`/students/courses/exam/result?session=${exam?.sessionToken}`);
     } catch (err) {
       console.error("Critical: Auto-submit failed.");
+      setIsSubmitting(false);
     }
   }, [answers, exam, isSubmitting, router]);
 
-  if (loading || !exam) {
+  // --- STATE: LOADING ---
+  if (loading) {
     return (
       <div className="min-h-screen bg-black flex flex-col items-center justify-center">
         <Loader2 className="w-10 h-10 text-red-600 animate-spin mb-4" />
-        <p className="text-[10px] font-black tracking-widest text-gray-600 uppercase">Encrypting Session...</p>
+        <p className="text-[10px] font-black tracking-widest text-gray-600 uppercase italic">Encrypting Session...</p>
       </div>
     );
   }
 
-  const currentQuestion = exam.questions[currentIndex];
+  // --- STATE: ERROR (Go Back logic integrated) ---
+  if (error) {
+    return (
+      <div className="min-h-screen bg-black flex flex-col items-center justify-center p-6 text-center">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
+          className="bg-red-500/5 border border-red-500/20 p-12 rounded-[3rem] max-w-xl flex flex-col items-center gap-6"
+        >
+          <div className="bg-red-500/10 p-4 rounded-full">
+            <WifiOff size={40} className="text-red-500" />
+          </div>
+          <div>
+            <h4 className="font-black uppercase text-sm tracking-widest text-red-500 mb-2">Protocol Violation</h4>
+            <p className="text-sm font-medium text-gray-500 leading-relaxed">{error}</p>
+          </div>
+          <button 
+            onClick={() => router.push(`/students/courses/exam/${course}/topics/${topic}`)}
+            className="flex items-center gap-2 bg-gray-900 text-gray-400 hover:text-white text-[10px] font-black uppercase tracking-widest px-8 py-4 rounded-2xl transition-all border border-gray-800"
+          >
+            <ArrowLeft size={14} /> Return to Topic Overview
+          </button>
+        </motion.div>
+      </div>
+    );
+  }
+
+  const currentQuestion = exam?.questions[currentIndex];
 
   return (
     <main className="min-h-screen bg-black text-white flex flex-col">
@@ -120,7 +159,7 @@ export default function LiveExamEngine() {
       <nav className="border-b border-gray-900 bg-black/50 backdrop-blur-md sticky top-0 z-50 p-4 md:px-12 flex justify-between items-center">
         <div>
           <h2 className="text-sm font-black uppercase tracking-tighter text-red-600">{course} Live</h2>
-          <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Question {currentIndex + 1} of {exam.questions.length}</p>
+          <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Question {currentIndex + 1} of {exam?.questions.length}</p>
         </div>
 
         <div className={`flex items-center gap-3 px-6 py-2 rounded-full border ${timeLeft < 60 ? "border-red-600 bg-red-600/10 text-red-500 animate-pulse" : "border-gray-800 bg-gray-900 text-gray-300"}`}>
@@ -130,9 +169,10 @@ export default function LiveExamEngine() {
 
         <button 
           onClick={autoSubmit}
-          className="bg-red-600 hover:bg-red-700 text-white text-[10px] font-black uppercase tracking-widest px-6 py-2.5 rounded-xl transition-all flex items-center gap-2"
+          disabled={isSubmitting}
+          className="bg-sky-600 hover:bg-sky-700 disabled:bg-gray-800 text-white text-[10px] font-black uppercase tracking-widest px-6 py-2.5 rounded-xl transition-all flex items-center gap-2"
         >
-          Submit <Send size={14} />
+          {isSubmitting ? "Finalizing..." : "Submit"} <Send size={14} />
         </button>
       </nav>
 
@@ -140,44 +180,46 @@ export default function LiveExamEngine() {
         {/* Question Area */}
         <div className="lg:col-span-8">
           <AnimatePresence mode="wait">
-            <motion.div
-              key={currentIndex}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="space-y-8"
-            >
-              <div className="space-y-4">
-                <span className="text-[10px] font-black text-gray-600 uppercase tracking-[0.3em]">Direct Question</span>
-                <h1 className="text-xl md:text-2xl font-bold leading-relaxed">
-                  {currentQuestion.text}
-                </h1>
-                {currentQuestion.imageUrl && (
-                  <img src={currentQuestion.imageUrl} alt="Context" className="rounded-2xl border border-gray-800 max-h-64 object-cover" />
-                )}
-              </div>
+            {currentQuestion && (
+              <motion.div
+                key={currentIndex}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="space-y-8"
+              >
+                <div className="space-y-4">
+                  <span className="text-[10px] font-black text-gray-600 uppercase tracking-[0.3em]">Direct Question</span>
+                  <h1 className="text-xl md:text-2xl font-bold leading-relaxed">
+                    {currentQuestion.text}
+                  </h1>
+                  {currentQuestion.imageUrl && (
+                    <img src={currentQuestion.imageUrl} alt="Context" className="rounded-2xl border border-gray-800 max-h-64 object-cover" />
+                  )}
+                </div>
 
-              <div className="grid gap-4">
-                {currentQuestion.options.map((opt) => (
-                  <button
-                    key={opt.id}
-                    onClick={() => handleSelect(currentQuestion.id, opt.id)}
-                    className={`p-6 rounded-2xl border text-left transition-all flex items-center justify-between group ${
-                      answers[currentQuestion.id] === opt.id 
-                      ? "border-red-600 bg-red-600/5 text-white" 
-                      : "border-gray-800 bg-gray-900/20 text-gray-400 hover:border-gray-600"
-                    }`}
-                  >
-                    <span className="text-sm font-medium">{opt.text}</span>
-                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                      answers[currentQuestion.id] === opt.id ? "border-red-600" : "border-gray-700"
-                    }`}>
-                      {answers[currentQuestion.id] === opt.id && <div className="w-2.5 h-2.5 bg-red-600 rounded-full" />}
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </motion.div>
+                <div className="grid gap-4">
+                  {currentQuestion.options.map((opt) => (
+                    <button
+                      key={opt.id}
+                      onClick={() => handleSelect(currentQuestion.id, opt.id)}
+                      className={`p-6 rounded-2xl border text-left transition-all flex items-center justify-between group ${
+                        answers[currentQuestion.id] === opt.id 
+                        ? "border-red-600 bg-red-600/5 text-white" 
+                        : "border-gray-800 bg-gray-900/20 text-gray-400 hover:border-gray-600"
+                      }`}
+                    >
+                      <span className="text-sm font-medium">{opt.text}</span>
+                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                        answers[currentQuestion.id] === opt.id ? "border-red-600" : "border-gray-700"
+                      }`}>
+                        {answers[currentQuestion.id] === opt.id && <div className="w-2.5 h-2.5 bg-red-600 rounded-full" />}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </motion.div>
+            )}
           </AnimatePresence>
 
           {/* Navigation Controls */}
@@ -190,14 +232,12 @@ export default function LiveExamEngine() {
               <ChevronLeft size={16} /> Previous
             </button>
             
-            <div className="flex gap-2">
-               <button className="p-3 rounded-xl bg-gray-900 border border-gray-800 text-gray-500 hover:text-yellow-500">
-                 <Flag size={16} />
-               </button>
-            </div>
+            <button className="p-3 rounded-xl bg-gray-900 border border-gray-800 text-gray-500 hover:text-yellow-500">
+               <Flag size={16} />
+            </button>
 
             <button 
-              disabled={currentIndex === exam.questions.length - 1}
+              disabled={!exam || currentIndex === exam.questions.length - 1}
               onClick={() => setCurrentIndex(prev => prev + 1)}
               className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-white disabled:opacity-20"
             >
@@ -210,7 +250,7 @@ export default function LiveExamEngine() {
         <div className="lg:col-span-4 lg:border-l lg:border-gray-900 lg:pl-12">
           <h3 className="text-[10px] font-black uppercase tracking-widest text-gray-600 mb-6">Question Map</h3>
           <div className="grid grid-cols-5 gap-2">
-            {exam.questions.map((q, idx) => (
+            {exam?.questions.map((q, idx) => (
               <button
                 key={q.id}
                 onClick={() => setCurrentIndex(idx)}

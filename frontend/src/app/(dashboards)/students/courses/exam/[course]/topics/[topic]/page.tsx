@@ -70,13 +70,13 @@ export default function ExamTopicSelectionPage() {
         {/* Header */}
         <header className="mb-12">
           <div className="flex items-center gap-3 mb-4">
-             <span className="bg-red-600 text-white px-3 py-1 rounded text-[10px] font-black uppercase">
+             <span className="bg-sky-600 text-white px-3 py-1 rounded text-[10px] font-black uppercase">
                {course}
              </span>
              <div className="h-[1px] flex-grow bg-gray-900" />
           </div>
           <h1 className="text-4xl md:text-5xl font-black tracking-tighter uppercase leading-none">
-            Select <span className="text-red-600 text-outline">Module</span>
+            Select <span className="text-lemon-600 text-outline">Module</span>
           </h1>
         </header>
 
