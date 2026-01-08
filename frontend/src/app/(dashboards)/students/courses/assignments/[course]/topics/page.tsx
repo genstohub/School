@@ -131,7 +131,7 @@ const fetchExamTopics = async () => {
               {topics.map((topic, index) => (
                 <Link
                   key={topic.id}
-                  href={`/students/courses/exam/${params.course}/topics/${topic.id}`}
+                  href={`/students/courses/assignments/${params.course}/topics/${topic.id}`}
                   className="group flex items-center justify-between bg-gray-900/40 border border-gray-800 p-6 rounded-[2rem] hover:border-blue-500/50 hover:bg-gray-900 transition-all"
                 >
                   <div className="flex items-center gap-6">
