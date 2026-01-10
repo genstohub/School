@@ -1,251 +1,161 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import { CheckCircle, Lock, Timer } from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import { 
+  ArrowLeft, 
+  LayoutGrid, 
+  Clock, 
+  Award, 
+  ChevronRight, 
+  Lock,
+  Loader2,
+  Database,
+  Search
+} from "lucide-react";
 
-interface Question {
-  id: number;
-  question: string;
-  options: string[];
-  correct: string;
+// --- Types ---
+interface ExamTopic {
+  id: string;
+  title: string;
+  totalQuestions: number;
+  durationMinutes: number;
+  isLocked: boolean;
+  highScore?: number;
 }
 
-export default function ExamQuestionsPage() {
-  const [timeLeft, setTimeLeft] = useState(600); // 10 minutes
-  const [submitted, setSubmitted] = useState(false);
-  const [viewAnswers, setViewAnswers] = useState(false);
-  const [answers, setAnswers] = useState<{ [key: number]: string }>({});
-  const [score, setScore] = useState<number | null>(null);
-  const [examDone, setExamDone] = useState(false);
+export default function ExamTopicSelectionPage() {
+  const { course } = useParams();
+  const router = useRouter();
 
-  const examKey = "math101_exam_completed";
+  const [topics, setTopics] = useState<ExamTopic[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
 
-  const questions: Question[] = Array.from({ length: 20 }).map((_, i) => ({
-    id: i + 1,
-    question: `Question ${i + 1}: What is ${i + 3} × 2?`,
-    options: ["2", "4", `${(i + 3) * 2}`, "8"],
-    correct: `${(i + 3) * 2}`,
-  }));
-
-  // Check if exam was already completed
+  // --- API Fetch ---
   useEffect(() => {
-    const completed = localStorage.getItem(examKey);
-    if (completed === "true") {
-      setExamDone(true);
+    async function fetchTopics() {
+      try {
+        setLoading(true);
+        // Replace with: /api/exams/topics?courseCode=${course}
+        const response = await fetch(`/api/exams/topics?course=${course}`);
+        const data = await response.json();
+        setTopics(data);
+      } catch (err) {
+        console.error("Failed to load exam topics");
+      } finally {
+        setLoading(false);
+      }
     }
-  }, []);
+    if (course) fetchTopics();
+  }, [course]);
 
-  // Countdown timer
-  useEffect(() => {
-    if (submitted || examDone) return;
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          handleSubmit();
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-    return () => clearInterval(timer);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [submitted, examDone]);
-
-  const handleOptionChange = (qId: number, option: string) => {
-    setAnswers((prev) => ({ ...prev, [qId]: option }));
-  };
-
-  const handleSubmit = () => {
-    let correctCount = 0;
-    questions.forEach((q) => {
-      if (answers[q.id] === q.correct) correctCount++;
-    });
-    setScore(correctCount);
-    setSubmitted(true);
-    localStorage.setItem(examKey, "true"); // Save completion
-  };
-
-  const handleAdminReset = () => {
-    localStorage.removeItem(examKey);
-    setExamDone(false);
-    setSubmitted(false);
-    setAnswers({});
-    setScore(null);
-    setTimeLeft(600);
-  };
-
-  const minutes = Math.floor(timeLeft / 60);
-  const seconds = timeLeft % 60;
+  const filteredTopics = topics.filter(t => 
+    t.title.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
-    <section className="min-h-screen bg-gray-900 p-4 sm:p-6 md:p-10">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-center mb-8">
-        <motion.h1
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="text-2xl sm:text-3xl font-bold text-gray-500"
+    <main className="min-h-screen bg-black text-white p-6 md:p-12">
+      <div className="max-w-5xl mx-auto">
+        
+        {/* Navigation */}
+        <button 
+          onClick={() => router.push('/students/courses/exam')}
+          className="group flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-gray-600 hover:text-red-500 transition-all mb-12"
         >
-          Mathematics 101 – Exam
-        </motion.h1>
+          <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" /> Back to Dashboard
+        </button>
 
-        {!examDone && (
-          <div className="flex items-center gap-2 text-red-600 font-semibold text-lg mt-3 sm:mt-0">
-            <Timer className="w-5 h-5" />
-            <span>
-              {minutes.toString().padStart(2, "0")}:
-              {seconds.toString().padStart(2, "0")}
-            </span>
+        {/* Header */}
+        <header className="mb-12">
+          <div className="flex items-center gap-3 mb-4">
+             <span className="bg-sky-600 text-white px-3 py-1 rounded text-[10px] font-black uppercase">
+               {course}
+             </span>
+             <div className="h-[1px] flex-grow bg-gray-900" />
+          </div>
+          <h1 className="text-4xl md:text-5xl font-black tracking-tighter uppercase leading-none">
+            Select <span className="text-lemon-600 text-outline">Module</span>
+          </h1>
+        </header>
+
+        {/* Search Bar */}
+        <div className="relative mb-8 max-w-md">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-700" size={18} />
+          <input 
+            type="text" 
+            placeholder="Search topic or year..."
+            className="w-full bg-gray-900/40 border border-gray-800 rounded-2xl py-4 pl-12 pr-4 text-xs font-bold outline-none focus:border-red-600 transition-all"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+
+        {/* Grid State */}
+        {loading ? (
+          <div className="py-24 flex flex-col items-center">
+            <Loader2 className="w-10 h-10 text-red-600 animate-spin mb-4" />
+            <p className="text-[10px] font-black tracking-widest text-gray-700 uppercase">Indexing Modules...</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <AnimatePresence>
+              {filteredTopics.map((topic, idx) => (
+                <motion.div
+                  key={topic.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.05 }}
+                  onClick={() => !topic.isLocked && router.push(`/students/courses/exam/${course}/topics/${topic.id}`)}
+                  className={`group relative p-6 rounded-[2rem] border transition-all overflow-hidden cursor-pointer ${
+                    topic.isLocked 
+                    ? "bg-gray-950 border-gray-900 opacity-60 grayscale" 
+                    : "bg-gray-900/20 border-gray-800 hover:border-red-600/50 hover:bg-gray-900/40"
+                  }`}
+                >
+                  <div className="flex justify-between items-start mb-6">
+                    <div className="p-3 bg-black rounded-xl border border-gray-800 text-gray-500 group-hover:text-red-500 transition-colors">
+                      <LayoutGrid size={20} />
+                    </div>
+                    {topic.isLocked ? (
+                      <Lock size={16} className="text-gray-700" />
+                    ) : topic.highScore && (
+                      <div className="flex items-center gap-2 text-green-500 text-[9px] font-black uppercase tracking-widest">
+                        <Award size={12} /> Scored: {topic.highScore}%
+                      </div>
+                    )}
+                  </div>
+
+                  <h3 className="text-lg font-black uppercase tracking-tight mb-2 group-hover:text-white transition-colors">
+                    {topic.title}
+                  </h3>
+
+                  <div className="flex items-center gap-6 text-[10px] font-bold text-gray-600 uppercase tracking-tighter">
+                    <div className="flex items-center gap-1.5">
+                      <Clock size={12} /> {topic.durationMinutes} Mins
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <Database size={12} /> {topic.totalQuestions} Questions
+                    </div>
+                  </div>
+
+                  <div className="absolute right-6 bottom-6 translate-x-4 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all">
+                    <ChevronRight size={24} className="text-red-600" />
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+        )}
+
+        {/* Empty Result */}
+        {!loading && filteredTopics.length === 0 && (
+          <div className="py-20 text-center border border-dashed border-gray-800 rounded-[3rem]">
+            <p className="text-[10px] font-black tracking-widest text-gray-700 uppercase">No active assessments found</p>
           </div>
         )}
       </div>
-
-      {/* Already Completed Notice */}
-      {examDone ? (
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="max-w-lg mx-auto bg-white p-8 rounded-2xl shadow-xl text-center border"
-        >
-          <Lock className="w-12 h-12 text-blue-600 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-gray-800 mb-2">
-            Exam Already Completed
-          </h2>
-          <p className="text-gray-600 mb-6">
-            You’ve already completed this exam. Please wait for admin approval
-            before retaking.
-          </p>
-
-          {/* Admin Reset Simulation */}
-          <button
-            onClick={handleAdminReset}
-            className="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition"
-          >
-            Reset Exam (Admin)
-          </button>
-        </motion.div>
-      ) : (
-        <>
-          {/* Questions */}
-          <div className="space-y-6 max-w-4xl mx-auto">
-            {questions.map((q, index) => (
-              <motion.div
-                key={q.id}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.05, duration: 0.3 }}
-                className="bg-white p-6 rounded-2xl shadow-md border hover:shadow-lg transition"
-              >
-                <h2 className="font-semibold text-gray-800 mb-3">
-                  {q.question}
-                </h2>
-                <div className="space-y-2">
-                  {q.options.map((opt) => (
-                    <label
-                      key={opt}
-                      className="flex items-center gap-2 text-gray-700 cursor-pointer"
-                    >
-                      <input
-                        type="radio"
-                        name={`q${q.id}`}
-                        value={opt}
-                        checked={answers[q.id] === opt}
-                        onChange={() => handleOptionChange(q.id, opt)}
-                        className="accent-blue-600"
-                      />
-                      {opt}
-                    </label>
-                  ))}
-                </div>
-              </motion.div>
-            ))}
-          </div>
-
-          {/* Submit Button */}
-          {!submitted && (
-            <div className="flex justify-center mt-10">
-              <button
-                onClick={handleSubmit}
-                className="bg-blue-600 text-white px-6 py-2 rounded-lg shadow hover:bg-blue-700 transition"
-              >
-                Submit Exam
-              </button>
-            </div>
-          )}
-
-          {/* Result Modal */}
-          {submitted && !viewAnswers && (
-            <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-              <motion.div
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 0.4 }}
-                className="bg-white p-8 rounded-2xl shadow-2xl text-center max-w-md w-full"
-              >
-                <CheckCircle className="text-green-600 w-12 h-12 mx-auto mb-3" />
-                <h2 className="text-xl font-bold text-gray-800 mb-2">
-                  Exam Submitted
-                </h2>
-                <p className="text-gray-700 mb-4">
-                  You scored <span className="font-semibold">{score}/20</span>
-                </p>
-                <div className="flex justify-center gap-4">
-                  <button
-                    disabled
-                    className="bg-gray-300 text-gray-600 px-4 py-2 rounded-lg cursor-not-allowed"
-                  >
-                    Retake Disabled
-                  </button>
-                  <button
-                    onClick={() => setViewAnswers(true)}
-                    className="border border-blue-600 text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50 transition"
-                  >
-                    View Answers
-                  </button>
-                </div>
-              </motion.div>
-            </div>
-          )}
-
-          {/* View Answers Modal */}
-          {viewAnswers && (
-            <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 overflow-auto">
-              <motion.div
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 0.4 }}
-                className="bg-white p-8 rounded-2xl shadow-2xl max-w-3xl w-full"
-              >
-                <h2 className="text-xl font-bold text-gray-800 mb-4 text-center">
-                  Correct Answers
-                </h2>
-                <div className="space-y-3 text-sm text-gray-700">
-                  {questions.map((q) => (
-                    <p key={q.id}>
-                      <span className="font-semibold">{q.question}</span> —{" "}
-                      <span className="text-green-600">{q.correct}</span>
-                    </p>
-                  ))}
-                </div>
-
-                <div className="flex justify-center mt-6">
-                  <button
-                    onClick={() => setViewAnswers(false)}
-                    className="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition"
-                  >
-                    Return to Results
-                  </button>
-                </div>
-              </motion.div>
-            </div>
-          )}
-        </>
-      )}
-    </section>
+    </main>
   );
 }
