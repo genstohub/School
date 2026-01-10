@@ -32,7 +32,7 @@ export default function StudentLayout({
       </div>
     );
   else if (!loggedIn) {
-    window.location.replace(`/signin`);
+    window.location.replace(`/`);
   } else if (loggedIn) {
     window.location.replace(`/${userType}s`);
   }

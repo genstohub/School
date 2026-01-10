@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { REST_API } from "@/constants";
+import { useLoggedIn, useUser } from "@/hooks";
 import {
     LogOut,
     CheckCircle2,
@@ -25,6 +26,8 @@ export default function LogoutPage() {
         "processing"
     );
     const [confirmLogout, setConfirmLogout] = useState<Boolean>(true);
+    const { setLoggedIn } = useLoggedIn();
+    const { setUser } = useUser();
 
     // Mock session data: In production, pull this from your Auth Context
     // before the token is destroyed.
@@ -46,6 +49,8 @@ export default function LogoutPage() {
                 .then(res => {
                     if (res.success) {
                         setStatus("success");
+                        setLoggedIn(false);
+                        setUser(null);
                     }
                 });
             // 2. Clear local storage, cookies, and state
@@ -71,7 +76,6 @@ export default function LogoutPage() {
                         confirmLogout ? (
                             <div className="space-y-6 py-10">
                                 <div className="relative inline-block">
-                                    
                                     <LogOut
                                         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-gray-500"
                                         size={28}
