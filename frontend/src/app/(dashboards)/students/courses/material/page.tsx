@@ -11,12 +11,12 @@ import {
   LucideIcon
 } from "lucide-react";
 
-// // --- Types & Interfaces ---
-// interface Course {
-//   id: string;
-//   title: string;
-//   desc: string;
-// }
+  // --- Types & Interfaces ---
+  interface Course {
+    id: string;
+    title: string;
+    desc: string;
+  }
 
 interface Topic {
   title: string;
