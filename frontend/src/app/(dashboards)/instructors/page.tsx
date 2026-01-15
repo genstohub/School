@@ -32,61 +32,61 @@ export default function InstructorDashboard() {
             title: "Go Live",
             icon: PlayCircle,
             color: "text-red-400",
-            href: "/instructor/go-live"
+            href: "/instructors/go-live"
         },
         {
             title: "Create Material",
             icon: FileText,
             color: "text-blue-400",
-            href: "/instructor/material"
+            href: "/instructors/material"
         },
         {
             title: "Create Video",
             icon: Video,
             color: "text-green-400",
-            href: "/instructor/video"
+            href: "/instructors/video"
         },
         {
             title: "Create Summary",
             icon: BookOpen,
             color: "text-yellow-400",
-            href: "/instructor/summary"
+            href: "/instructors/summary"
         },
         {
             title: "Practical Class",
             icon: PenTool,
             color: "text-indigo-400",
-            href: "/instructor/practical"
+            href: "/instructors/practical"
         },
         {
             title: "Assignment",
             icon: ClipboardList,
             color: "text-teal-400",
-            href: "/instructor/assignment"
+            href: "/instructors/assignment"
         },
         {
             title: "Tests",
             icon: FileCheck,
             color: "text-purple-400",
-            href: "/instructor/test"
+            href: "/instructors/test"
         },
         {
             title: "Quiz",
             icon: HelpCircle,
             color: "text-pink-400",
-            href: "/instructor/quiz"
+            href: "/instructors/quiz"
         },
         {
             title: "CBT",
             icon: GraduationCap,
             color: "text-orange-400",
-            href: "/instructor/cbt"
+            href: "/instructors/cbt"
         },
         {
             title: "Rate Students",
             icon: Star,
             color: "text-yellow-300",
-            href: "/instructor/rate"
+            href: "/instructors/rate"
         }
     ];
 

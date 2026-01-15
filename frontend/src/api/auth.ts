@@ -49,7 +49,6 @@ export const login = async (data: LoginPayload): Promise<AuthSignInResponse> => 
             data,
             { withCredentials: true }
         );
-        console.log(response.data)
         return response.data;
     } catch (err) {
         throw new Error(extractError(err));
