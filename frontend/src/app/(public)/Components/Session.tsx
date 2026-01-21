@@ -3,12 +3,23 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import { 
+  Cpu, 
+  Briefcase, 
+  BookOpen, 
+  Binary, 
+  TrendingUp, 
+  Settings, 
+  BarChart3, 
+  ArrowRight 
+} from "lucide-react";
 
 export default function SessionClasses() {
   const courses = [
     {
       title: "B.Sc Computer Science",
       about: "About",
+      icon: <Cpu size={24} />,
       description:
         "Learn algorithms, programming, and cutting-edge technology to build the future of computing.",
       href: "/computer",
@@ -17,14 +28,16 @@ export default function SessionClasses() {
     {
       title: "B.Sc Business Administration",
       about: "About",
+      icon: <Briefcase size={24} />,
       description:
         "Gain management, finance, and leadership skills to succeed in the business world.",
-      href: "/business",
+      href: "/business-admin",
       bg: "bg-gradient-to-r from-emerald-400 to-green-600 text-white",
     },
     {
       title: "B.A. English Literature",
       about: "About",
+      icon: <BookOpen size={24} />,
       description:
         "Explore classics, modern literature, and creative writing to sharpen your analytical skills.",
       href: "/english",
@@ -33,6 +46,7 @@ export default function SessionClasses() {
     {
       title: "B.Sc Mathematics",
       about: "About",
+      icon: <Binary size={24} />,
       description:
         "Develop analytical thinking, problem-solving, and logical reasoning with advanced mathematics.",
       href: "/mathematics",
@@ -41,6 +55,7 @@ export default function SessionClasses() {
     {
       title: "B.Sc Economics",
       about: "About",
+      icon: <TrendingUp size={24} />,
       description:
         "Understand markets, finance, and policies with a foundation in modern economic theory.",
       href: "/economics",
@@ -49,6 +64,7 @@ export default function SessionClasses() {
     {
       title: "B.Eng Mechanical Engineering",
       about: "About",
+      icon: <Settings size={24} />,
       description:
         "Design, build, and innovate machines and structures that power industries and societies.",
       href: "/mechanical",
@@ -57,6 +73,7 @@ export default function SessionClasses() {
     {
       title: "B.Sc Statistics",
       about: "About",
+      icon: <BarChart3 size={24} />,
       description:
         "Understand markets, finance, and policies with a foundation in modern economic theory.",
       href: "/statistics",
@@ -73,7 +90,6 @@ export default function SessionClasses() {
     return () => clearInterval(interval);
   }, [courses.length]);
 
-  // Motion variants
   const container = {
     initial: {},
     animate: {
@@ -95,7 +111,6 @@ export default function SessionClasses() {
     exit: { opacity: 0, x: -100 },
   };
 
-  // Detect screen size
   const getCardsPerScreen = () => {
     if (typeof window !== "undefined") {
       if (window.innerWidth >= 1024) return 3;
@@ -114,9 +129,17 @@ export default function SessionClasses() {
 
   return (
     <section className="relative bg-gray-50 py-16 px-6 lg:px-20 overflow-hidden">
-      <h1 className="text-3xl md:text-4xl font-bold text-center text-gray-800 mb-12">
-        Degree Programs
-      </h1>
+      <div className="flex flex-col md:flex-row justify-between items-center mb-12 gap-4">
+        <h1 className="text-3xl md:text-4xl font-bold text-gray-800">
+          Degree Programs
+        </h1>
+        <Link 
+          href="/programs" 
+          className="flex items-center gap-2 text-blue-600 font-bold hover:gap-3 transition-all uppercase text-sm tracking-widest"
+        >
+          View More <ArrowRight size={18} />
+        </Link>
+      </div>
 
       <AnimatePresence mode="wait">
         <motion.div
@@ -139,6 +162,7 @@ export default function SessionClasses() {
                   href={course.href}
                   className={`block relative shadow-xl p-6 rounded-lg clip-path-diagonal hover:scale-105 transition-transform duration-300 ${course.bg}`}
                 >
+                  <div className="mb-4 opacity-80">{course.icon}</div>
                   <h2 className="text-xl font-bold mb-2">{course.title}</h2>
                   <h3 className="text-lg font-semibold mb-1">{course.about}</h3>
                   <p className="text-sm leading-relaxed mb-4">
