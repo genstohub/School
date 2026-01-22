@@ -38,7 +38,7 @@ export default function InstructorDashboard() {
             title: "Create Material",
             icon: FileText,
             color: "text-blue-400",
-            href: "/material"
+            href: "/instructor/material"
         },
         {
             title: "Create Video",
