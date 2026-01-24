@@ -1,200 +1,204 @@
 "use client";
 
-import React, { useState } from "react";
-import Link from "next/link";
+import React, { useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 import { 
-  PlusCircle, 
-  Image as ImageIcon, 
-  Send, 
-  Save, 
-  Type, 
-  List, 
-  Eye,
-  ChevronLeft,
-  X,
-  Search,
-  Upload,
-  Info
+  Search, Calculator, FlaskConical, BookOpen, 
+  Atom, BarChart3, Binary, Languages, Sprout,
+  ChevronRight, ArrowLeft
 } from "lucide-react";
+import Link from "next/link";
 
-export default function InstructorPublishPage() {
-  const [content, setContent] = useState("");
-  const [courseCode, setCourseCode] = useState("");
-  const [topic, setTopic] = useState("");
-  const [isMediaModalOpen, setIsMediaModalOpen] = useState(false);
-
-  // Mock Data for Media Library
-  const savedImages = [
-    { id: 1, url: "https://images.unsplash.com/photo-1532187896946-ba93c525996b?q=80&w=200&auto=format&fit=crop", name: "Lab_Sample_A.png", date: "20 Jan 2026" },
-    { id: 2, url: "https://images.unsplash.com/photo-1507668077129-56e32842fceb?q=80&w=200&auto=format&fit=crop", name: "DNA_Structure.jpg", date: "18 Jan 2026" },
-    { id: 3, url: "https://images.unsplash.com/photo-1518152006812-edab29b069ac?q=80&w=200&auto=format&fit=crop", name: "Chemical_Equation.svg", date: "15 Jan 2026" },
-    { id: 4, url: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=200&auto=format&fit=crop", name: "Supply_Chain_Chart.png", date: "12 Jan 2026" },
-  ];
-
-  return (
-    <div className="min-h-screen bg-[#F8FAFC] p-4 md:p-10 lg:pt-20">
-      <div className="max-w-5xl mx-auto">
-        
-        {/* Navigation */}
-        <Link 
-          href="/instructor" 
-          className="inline-flex items-center text-sm font-medium text-[#64748B] hover:text-[#1E293B] mb-8 transition-colors group"
-        >
-          <ChevronLeft size={18} className="mr-1 group-hover:-translate-x-1 transition-transform" /> 
-          Back to Dashboard
-        </Link>
-
-        {/* Header Section */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
-          <div>
-            <h1 className="text-3xl font-bold text-[#0F172A] tracking-tight">Create Study Material</h1>
-            <p className="text-[#64748B] mt-2">Draft high-quality content for student review and learning.</p>
-          </div>
-          <div className="flex gap-3">
-            <button className="flex items-center gap-2 px-5 py-2.5 bg-white border border-[#E2E8F0] rounded-xl text-[#1E293B] font-semibold hover:bg-gray-50 transition-all shadow-sm">
-              <Save size={18} /> Save Draft
-            </button>
-            <button className="flex items-center gap-2 px-6 py-2.5 bg-[#1E293B] text-white rounded-xl font-semibold hover:bg-[#0F172A] transition-all shadow-lg shadow-blue-900/10">
-              <Send size={18} /> Submit for Review
-            </button>
-          </div>
-        </div>
-
-        {/* Form Inputs */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          <div className="space-y-2">
-            <label className="text-xs font-bold text-[#1E293B] uppercase tracking-widest">Course Code</label>
-            <select 
-              value={courseCode}
-              onChange={(e) => setCourseCode(e.target.value)}
-              className="w-full p-3.5 bg-white border border-[#E2E8F0] rounded-xl focus:ring-2 focus:ring-[#1E293B]/10 focus:border-[#1E293B] outline-none transition-all appearance-none cursor-pointer"
-            >
-              <option value="">Select a course code...</option>
-              <option value="CSC201">CSC 201 - Programming Logic</option>
-              <option value="MCB305">MCB 305 - Industrial Microbiology</option>
-              <option value="CVE402">CVE 402 - Soil Mechanics</option>
-            </select>
-          </div>
-          <div className="space-y-2">
-            <label className="text-xs font-bold text-[#1E293B] uppercase tracking-widest">Topic Title</label>
-            <input 
-              type="text"
-              placeholder="Enter the specific topic title..."
-              className="w-full p-3.5 bg-white border border-[#E2E8F0] rounded-xl focus:ring-2 focus:ring-[#1E293B]/10 focus:border-[#1E293B] outline-none transition-all"
-              value={topic}
-              onChange={(e) => setTopic(e.target.value)}
-            />
-          </div>
-        </div>
-
-        {/* Professional Editor Container */}
-        <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
-          {/* Editor Toolbar */}
-          <div className="bg-[#F8FAFC] border-b border-[#E2E8F0] p-3 flex flex-wrap gap-1 items-center">
-            <ToolbarButton icon={<Type size={18} />} label="Text" />
-            <ToolbarButton icon={<PlusCircle size={18} />} label="Bold" />
-            <ToolbarButton icon={<List size={18} />} label="Bullet List" />
-            <div className="w-px h-6 bg-[#E2E8F0] mx-2" />
-            
-            <button 
-              onClick={() => setIsMediaModalOpen(true)}
-              className="flex items-center gap-2 px-4 py-1.5 bg-[#1E293B] text-white rounded-lg text-sm font-semibold hover:bg-blue-900 transition-all shadow-sm"
-            >
-              <ImageIcon size={16} /> Insert Media
-            </button>
-            
-            <div className="ml-auto flex gap-2">
-              <button className="p-2 text-[#64748B] hover:text-[#1E293B] hover:bg-white rounded-lg transition-all" title="Preview Mode">
-                <Eye size={20} />
-              </button>
-            </div>
-          </div>
-
-          {/* Textarea Wrapper */}
-          <div className="relative group">
-            <textarea 
-              className="w-full min-h-137.5 p-10 bg-white focus:outline-none text-[#1E293B] text-lg leading-[1.8] resize-none"
-              placeholder="Begin writing your academic material here..."
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-            />
-            
-            {/* Real-time Status Floating Label */}
-            <div className="absolute bottom-6 right-8 flex items-center gap-2 bg-[#F1F5F9]/80 backdrop-blur-md border border-[#E2E8F0] px-4 py-2 rounded-full pointer-events-none">
-              <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></div>
-              <span className="text-[11px] font-bold text-[#475569] uppercase tracking-wider">Drafting Mode</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Quality Assurance Note */}
-        <div className="mt-8 p-5 bg-blue-50/50 border border-blue-100 rounded-2xl flex gap-4 items-start">
-          <div className="p-2 bg-blue-100 rounded-lg text-blue-600">
-            <Info size={20} />
-          </div>
-          <div className="text-sm text-blue-900/80 leading-relaxed">
-            <span className="font-bold block text-blue-950 mb-1">Quality Assurance Standards</span>
-            Your material will be queued for <strong>Workers&apos; Review</strong> immediately after submission. Ensure all images inserted are clear and data citations are accurate to avoid rejection.
-          </div>
-        </div>
-      </div>
-
-      {/* Media Library Modal */}
-      {isMediaModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0F172A]/40 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <div className="bg-white w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
-            <div className="p-6 border-b flex justify-between items-center bg-[#F8FAFC]">
-              <div>
-                <h2 className="text-xl font-bold text-[#0F172A]">Academic Media Library</h2>
-                <p className="text-xs text-[#64748B] mt-1">Select diagrams, charts, or lab results to embed.</p>
-              </div>
-              <button onClick={() => setIsMediaModalOpen(false)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-                <X size={20} className="text-[#64748B]" />
-              </button>
-            </div>
-
-            <div className="flex-1 overflow-y-auto p-8">
-              <div className="flex flex-col sm:flex-row gap-4 mb-8">
-                <div className="relative flex-1">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                  <input type="text" placeholder="Search by image name or date..." className="w-full pl-11 pr-4 py-3 border border-[#E2E8F0] rounded-xl outline-none focus:ring-2 focus:ring-[#1E293B]/5 transition-all" />
-                </div>
-                <button className="flex items-center justify-center gap-2 px-6 py-3 bg-[#F1F5F9] text-[#1E293B] rounded-xl font-bold hover:bg-[#E2E8F0] transition-all">
-                  <Upload size={18} /> Upload New
-                </button>
-              </div>
-
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                {savedImages.map((img) => (
-                  <div key={img.id} className="group relative border border-[#E2E8F0] rounded-2xl overflow-hidden hover:border-[#1E293B] cursor-pointer transition-all hover:shadow-md bg-white">
-                    <img src={img.url} alt={img.name} className="w-full h-36 object-cover grayscale group-hover:grayscale-0 transition-all duration-500" />
-                    <div className="p-3">
-                      <p className="text-[11px] font-bold text-[#0F172A] truncate">{img.name}</p>
-                      <p className="text-[9px] text-[#64748B] uppercase font-medium mt-0.5">{img.date}</p>
-                    </div>
-                    <div className="absolute inset-0 bg-[#0F172A]/70 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button className="px-5 py-2 bg-white text-[#0F172A] text-xs font-bold rounded-full transform translate-y-2 group-hover:translate-y-0 transition-transform">Insert Into Page</button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="p-5 border-t bg-[#F8FAFC] flex justify-end">
-              <button onClick={() => setIsMediaModalOpen(false)} className="px-8 py-2.5 bg-[#1E293B] text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-900/10">Close Library</button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
+// --- Types ---
+interface Course {
+  id: string;
+  code: string;
+  level: "100L" | "200L";
+  title: string;
+  description: string;
 }
 
-function ToolbarButton({ icon, label }: { icon: React.ReactNode; label: string }) {
+const INITIAL_COURSE_DATA: Course[] = [
+  // 100 Level
+  { id: "mth101", code: "MTH101", level: "100L", title: "General Mathematics I", description: "Algebra, trigonometry, and coordinate geometry basics." },
+  { id: "mth102", code: "MTH102", level: "100L", title: "General Mathematics II", description: "Introduction to calculus: limits, differentiation, and integration." },
+  { id: "sta101", code: "STA101", level: "100L", title: "Introduction to Statistics", description: "Data collection, descriptive statistics, and probability theory." },
+  { id: "cmp101", code: "CMP101", level: "100L", title: "Introduction to Computer Science", description: "Computing history, hardware/software, and digital logic." },
+  { id: "cmp102", code: "CMP102", level: "100L", title: "Computer Programming I", description: "Problem-solving and programming using high-level languages." },
+  { id: "gst109", code: "GST109", level: "100L", title: "Information & Digital Literacy Skills", description: "Search techniques, database management, and digital safety." },
+  { id: "bio101", code: "BIO101", level: "100L", title: "General Biology I", description: "Cell structure, genetics, and basic plant/animal physiology." },
+  { id: "bio102", code: "BIO102", level: "100L", title: "General Biology II", description: "Ecological principles, evolution, and organismal diversity." },
+  { id: "chm101", code: "CHM101", level: "100L", title: "General Chemistry I", description: "Inorganic and physical chemistry fundamentals." },
+  { id: "chm102", code: "CHM102", level: "100L", title: "General Chemistry II", description: "Organic chemistry and chemical thermodynamics." },
+  { id: "phy101", code: "PHY101", level: "100L", title: "General Physics I", description: "Mechanics, heat, and the properties of matter." },
+  { id: "phy102", code: "PHY102", level: "100L", title: "General Physics II", description: "Electricity, magnetism, and introduction to modern physics." },
+  { id: "bio107", code: "BIO107", level: "100L", title: "Practical Biology I", description: "Laboratory techniques and biological observations." },
+  { id: "chm107", code: "CHM107", level: "100L", title: "Practical Chemistry I", description: "Qualitative and quantitative chemical analysis labs." },
+  { id: "gst101", code: "GST101", level: "100L", title: "Use of English I", description: "Communication in English: reading and study skills." },
+  { id: "gst102", code: "GST102", level: "100L", title: "Use of English II", description: "Writing skills, essay composition, and advanced grammar." },
+  { id: "gst103", code: "GST103", level: "100L", title: "Nigerian Peoples and Culture", description: "Study of Nigerian history, culture, and social structure." },
+  { id: "gst104", code: "GST104", level: "100L", title: "Use of Library, Study Skills & ICT", description: "Information retrieval and effective study methods." },
+  { id: "gst105", code: "GST105", level: "100L", title: "History & Philosophy of Science", description: "Evolution of scientific thought and the philosophy of knowledge." },
+  { id: "gst106", code: "GST106", level: "100L", title: "Logic, Philosophy & Human Existence", description: "Principles of reasoning and human values." },
+  { id: "gst107", code: "GST107", level: "100L", title: "Peace & Conflict Studies", description: "Conflict resolution, peacebuilding, and security." },
+  { id: "gst108", code: "GST108", level: "100L", title: "Entrepreneurship Studies I", description: "Foundations of entrepreneurship and innovation." },
+  { id: "agr101", code: "AGR101", level: "100L", title: "Introduction to Agriculture", description: "Fundamental principles and importance of agriculture." },
+  { id: "agr102", code: "AGR102", level: "100L", title: "Principles of Crop Production", description: "Scientific methods for crop cultivation and management." },
+  { id: "agr103", code: "AGR103", level: "100L", title: "Principles of Animal Production", description: "Basics of livestock management and animal health." },
+  { id: "agr104", code: "AGR104", level: "100L", title: "Introduction to Soil Science", description: "Soil formation, properties, and fertility management." },
+  { id: "agr105", code: "AGR105", level: "100L", title: "Agricultural Economics & Extension", description: "Economic principles and agricultural knowledge sharing." },
+  { id: "agr106", code: "AGR106", level: "100L", title: "Introduction to Forestry & Wildlife", description: "Conservation of forests and wild animal species." },
+  { id: "agr107", code: "AGR107", level: "100L", title: "Practical Agriculture I", description: "Hands-on experience in farm practice and techniques." },
+  { id: "agr108", code: "AGR108", level: "100L", title: "Agricultural Biochemistry Basics", description: "Chemical processes in plants and animals." },
+
+  // 200 Level
+  { id: "mth201", code: "MTH201", level: "200L", title: "Mathematical Methods I", description: "Advanced vector calculus and differential equations." },
+  { id: "mth202", code: "MTH202", level: "200L", title: "Mathematical Methods II", description: "Fourier series, partial differential equations, and complex analysis." },
+  { id: "sta201", code: "STA201", level: "200L", title: "Probability Theory & Distributions", description: "Probability laws and statistical distribution patterns." },
+  { id: "cmp201", code: "CMP201", level: "200L", title: "Computer Programming II", description: "Object-oriented programming using modern frameworks." },
+  { id: "cmp202", code: "CMP202", level: "200L", title: "Data Structures & Algorithms", description: "Organization of data and efficiency of computational tasks." },
+  { id: "bio201", code: "BIO201", level: "200L", title: "Cell Biology & Genetics", description: "Heredity, molecular genetics, and cell functions." },
+  { id: "bio202", code: "BIO202", level: "200L", title: "Ecology & Environmental Biology", description: "Interaction between organisms and their environment." },
+  { id: "bio207", code: "BIO207", level: "200L", title: "Biological Techniques", description: "Advanced laboratory techniques for biological research." },
+  { id: "chm201", code: "CHM201", level: "200L", title: "Organic Chemistry I", description: "Chemistry of carbon compounds and functional groups." },
+  { id: "chm202", code: "CHM202", level: "200L", title: "Physical Chemistry II", description: "Thermodynamics, kinetics, and electrochemistry." },
+  { id: "phy201", code: "PHY201", level: "200L", title: "Electricity & Magnetism", description: "Electromagnetic fields, circuits, and Maxwell's equations." },
+  { id: "phy202", code: "PHY202", level: "200L", title: "Waves, Optics & Thermodynamics", description: "Study of light, sound waves, and heat energy." },
+  { id: "chm207", code: "CHM207", level: "200L", title: "Practical Chemistry II", description: "Advanced analytical and synthetic chemical laboratory." },
+];
+
+const getIcon = (code: string) => {
+  const prefix = code.substring(0, 3).toUpperCase();
+  switch (prefix) {
+    case "MTH": return Calculator;
+    case "PHY": return Atom;
+    case "CHM": return FlaskConical;
+    case "BIO": return BookOpen;
+    case "STA": return BarChart3;
+    case "CMP": return Binary;
+    case "GST": return Languages;
+    case "AGR": return Sprout;
+    default: return BookOpen;
+  }
+};
+
+export default function CourseSelectorPage() {
+  const router = useRouter();
+  const [search, setSearch] = useState("");
+  const [levelFilter, setLevelFilter] = useState("All");
+
+  const filteredCourses = useMemo(() => {
+    return INITIAL_COURSE_DATA.filter(c => {
+      const matchSearch = c.code.toLowerCase().includes(search.toLowerCase()) || 
+                          c.title.toLowerCase().includes(search.toLowerCase());
+      const matchLevel = levelFilter === "All" || c.level === levelFilter;
+      return matchSearch && matchLevel;
+    });
+  }, [search, levelFilter]);
+
   return (
-    <button className="p-2 text-[#64748B] hover:bg-white hover:text-[#1E293B] rounded-lg transition-all flex items-center gap-2 group">
-      <span className="opacity-70 group-hover:opacity-100">{icon}</span>
-      <span className="text-[11px] font-bold uppercase tracking-wider hidden sm:inline">{label}</span>
-    </button>
+    <main className="min-h-screen bg-black text-white p-6 md:p-12 pt-20">
+      <div className="max-w-7xl mx-auto">
+        
+        {/* Breadcrumbs */}
+        <Link href="/instructor" className="flex items-center gap-2 text-gray-500 hover:text-[#035b77] mb-8 group transition-colors">
+           <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
+           <span className="text-[10px] font-black uppercase tracking-widest">Instructor Dashboard</span>
+        </Link>
+
+        {/* Header */}
+        <header className="mb-12 border-l-4 border-[#035b77] pl-6">
+          <h1 className="text-4xl md:text-6xl font-black tracking-tighter uppercase leading-none">
+            Study <span className="text-[#035b77]">Vault</span>
+          </h1>
+          <p className="text-gray-500 text-xs font-bold tracking-[0.2em] mt-3 uppercase">
+            Select a course to manage academic resources
+          </p>
+        </header>
+
+        {/* Filter Bar */}
+        <div className="flex flex-col lg:flex-row gap-6 mb-12 items-center justify-between">
+          <div className="relative w-full lg:max-w-xl">
+            <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-600" size={20} />
+            <input 
+              type="text"
+              placeholder="Search by code or title (e.g. MTH101)..."
+              className="w-full bg-gray-900/40 border border-gray-800 rounded-[2rem] py-5 pl-16 pr-6 focus:outline-none focus:border-[#035b77] transition-all placeholder:text-gray-700"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+
+          <div className="flex bg-gray-900/40 p-1.5 rounded-[1.5rem] border border-gray-800 shrink-0">
+            {["All", "100L", "200L"].map((lvl) => (
+              <button
+                key={lvl}
+                onClick={() => setLevelFilter(lvl)}
+                className={`px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                  levelFilter === lvl ? "bg-[#035b77] text-white shadow-xl shadow-[#035b77]/20" : "text-gray-600 hover:text-gray-400"
+                }`}
+              >
+                {lvl}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Course Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <AnimatePresence mode="popLayout">
+            {filteredCourses.map((course, idx) => {
+              const Icon = getIcon(course.code);
+              return (
+                <motion.div
+                  key={course.id}
+                  layout
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ delay: idx * 0.01 }}
+                  onClick={() => router.push(`/instructor/material/${course.id}`)}
+                  className="group relative cursor-pointer bg-gray-900/20 border border-gray-800/60 p-8 rounded-[2.5rem] hover:bg-gray-900/40 hover:border-[#035b77]/40 transition-all flex flex-col h-full"
+                >
+                  <div className="flex justify-between items-start mb-8">
+                    <div className="w-14 h-14 bg-black border border-gray-800 rounded-2xl flex items-center justify-center text-[#035b77] group-hover:bg-[#035b77] group-hover:text-white transition-all duration-500">
+                      <Icon size={24} />
+                    </div>
+                    <span className="text-[8px] font-black tracking-widest bg-gray-950 px-3 py-1.5 rounded-full text-gray-500 border border-gray-900">
+                      {course.level}
+                    </span>
+                  </div>
+
+                  <h2 className="text-xl font-black uppercase tracking-tight mb-2 leading-none text-white group-hover:text-[#035b77] transition-colors">
+                    {course.code}
+                  </h2>
+                  <h3 className="text-[10px] font-bold text-gray-500 uppercase mb-4 tracking-tighter line-clamp-1">
+                    {course.title}
+                  </h3>
+                  <p className="text-[11px] text-gray-700 leading-relaxed font-medium line-clamp-2 mb-8 group-hover:text-gray-400 transition-colors">
+                    {course.description}
+                  </p>
+
+                  <div className="mt-auto pt-6 border-t border-gray-800/40 flex items-center justify-between">
+                    <span className="text-[9px] font-black uppercase tracking-widest text-gray-600 group-hover:text-[#035b77] transition-colors">
+                      Start Writing
+                    </span>
+                    <ChevronRight size={14} className="text-gray-800 group-hover:text-[#035b77] group-hover:translate-x-1 transition-all" />
+                  </div>
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
+        </div>
+
+        {/* Empty State */}
+        {filteredCourses.length === 0 && (
+          <div className="py-32 text-center border border-dashed border-gray-800 rounded-[3rem]">
+            <p className="text-[10px] font-black tracking-widest text-gray-600 uppercase">No courses found matching your criteria</p>
+          </div>
+        )}
+      </div>
+    </main>
   );
 }
