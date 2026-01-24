@@ -32,7 +32,7 @@ export default function InstructorPublishPage({ params }: { params: { courseId: 
       <div className="max-w-7xl mx-auto">
         
         {/* Navigation */}
-        <Link href="/instructor/material" className="inline-flex items-center text-sm font-medium text-[#64748B] hover:text-[#1E293B] mb-8 group transition-colors">
+        <Link href="/instructors/material" className="inline-flex items-center text-sm font-medium text-[#64748B] hover:text-[#1E293B] mb-8 group transition-colors">
           <ChevronLeft size={18} className="mr-1 group-hover:-translate-x-1 transition-transform" /> 
           Back to Course Selection
         </Link>

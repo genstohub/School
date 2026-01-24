@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   Search, Calculator, FlaskConical, BookOpen, 
   Atom, BarChart3, Binary, Languages, Sprout,
-  ChevronRight, ArrowLeft
+  ChevronRight, ArrowLeft, FileEdit, CheckCircle, Clock
 } from "lucide-react";
 import Link from "next/link";
 
@@ -17,6 +17,8 @@ interface Course {
   level: "100L" | "200L";
   title: string;
   description: string;
+  drafts?: number; // Added for Instructor view
+  published?: number; // Added for Instructor view
 }
 
 const INITIAL_COURSE_DATA: Course[] = [
@@ -83,7 +85,7 @@ const getIcon = (code: string) => {
   }
 };
 
-export default function CourseSelectorPage() {
+export default function InstructorHubPage() {
   const router = useRouter();
   const [search, setSearch] = useState("");
   const [levelFilter, setLevelFilter] = useState("All");
@@ -102,28 +104,42 @@ export default function CourseSelectorPage() {
       <div className="max-w-7xl mx-auto">
         
         {/* Breadcrumbs */}
-        <Link href="/instructor" className="flex items-center gap-2 text-gray-500 hover:text-[#035b77] mb-8 group transition-colors">
+        <Link href="/instructors" className="flex items-center gap-2 text-gray-500 hover:text-[#035b77] mb-8 group transition-colors">
            <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
-           <span className="text-[10px] font-black uppercase tracking-widest">Instructor Dashboard</span>
+           <span className="text-[10px] font-black uppercase tracking-widest">Back to Dashboard</span>
         </Link>
 
-        {/* Header */}
-        <header className="mb-12 border-l-4 border-[#035b77] pl-6">
-          <h1 className="text-4xl md:text-6xl font-black tracking-tighter uppercase leading-none">
-            Study <span className="text-[#035b77]">Vault</span>
-          </h1>
-          <p className="text-gray-500 text-xs font-bold tracking-[0.2em] mt-3 uppercase">
-            Select a course to manage academic resources
-          </p>
+        {/* CMS Header */}
+        <header className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6 border-l-4 border-[#035b77] pl-6">
+          <div>
+            <h1 className="text-4xl md:text-6xl font-black tracking-tighter uppercase leading-none">
+              Contribution <span className="text-[#035b77]">Hub</span>
+            </h1>
+            <p className="text-gray-500 text-xs font-bold tracking-[0.2em] mt-3 uppercase">
+              Manage, draft and publish academic materials
+            </p>
+          </div>
+          
+          {/* Quick Metrics */}
+          <div className="flex gap-8 border-t md:border-t-0 md:border-l border-gray-800 pt-6 md:pt-0 md:pl-8">
+            <div className="text-center">
+                <p className="text-[10px] font-black text-gray-600 uppercase mb-1">Total Published</p>
+                <p className="text-2xl font-black text-[#035b77]">142</p>
+            </div>
+            <div className="text-center">
+                <p className="text-[10px] font-black text-gray-600 uppercase mb-1">Active Drafts</p>
+                <p className="text-2xl font-black text-amber-500">14</p>
+            </div>
+          </div>
         </header>
 
-        {/* Filter Bar */}
+        {/* Toolbar */}
         <div className="flex flex-col lg:flex-row gap-6 mb-12 items-center justify-between">
           <div className="relative w-full lg:max-w-xl">
             <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-600" size={20} />
             <input 
               type="text"
-              placeholder="Search by code or title (e.g. MTH101)..."
+              placeholder="Search assigned courses..."
               className="w-full bg-gray-900/40 border border-gray-800 rounded-[2rem] py-5 pl-16 pr-6 focus:outline-none focus:border-[#035b77] transition-all placeholder:text-gray-700"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -136,7 +152,7 @@ export default function CourseSelectorPage() {
                 key={lvl}
                 onClick={() => setLevelFilter(lvl)}
                 className={`px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                  levelFilter === lvl ? "bg-[#035b77] text-white shadow-xl shadow-[#035b77]/20" : "text-gray-600 hover:text-gray-400"
+                  levelFilter === lvl ? "bg-[#035b77] text-white" : "text-gray-600 hover:text-gray-400"
                 }`}
               >
                 {lvl}
@@ -145,8 +161,8 @@ export default function CourseSelectorPage() {
           </div>
         </div>
 
-        {/* Course Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {/* Editorial Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <AnimatePresence mode="popLayout">
             {filteredCourses.map((course, idx) => {
               const Icon = getIcon(course.code);
@@ -154,50 +170,57 @@ export default function CourseSelectorPage() {
                 <motion.div
                   key={course.id}
                   layout
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{ delay: idx * 0.01 }}
-                  onClick={() => router.push(`/instructor/material/${course.id}`)}
-                  className="group relative cursor-pointer bg-gray-900/20 border border-gray-800/60 p-8 rounded-[2.5rem] hover:bg-gray-900/40 hover:border-[#035b77]/40 transition-all flex flex-col h-full"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: idx * 0.02 }}
+                  onClick={() => router.push(`/instructors/material/${course.id}`)}
+                  className="group relative cursor-pointer bg-[#0A0A0A] border border-gray-800 p-1 rounded-[2rem] overflow-hidden hover:border-[#035b77]/50 transition-all"
                 >
-                  <div className="flex justify-between items-start mb-8">
-                    <div className="w-14 h-14 bg-black border border-gray-800 rounded-2xl flex items-center justify-center text-[#035b77] group-hover:bg-[#035b77] group-hover:text-white transition-all duration-500">
-                      <Icon size={24} />
+                  <div className="p-7">
+                    <div className="flex justify-between items-start mb-6">
+                      <div className="w-12 h-12 bg-gray-900 rounded-xl flex items-center justify-center text-gray-400 group-hover:text-[#035b77] transition-colors">
+                        <Icon size={20} />
+                      </div>
+                      <div className="flex flex-col items-end">
+                        <span className="text-[8px] font-black tracking-widest text-gray-600 mb-1 uppercase">Assignment</span>
+                        <span className="text-[10px] font-black text-[#035b77]">{course.level}</span>
+                      </div>
                     </div>
-                    <span className="text-[8px] font-black tracking-widest bg-gray-950 px-3 py-1.5 rounded-full text-gray-500 border border-gray-900">
-                      {course.level}
-                    </span>
-                  </div>
 
-                  <h2 className="text-xl font-black uppercase tracking-tight mb-2 leading-none text-white group-hover:text-[#035b77] transition-colors">
-                    {course.code}
-                  </h2>
-                  <h3 className="text-[10px] font-bold text-gray-500 uppercase mb-4 tracking-tighter line-clamp-1">
-                    {course.title}
-                  </h3>
-                  <p className="text-[11px] text-gray-700 leading-relaxed font-medium line-clamp-2 mb-8 group-hover:text-gray-400 transition-colors">
-                    {course.description}
-                  </p>
+                    <h2 className="text-xl font-black uppercase tracking-tighter text-white mb-1">{course.code}</h2>
+                    <p className="text-[10px] font-bold text-gray-500 uppercase mb-6">{course.title}</p>
+                    
+                    {/* Status Indicators */}
+                    <div className="grid grid-cols-2 gap-3 mb-6">
+                        <div className="bg-gray-900/50 rounded-xl p-3 border border-gray-800/50">
+                            <div className="flex items-center gap-2 text-amber-500 mb-1">
+                                <Clock size={12} />
+                                <span className="text-[9px] font-black uppercase tracking-tighter">Drafts</span>
+                            </div>
+                            <p className="text-lg font-black">{course.drafts || 0}</p>
+                        </div>
+                        <div className="bg-gray-900/50 rounded-xl p-3 border border-gray-800/50">
+                            <div className="flex items-center gap-2 text-green-500 mb-1">
+                                <CheckCircle size={12} />
+                                <span className="text-[9px] font-black uppercase tracking-tighter">Live</span>
+                            </div>
+                            <p className="text-lg font-black">{course.published || 0}</p>
+                        </div>
+                    </div>
 
-                  <div className="mt-auto pt-6 border-t border-gray-800/40 flex items-center justify-between">
-                    <span className="text-[9px] font-black uppercase tracking-widest text-gray-600 group-hover:text-[#035b77] transition-colors">
-                      Start Writing
-                    </span>
-                    <ChevronRight size={14} className="text-gray-800 group-hover:text-[#035b77] group-hover:translate-x-1 transition-all" />
+                    <div className="flex items-center justify-between pt-4 border-t border-gray-800/50">
+                      <div className="flex items-center gap-2">
+                        <FileEdit size={14} className="text-[#035b77]" />
+                        <span className="text-[9px] font-black uppercase tracking-widest text-gray-400">Manage Material</span>
+                      </div>
+                      <ChevronRight size={14} className="text-gray-700 group-hover:text-[#035b77] group-hover:translate-x-1 transition-all" />
+                    </div>
                   </div>
                 </motion.div>
               );
             })}
           </AnimatePresence>
         </div>
-
-        {/* Empty State */}
-        {filteredCourses.length === 0 && (
-          <div className="py-32 text-center border border-dashed border-gray-800 rounded-[3rem]">
-            <p className="text-[10px] font-black tracking-widest text-gray-600 uppercase">No courses found matching your criteria</p>
-          </div>
-        )}
       </div>
     </main>
   );
