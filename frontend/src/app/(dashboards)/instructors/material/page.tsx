@@ -107,7 +107,7 @@ export default function InstructorHubPage() {
     <main className="min-h-screen bg-black text-white p-6 md:p-12 pt-20">
       <div className="max-w-7xl mx-auto">
         
-        <Link href="/instructor" className="flex items-center gap-2 text-gray-500 hover:text-[#035b77] mb-8 group transition-colors">
+        <Link href="/instructors" className="flex items-center gap-2 text-gray-500 hover:text-[#035b77] mb-8 group transition-colors">
            <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
            <span className="text-[10px] font-black uppercase tracking-widest">Back to Dashboard</span>
         </Link>
