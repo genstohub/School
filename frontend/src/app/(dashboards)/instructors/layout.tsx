@@ -13,7 +13,7 @@ export default function InstructorLayout({
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const [isOpen, setIsOpen] = useState(false);
-  const isPathArea = useSignedPathProtector("/instructor");
+  const isPathArea = useSignedPathProtector("/instructors");
   const { userType } = useUserType();
   const { loggedIn } = useLoggedIn();
 

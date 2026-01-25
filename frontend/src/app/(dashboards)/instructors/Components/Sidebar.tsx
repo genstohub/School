@@ -23,12 +23,12 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
   const pathname = usePathname();
 
   const navItems = [
-    { name: "Dashboard", href: "/dashboard/instructor", icon: LayoutDashboard },
-    { name: "Create Course", href: "/dashboard/instructor/create-course", icon: FilePlus },
-    { name: "Settings", href: "/dashboard/instructor/settings", icon: Settings },
-    { name: "Community", href: "/dashboard/instructor/community", icon: Users },
-    { name: "Notifications", href: "/dashboard/instructor/notifications", icon: Bell },
-    { name: "Profile", href: "/dashboard/instructor/profile", icon: User },
+    { name: "Dashboard", href: "/dashboard/instructors", icon: LayoutDashboard },
+    { name: "Create Course", href: "/dashboard/instructors/create-course", icon: FilePlus },
+    { name: "Settings", href: "/dashboard/instructors/settings", icon: Settings },
+    { name: "Community", href: "/dashboard/instructors/community", icon: Users },
+    { name: "Notifications", href: "/dashboard/instructors/notifications", icon: Bell },
+    { name: "Profile", href: "/dashboard/instructors/profile", icon: User },
   ];
 
   return (
