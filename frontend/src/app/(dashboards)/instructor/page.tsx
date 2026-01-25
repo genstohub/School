@@ -32,7 +32,7 @@ export default function InstructorDashboard() {
 
     const actions = [
         { title: "Go Live", icon: PlayCircle, color: "text-red-400", href: "/instructor/go-live" },
-        { title: "Create Material", icon: FileText, color: "text-blue-400", href: "/instructors/material" },
+        { title: "Create Material", icon: FileText, color: "text-blue-400", href: "/instructor/material" },
         { title: "Create Video", icon: Video, color: "text-green-400", href: "/instructor/video" },
         { title: "Create Summary", icon: BookOpen, color: "text-yellow-400", href: "/instructor/summary" },
         { title: "Practical Class", icon: PenTool, color: "text-indigo-400", href: "/instructor/practical" },
