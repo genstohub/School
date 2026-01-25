@@ -107,7 +107,7 @@ export default function InstructorHubPage() {
     <main className="min-h-screen bg-black text-white p-6 md:p-12 pt-20">
       <div className="max-w-7xl mx-auto">
         
-        <Link href="/" className="flex items-center gap-2 text-gray-500 hover:text-[#035b77] mb-8 group transition-colors">
+        <Link href="/instructor" className="flex items-center gap-2 text-gray-500 hover:text-[#035b77] mb-8 group transition-colors">
            <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
            <span className="text-[10px] font-black uppercase tracking-widest">Back to Dashboard</span>
         </Link>
@@ -173,7 +173,7 @@ export default function InstructorHubPage() {
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: idx * 0.01 }}
                   // Correct Navigation: Navigates to [courseId] folder
-                  onClick={() => router.push(`/material/${course.id}`)}
+                  onClick={() => router.push(`/instructors/material/${course.id}`)}
                   className="group relative cursor-pointer bg-[#0A0A0A] border border-gray-800 p-1 rounded-[2.5rem] overflow-hidden hover:border-[#035b77]/50 transition-all"
                 >
                   <div className="p-7">
