@@ -17,8 +17,8 @@ interface Course {
   level: "100L" | "200L";
   title: string;
   description: string;
-  drafts: number;    // Now mandatory
-  published: number; // Now mandatory
+  drafts: number;    
+  published: number; 
 }
 
 const INITIAL_COURSE_DATA: Course[] = [
@@ -99,7 +99,6 @@ export default function InstructorHubPage() {
     });
   }, [search, levelFilter]);
 
-  // Calculate global stats based on the data
   const totalPublished = INITIAL_COURSE_DATA.reduce((acc, curr) => acc + curr.published, 0);
   const activeDrafts = INITIAL_COURSE_DATA.reduce((acc, curr) => acc + curr.drafts, 0);
 
@@ -134,6 +133,7 @@ export default function InstructorHubPage() {
           </div>
         </header>
 
+        {/* Search & Filter */}
         <div className="flex flex-col lg:flex-row gap-6 mb-12 items-center justify-between">
           <div className="relative w-full lg:max-w-xl">
             <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-600" size={20} />
@@ -172,13 +172,12 @@ export default function InstructorHubPage() {
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: idx * 0.01 }}
-                  // Correct Navigation: Navigates to [courseId] folder
-                  onClick={() => router.push(`/instructors/material/${course.id}`)}
-                  className="group relative cursor-pointer bg-[#0A0A0A] border border-gray-800 p-1 rounded-[2.5rem] overflow-hidden hover:border-[#035b77]/50 transition-all"
+                  // Removed onClick from the entire card
+                  className="group relative bg-[#0A0A0A] border border-gray-800 p-1 rounded-[2.5rem] overflow-hidden hover:border-gray-700 transition-all"
                 >
                   <div className="p-7">
                     <div className="flex justify-between items-start mb-6">
-                      <div className="w-12 h-12 bg-gray-900 rounded-xl flex items-center justify-center text-gray-400 group-hover:text-[#035b77] transition-colors">
+                      <div className="w-12 h-12 bg-gray-900 rounded-xl flex items-center justify-center text-gray-400">
                         <Icon size={20} />
                       </div>
                       <span className="text-[10px] font-black text-[#035b77] bg-gray-900/50 px-3 py-1 rounded-full border border-gray-800">
@@ -186,7 +185,7 @@ export default function InstructorHubPage() {
                       </span>
                     </div>
 
-                    <h2 className="text-xl font-black uppercase tracking-tighter text-white mb-1 group-hover:text-[#035b77] transition-colors">
+                    <h2 className="text-xl font-black uppercase tracking-tighter text-white mb-1">
                       {course.code}
                     </h2>
                     <p className="text-[10px] font-bold text-gray-500 uppercase mb-6 line-clamp-1">{course.title}</p>
@@ -208,15 +207,19 @@ export default function InstructorHubPage() {
                         </div>
                     </div>
 
-                    <div className="flex items-center justify-between pt-4 border-t border-gray-800/50">
+                    {/* Navigation restricted only to this button area */}
+                    <button 
+                      onClick={() => router.push(`/instructors/material/${course.id}`)}
+                      className="w-full flex items-center justify-between pt-4 border-t border-gray-800/50 group/btn"
+                    >
                       <div className="flex items-center gap-2">
-                        <PlusCircle size={14} className="text-[#035b77]" />
-                        <span className="text-[9px] font-black uppercase tracking-widest text-gray-400 group-hover:text-white transition-colors">
+                        <PlusCircle size={14} className="text-[#035b77] group-hover/btn:scale-110 transition-transform" />
+                        <span className="text-[9px] font-black uppercase tracking-widest text-gray-400 group-hover/btn:text-white transition-colors">
                           Create New
                         </span>
                       </div>
-                      <ChevronRight size={14} className="text-gray-700 group-hover:text-[#035b77] group-hover:translate-x-1 transition-all" />
-                    </div>
+                      <ChevronRight size={14} className="text-gray-700 group-hover/btn:text-[#035b77] group-hover/btn:translate-x-1 transition-all" />
+                    </button>
                   </div>
                 </motion.div>
               );
