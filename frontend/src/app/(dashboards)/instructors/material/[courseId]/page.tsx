@@ -1,155 +1,189 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, use, useRef } from "react";
 import Link from "next/link";
 import { 
   PlusCircle, Image as ImageIcon, Send, Save, Type, 
   List, Eye, ChevronLeft, X, Search, Upload, Info,
-  History, CheckCircle2, Clock
+  History, CheckCircle2, Clock, Heading1, Heading2, Layout
 } from "lucide-react";
 
-export default function InstructorPublishPage({ params }: { params: { courseId: string } }) {
+export default function InstructorPublishPage({ params }: { params: Promise<{ courseId: string }> }) {
+  const resolvedParams = use(params);
+  const courseId = resolvedParams?.courseId || "";
+  const courseCode = courseId.toUpperCase();
+
   const [content, setContent] = useState("");
   const [topic, setTopic] = useState("");
+  const [isPreview, setIsPreview] = useState(false);
   const [isMediaModalOpen, setIsMediaModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
-  const courseCode = params.courseId.toUpperCase();
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Mock data for existing topics in this specific course
-  const existingTopics = [
-    { id: 1, title: "Course Introduction", status: "Published", date: "Jan 12" },
-    { id: 2, title: "Fundamental Concepts", status: "Under Review", date: "Jan 15" },
-    { id: 3, title: "Advanced Methodology", status: "Draft", date: "Jan 18" },
-  ];
+  // Helper to insert Markdown syntax
+  const insertText = (before: string, after: string = "") => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
 
-  const savedImages = [
-    { id: 1, url: "https://images.unsplash.com/photo-1532187896946-ba93c525996b?q=80&w=200&auto=format&fit=crop", name: "Lab_Sample_A.png" },
-    { id: 2, url: "https://images.unsplash.com/photo-1507668077129-56e32842fceb?q=80&w=200&auto=format&fit=crop", name: "DNA_Structure.jpg" },
-  ];
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = content.substring(start, end);
+    const newText = content.substring(0, start) + before + selectedText + after + content.substring(end);
+    
+    setContent(newText);
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(start + before.length, end + before.length);
+    }, 10);
+  };
+
+  const handlePreviewToggle = () => setIsPreview(!isPreview);
+
+  const handleSubmitForReview = () => {
+    setIsSubmitting(true);
+    // Logic to send to 'Workers/Approvers' would go here
+    setTimeout(() => {
+      alert("Material submitted to workers for approval!");
+      setIsSubmitting(false);
+    }, 1500);
+  };
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] p-4 md:p-10 lg:pt-20 text-[#0F172A]">
       <div className="max-w-7xl mx-auto">
         
-        {/* Navigation */}
-        <Link href="/instructors/material" className="inline-flex items-center text-sm font-medium text-[#64748B] hover:text-[#1E293B] mb-8 group transition-colors">
+        <Link href="/instructors/material" className="inline-flex items-center text-sm font-medium text-[#64748B] hover:text-[#1E293B] mb-8 group">
           <ChevronLeft size={18} className="mr-1 group-hover:-translate-x-1 transition-transform" /> 
-          Back to Course Selection
+          Back to Selection
         </Link>
 
         <div className="flex flex-col lg:flex-row gap-8">
-          
-          {/* Main Editor Column (Left) */}
           <div className="flex-1">
+            {/* Header with Submit Logic */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
               <div>
-                <h1 className="text-3xl font-bold tracking-tight">Material for {courseCode}</h1>
-                <p className="text-[#64748B] mt-2">Drafting academic content for departmental review.</p>
+                <h1 className="text-3xl font-bold tracking-tight">{courseCode} Editor</h1>
+                <p className="text-[#64748B] mt-2">Create high-quality study materials for approval.</p>
               </div>
               <div className="flex gap-3">
-                <button className="flex items-center gap-2 px-5 py-2.5 bg-white border border-[#E2E8F0] rounded-xl font-semibold hover:bg-gray-50 transition-all shadow-sm">
-                  <Save size={18} /> Save Draft
+                <button 
+                  onClick={handlePreviewToggle}
+                  className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold transition-all shadow-sm border ${
+                    isPreview ? "bg-amber-50 border-amber-200 text-amber-700" : "bg-white border-[#E2E8F0]"
+                  }`}
+                >
+                  <Eye size={18} /> {isPreview ? "Edit Mode" : "Preview"}
                 </button>
-                <button className="flex items-center gap-2 px-6 py-2.5 bg-[#1E293B] text-white rounded-xl font-semibold hover:bg-[#0F172A] transition-all shadow-lg">
-                  <Send size={18} /> Submit
+                <button 
+                  onClick={handleSubmitForReview}
+                  disabled={isSubmitting || !content}
+                  className="flex items-center gap-2 px-6 py-2.5 bg-[#035b77] text-white rounded-xl font-semibold hover:bg-[#024a61] disabled:opacity-50 transition-all shadow-lg"
+                >
+                  {isSubmitting ? "Submitting..." : <><Send size={18} /> Submit to Workers</>}
                 </button>
               </div>
             </div>
 
-            <div className="mb-8">
-              <label className="text-xs font-bold uppercase tracking-widest text-[#1E293B] block mb-2">Topic Title</label>
+            {/* Topic Input */}
+            <div className="mb-6">
+              <label className="text-[10px] font-black uppercase tracking-widest text-[#64748B] block mb-2">Main Topic</label>
               <input 
                 type="text"
-                placeholder="e.g. Introduction to Organic Synthesis"
-                className="w-full p-4 bg-white border border-[#E2E8F0] rounded-xl focus:ring-2 focus:ring-[#1E293B]/10 outline-none transition-all"
+                placeholder="Enter the main chapter or topic title..."
+                className="w-full p-5 bg-white border border-[#E2E8F0] rounded-2xl text-xl font-bold outline-none focus:border-[#035b77] transition-all"
                 value={topic}
                 onChange={(e) => setTopic(e.target.value)}
               />
             </div>
 
-            <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
-              <div className="bg-[#F8FAFC] border-b border-[#E2E8F0] p-3 flex flex-wrap gap-1 items-center">
-                <ToolbarButton icon={<Type size={18} />} label="Text" />
-                <ToolbarButton icon={<List size={18} />} label="List" />
-                <button 
-                  onClick={() => setIsMediaModalOpen(true)}
-                  className="ml-4 flex items-center gap-2 px-4 py-1.5 bg-[#1E293B] text-white rounded-lg text-sm font-semibold hover:bg-blue-900 transition-all shadow-sm"
-                >
-                  <ImageIcon size={16} /> Insert Media
-                </button>
-              </div>
-
-              <div className="relative group">
-                <textarea 
-                  className="w-full min-h-[500px] p-10 bg-white focus:outline-none text-[#1E293B] text-lg leading-[1.8] resize-none"
-                  placeholder="Start typing your study material..."
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                />
-                <div className="absolute bottom-6 right-8 flex items-center gap-2 bg-[#F1F5F9]/80 backdrop-blur-md border border-[#E2E8F0] px-4 py-2 rounded-full">
-                  <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></div>
-                  <span className="text-[11px] font-bold text-[#475569] uppercase tracking-wider">Drafting Mode</span>
+            {/* Notion-style Editor/Preview Area */}
+            <div className="bg-white rounded-3xl border border-[#E2E8F0] shadow-sm overflow-hidden min-h-[600px]">
+              {!isPreview && (
+                <div className="bg-[#F8FAFC] border-b border-[#E2E8F0] p-4 flex flex-wrap gap-2 items-center">
+                  <button onClick={() => insertText("## ")} className="p-2 hover:bg-white rounded-lg flex items-center gap-1 text-xs font-bold uppercase"><Heading1 size={16}/> Sub-topic</button>
+                  <button onClick={() => insertText("### ")} className="p-2 hover:bg-white rounded-lg flex items-center gap-1 text-xs font-bold uppercase"><Heading2 size={16}/> Section</button>
+                  <button onClick={() => insertText("\n- ")} className="p-2 hover:bg-white rounded-lg"><List size={18}/></button>
+                  <div className="h-6 w-[1px] bg-gray-300 mx-2" />
+                  <button 
+                    onClick={() => setIsMediaModalOpen(true)}
+                    className="flex items-center gap-2 px-4 py-2 bg-[#1E293B] text-white rounded-xl text-xs font-bold hover:bg-black transition-all"
+                  >
+                    <ImageIcon size={16} /> Add Image
+                  </button>
                 </div>
-              </div>
-            </div>
-          </div>
+              )}
 
-          {/* Topics Sidebar (Right) */}
-          <div className="lg:w-80 shrink-0">
-            <div className="bg-white rounded-2xl border border-[#E2E8F0] p-6 sticky top-24">
-              <div className="flex items-center gap-2 mb-6">
-                <History size={18} className="text-[#64748B]" />
-                <h3 className="font-bold text-sm uppercase tracking-wider">Course Progress</h3>
-              </div>
-              
-              <div className="space-y-4">
-                {existingTopics.map((t) => (
-                  <div key={t.id} className="p-3 rounded-xl border border-[#F1F5F9] hover:bg-[#F8FAFC] transition-colors cursor-default">
-                    <p className="text-xs font-bold text-[#1E293B] mb-1 line-clamp-1">{t.title}</p>
-                    <div className="flex items-center justify-between">
-                      <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${
-                        t.status === 'Published' ? 'bg-green-100 text-green-700' : 
-                        t.status === 'Under Review' ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-600'
-                      }`}>
-                        {t.status}
-                      </span>
-                      <span className="text-[9px] text-[#94A3B8] font-medium">{t.date}</span>
+              <div className="p-10">
+                {isPreview ? (
+                  <div className="prose prose-slate max-w-none">
+                    <h1 className="text-4xl font-black mb-6">{topic || "Untitled Topic"}</h1>
+                    {/* Basic Markdown Parser simulation */}
+                    <div className="whitespace-pre-wrap leading-relaxed text-lg text-gray-700">
+                      {content || "No content to preview yet..."}
                     </div>
                   </div>
-                ))}
-              </div>
-
-              <div className="mt-8 pt-6 border-t border-[#F1F5F9]">
-                <div className="flex gap-3 items-start">
-                  <Info size={16} className="text-[#64748B] shrink-0 mt-0.5" />
-                  <p className="text-[11px] leading-relaxed text-[#64748B]">
-                    Ensure your content follows the departmental guidelines for <strong>{courseCode}</strong>.
-                  </p>
-                </div>
+                ) : (
+                  <textarea 
+                    ref={textareaRef}
+                    className="w-full min-h-[500px] focus:outline-none text-[#1E293B] text-lg leading-[1.8] resize-none"
+                    placeholder="Use 'Sub-topic' button to organize your content..."
+                    value={content}
+                    onChange={(e) => setContent(e.target.value)}
+                  />
+                )}
               </div>
             </div>
           </div>
 
+          {/* Sidebar with Guidelines */}
+          <div className="lg:w-80 shrink-0">
+             <div className="bg-[#1E293B] text-white rounded-3xl p-6 sticky top-24 shadow-xl">
+                <div className="flex items-center gap-2 mb-6">
+                   <Layout size={18} className="text-amber-400" />
+                   <h3 className="font-bold text-xs uppercase tracking-widest">Submission Guide</h3>
+                </div>
+                <ul className="space-y-4 text-xs text-gray-300 leading-relaxed">
+                  <li className="flex gap-2">
+                    <div className="w-5 h-5 rounded-full bg-[#035b77] flex items-center justify-center text-[10px] shrink-0">1</div>
+                    <span>Define a clear <strong>Main Topic</strong> for the module.</span>
+                  </li>
+                  <li className="flex gap-2">
+                    <div className="w-5 h-5 rounded-full bg-[#035b77] flex items-center justify-center text-[10px] shrink-0">2</div>
+                    <span>Use <strong>Sub-topics</strong> (Heading 1) to break down complex ideas.</span>
+                  </li>
+                  <li className="flex gap-2">
+                    <div className="w-5 h-5 rounded-full bg-[#035b77] flex items-center justify-center text-[10px] shrink-0">3</div>
+                    <span>Insert images where diagrams are necessary.</span>
+                  </li>
+                </ul>
+             </div>
+          </div>
         </div>
       </div>
 
-      {/* Media Modal */}
+      {/* Media Modal - Same as before but with insert logic */}
       {isMediaModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-           <div className="bg-white w-full max-w-4xl rounded-3xl p-8 shadow-2xl">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-bold">Media Library</h2>
-                <button onClick={() => setIsMediaModalOpen(false)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-                  <X />
-                </button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4">
+           <div className="bg-white w-full max-w-4xl rounded-[3rem] p-10 shadow-2xl animate-in fade-in zoom-in duration-200">
+              <div className="flex justify-between items-center mb-8">
+                <h2 className="text-2xl font-black uppercase tracking-tight">Departmental Assets</h2>
+                <button onClick={() => setIsMediaModalOpen(false)} className="p-3 bg-gray-100 rounded-full hover:bg-gray-200 transition-all"><X /></button>
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {savedImages.map(img => (
-                  <div key={img.id} className="group relative border rounded-xl p-2 cursor-pointer hover:border-black transition-all">
-                    <img src={img.url} className="h-32 w-full object-cover rounded-lg mb-2" alt="" />
-                    <p className="text-xs font-bold truncate">{img.name}</p>
-                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity rounded-xl">
-                        <span className="text-white text-[10px] font-bold px-3 py-1 border border-white rounded-full">Insert</span>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                {/* Mock data images */}
+                {[1,2,3,4].map(i => (
+                  <div 
+                    key={i}
+                    onClick={() => {
+                        insertText(`\n![Diagram ${i}](https://images.unsplash.com/photo-1532187896946-ba93c525996b?w=400)\n`);
+                        setIsMediaModalOpen(false);
+                    }}
+                    className="group relative aspect-square bg-gray-100 rounded-2xl overflow-hidden cursor-pointer hover:ring-4 ring-[#035b77] transition-all"
+                  >
+                    <div className="absolute inset-0 flex items-center justify-center text-[10px] font-black text-gray-400 uppercase">Asset {i}</div>
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all">
+                        <span className="bg-white text-black px-4 py-2 rounded-full text-xs font-bold">Insert</span>
                     </div>
                   </div>
                 ))}
@@ -158,13 +192,5 @@ export default function InstructorPublishPage({ params }: { params: { courseId: 
         </div>
       )}
     </div>
-  );
-}
-
-function ToolbarButton({ icon, label }: { icon: React.ReactNode; label: string }) {
-  return (
-    <button className="p-2 text-[#64748B] hover:bg-white hover:text-[#1E293B] rounded-lg transition-all flex items-center gap-2">
-      {icon} <span className="text-[11px] font-bold uppercase hidden sm:inline">{label}</span>
-    </button>
   );
 }
