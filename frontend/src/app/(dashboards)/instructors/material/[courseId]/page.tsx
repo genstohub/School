@@ -96,7 +96,7 @@ export default function InstructorPublishPage({ params }: { params: Promise<{ co
   };
 
   return (
-    <div className="min-h-screen bg-gray-800 p-4 md:p-10 text-[#ced3de]">
+    <div className="min-h-screen bg-[#14314e] rounded-2xl p-4 md:p-10 text-[#0F172A]">
       <div className="max-w-7xl mx-auto">
         <Link href="/instructors/material" className="inline-flex items-center text-sm font-medium text-[#64748B] mb-8 group transition-colors">
           <ChevronLeft size={18} className="mr-1 group-hover:-translate-x-1 transition-transform" /> 
