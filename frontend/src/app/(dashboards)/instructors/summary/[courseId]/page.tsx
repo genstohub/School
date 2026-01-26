@@ -38,13 +38,13 @@ export default function SummaryCreationPage({ params }: { params: Promise<{ cour
   };
 
   return (
-    <main className="min-h-screen bg-[#050505] text-white p-6 md:p-12">
+    <main className="min-h-screen bg-[#050505] rounded-3xl text-white p-6 md:p-12">
       <div className="max-w-6xl mx-auto">
         
         {/* Navigation */}
         <Link href="/instructors/material" className="inline-flex items-center gap-2 text-gray-500 hover:text-cyan-500 mb-10 group transition-colors">
           <ChevronLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
-          <span className="text-[10px] font-black uppercase tracking-widest">Back to Material Hub</span>
+          <span className="text-[10px] font-black uppercase tracking-widest">Back to Hub</span>
         </Link>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
