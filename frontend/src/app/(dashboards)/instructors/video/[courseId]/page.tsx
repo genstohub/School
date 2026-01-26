@@ -167,10 +167,10 @@ export default function VideoCreationPage({ params }: { params: Promise<{ course
               </div>
             </div>
 
-            <div className="p-6 bg-blue-600/5 border border-blue-600/20 rounded-[2rem] flex gap-4">
+            <div className="p-6 bg-blue-600/5 border border-blue-600/20 rounded-4xl flex gap-4">
               <Info className="text-blue-600 shrink-0" size={20} />
               <p className="text-[11px] text-gray-400 font-medium leading-relaxed uppercase tracking-tight">
-                Standard clips should be between <span className="text-white">5-15 minutes</span>. 
+                Standard clips should be between <span className="text-white">30-45 minutes</span>. 
                 Ensure you are in a well-lit area with minimal background noise for the best student experience.
               </p>
             </div>
