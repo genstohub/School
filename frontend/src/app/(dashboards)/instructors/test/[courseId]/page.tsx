@@ -63,8 +63,8 @@ export default function TestCreationPage({ params }: { params: Promise<{ courseI
   };
 
   return (
-    <main className="min-h-screen bg-gray-950 text-white p-6 md:p-12">
-      <div className="max-w-5xl mx-auto">
+    <main className="min-h-screen bg-gray-950 text-white rounded-2xl  p-6 md:p-12">
+      <div className="max-w-5xl rounded-2xl mx-auto">
         
         {/* Navigation */}
         <Link href="/instructors/material" className="inline-flex items-center gap-2 text-gray-500 hover:text-[#035b77] mb-10 group transition-colors">
