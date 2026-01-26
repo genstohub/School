@@ -60,7 +60,7 @@ export default function QuizCreationPage({ params }: { params: Promise<{ courseI
   };
 
   return (
-    <main className="min-h-screen bg-[#08070B] text-white p-6 md:p-12">
+    <main className="min-h-screen bg-[#08070B] text-white rounded-3xl p-6 md:p-12">
       <div className="max-w-6xl mx-auto">
         
         {/* Navigation */}
