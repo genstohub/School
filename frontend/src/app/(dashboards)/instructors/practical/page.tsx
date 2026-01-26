@@ -209,7 +209,7 @@ export default function InstructorHubPage() {
 
                     {/* Navigation restricted only to this button area */}
                     <button 
-                      onClick={() => router.push(`/instructors/material/${course.id}`)}
+                      onClick={() => router.push(`/instructors/practical /${course.id}`)}
                       className="w-full flex items-center justify-between pt-4 border-t border-gray-800/50 group/btn"
                     >
                       <div className="flex items-center gap-2">
