@@ -23,12 +23,12 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
   const pathname = usePathname();
 
   const navItems = [
-    { name: "Dashboard", href: "/dashboard/instructors", icon: LayoutDashboard },
-    { name: "Create Course", href: "/dashboard/instructors/create-course", icon: FilePlus },
-    { name: "Settings", href: "/dashboard/instructors/settings", icon: Settings },
-    { name: "Community", href: "/dashboard/instructors/community", icon: Users },
-    { name: "Notifications", href: "/dashboard/instructors/notifications", icon: Bell },
-    { name: "Profile", href: "/dashboard/instructors/profile", icon: User },
+    { name: "Dashboard", href: "/instructors", icon: LayoutDashboard },
+    { name: "Create Course", href: "/instructors/create-course", icon: FilePlus },
+    { name: "Settings", href: "/instructors/settings", icon: Settings },
+    { name: "Community", href: "/instructors/community", icon: Users },
+    { name: "Notifications", href: "/instructors/notifications", icon: Bell },
+    { name: "logout", href: "/instructors/logout", icon: LogOut },
   ];
 
   return (
@@ -49,7 +49,7 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
       >
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-700">
-          <h2 className="text-xl font-bold text-white">Instructor Panel</h2>
+          <h2 className="text-xl font-bold text-white">Uniqueness</h2>
           <button
             className="text-gray-300 lg:hidden"
             onClick={() => setIsOpen(false)}
@@ -78,17 +78,6 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
               </Link>
             );
           })}
-
-          {/* Logout */}
-          <div className="mt-6 border-t border-gray-700 pt-4">
-            <button
-              className="flex items-center gap-3 text-gray-300 hover:text-red-400 transition-colors"
-              onClick={() => console.log("Logging out...")}
-            >
-              <LogOut size={18} />
-              <span>Logout</span>
-            </button>
-          </div>
         </nav>
       </aside>
     </>

@@ -1,23 +1,11 @@
-
 "use client";
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import {
-    Video,
-    FileText,
-    ClipboardList,
-    BookOpen,
-    PenTool,
-    FileCheck,
-    HelpCircle,
-    GraduationCap,
-    Star,
-    PlayCircle,
-    UsersRound,
-    MessageSquare,
-    Clock,
-    AlertCircle
+    Video, FileText, ClipboardList, BookOpen, PenTool,
+    FileCheck, HelpCircle, GraduationCap, Star, PlayCircle,
+    UsersRound, MessageSquare, Clock, ChevronRight
 } from "lucide-react";
 
 export default function InstructorDashboard() {
@@ -40,7 +28,8 @@ export default function InstructorDashboard() {
         { title: "Tests", icon: FileCheck, color: "text-purple-400", href: "/instructors/test" },
         { title: "Quiz", icon: HelpCircle, color: "text-pink-400", href: "/instructors/quiz" },
         { title: "CBT", icon: GraduationCap, color: "text-orange-400", href: "/instructors/cbt" },
-        { title: "Rate Students", icon: Star, color: "text-yellow-300", href: "/instructors/rate" }
+        // UPDATED: Redirects to the student ranking/filter page
+        { title: "Rate Students", icon: Star, color: "text-yellow-300", href: "/instructors/rate-students" }
     ];
 
     return (
@@ -50,53 +39,63 @@ export default function InstructorDashboard() {
                 {/* Header Section */}
                 <header className="w-full bg-[#1E293B] border border-[#334155] rounded-2xl p-6 shadow-xl flex justify-between items-center">
                     <div>
-                        <h2 className="text-2xl font-bold">{greeting}, Instructor 👋</h2>
-                        <p className="text-slate-400 mt-1">Manage your courses and track material approvals.</p>
+                        <h2 className="text-2xl font-bold italic tracking-tight">{greeting}, Instructor</h2>
+                        <p className="text-slate-400 mt-1 text-sm uppercase font-semibold tracking-wider">Academic Command Center</p>
                     </div>
-                    <Link href="/instructors/profile" className="bg-[#334155] px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-[#475569] transition shadow-lg">
-                        CheckIns
+                    <Link href="/instructors/profile" className="bg-[#334155] px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-white hover:text-black transition-all shadow-lg uppercase">
+                        Profile
                     </Link>
                 </header>
 
                 {/* Status & Community Overview */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {/* NEW: Approval Status Card */}
-                    <Link href="/instructors/status" className="bg-[#1E293B] border border-[#334155] rounded-2xl p-5 hover:border-yellow-500/50 transition group relative overflow-hidden">
+                    {/* UPDATED: Review Queue Card */}
+                    <Link href="/instructors/review-queue" className="bg-[#1E293B] border border-[#334155] rounded-2xl p-6 hover:border-yellow-500 transition group relative overflow-hidden">
                         <div className="flex justify-between items-start mb-4">
-                            <Clock size={32} className="text-yellow-400" />
-                            <span className="bg-yellow-500/10 text-yellow-500 text-[10px] font-bold px-2 py-1 rounded-full uppercase">Action Required</span>
+                            <div className="p-3 bg-yellow-500/10 rounded-xl">
+                                <Clock size={28} className="text-yellow-400" />
+                            </div>
+                            <span className="bg-yellow-500/20 text-yellow-500 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-tighter">Needs Correction</span>
                         </div>
                         <h3 className="font-bold text-lg">Review Queue</h3>
-                        <p className="text-slate-400 text-sm mt-1">You have <span className="text-white font-bold">2 items</span> requiring corrections from workers.</p>
+                        <p className="text-slate-400 text-sm mt-1">Pending revisions for <span className="text-white font-bold">2 items</span> flagged by QA.</p>
+                        <div className="mt-4 flex items-center text-yellow-500 text-xs font-bold gap-1 group-hover:translate-x-2 transition-transform">
+                            OPEN EDITOR <ChevronRight size={14} />
+                        </div>
                     </Link>
 
-                    <Link href="/instructors/community" className="bg-[#1E293B] border border-[#334155] rounded-2xl p-5 hover:border-purple-500/50 transition">
-                        <UsersRound size={32} className="text-purple-400 mb-4" />
-                        <h3 className="font-bold text-lg">Community</h3>
-                        <p className="text-slate-400 text-sm mt-1">Collaborate with fellow department heads and instructors.</p>
+                    {/* REDIRECTED: General Student Community */}
+                    <Link href="/students/community" className="bg-[#1E293B] border border-[#334155] rounded-2xl p-6 hover:border-purple-500 transition">
+                        <div className="p-3 bg-purple-500/10 rounded-xl w-fit mb-4">
+                            <UsersRound size={28} className="text-purple-400" />
+                        </div>
+                        <h3 className="font-bold text-lg">General Community</h3>
+                        <p className="text-slate-400 text-sm mt-1">Engage with students and fellow instructors across departments.</p>
                     </Link>
 
-                    <Link href="/instructors/support" className="bg-[#1E293B] border border-[#334155] rounded-2xl p-5 hover:border-blue-500/50 transition">
-                        <MessageSquare size={32} className="text-blue-400 mb-4" />
-                        <h3 className="font-bold text-lg">Support</h3>
-                        <p className="text-slate-400 text-sm mt-1">Contact the Quality Assurance team for technical help.</p>
+                    <Link href="/instructors/support" className="bg-[#1E293B] border border-[#334155] rounded-2xl p-6 hover:border-blue-500 transition">
+                        <div className="p-3 bg-blue-500/10 rounded-xl w-fit mb-4">
+                            <MessageSquare size={28} className="text-blue-400" />
+                        </div>
+                        <h3 className="font-bold text-lg">Tech Support</h3>
+                        <p className="text-slate-400 text-sm mt-1">Direct line to Quality Assurance and Admin support.</p>
                     </Link>
                 </div>
 
-                {/* Tools Grid */}
+                {/* Tools Grid (Preserved) */}
                 <section>
-                    <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
-                        <PenTool size={20} className="text-slate-400" /> Instructor Tools
+                    <h2 className="text-sm font-black text-slate-500 mb-6 uppercase tracking-[0.3em] flex items-center gap-2">
+                        Instructor Tools
                     </h2>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                         {actions.map(action => {
                             const Icon = action.icon;
                             return (
-                                <Link key={action.title} href={action.href} className="bg-[#1E293B] border border-[#334155] rounded-xl p-5 hover:bg-[#2D3748] transition-all flex flex-col items-center text-center group">
-                                    <div className={`p-3 rounded-lg bg-slate-800 group-hover:scale-110 transition-transform mb-3 ${action.color}`}>
-                                        <Icon size={24} />
+                                <Link key={action.title} href={action.href} className="bg-[#1E293B] border border-[#334155] rounded-2xl p-6 hover:bg-[#2D3748] transition-all flex flex-col items-center text-center group">
+                                    <div className={`p-4 rounded-2xl bg-slate-800/50 group-hover:scale-110 transition-transform mb-4 ${action.color}`}>
+                                        <Icon size={28} />
                                     </div>
-                                    <h4 className="font-semibold text-sm">{action.title}</h4>
+                                    <h4 className="font-bold text-[13px] uppercase tracking-wide leading-tight">{action.title}</h4>
                                 </Link>
                             );
                         })}
