@@ -184,7 +184,7 @@ export default function UniversalLogoutPage() {
                         </div>
                     )}
                 </div>
-                <p className="text-center text-zinc-800 text-[10px] mt-10 font-black uppercase tracking-[0.4em]">
+                <p className="text-center text-zinc-300 text-[10px] mt-10 font-black uppercase tracking-[0.4em]">
                     &copy; Base Platform Security Protocol
                 </p>
             </div>
