@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { LayoutDashboard, Users, Activity, ClipboardList, Bell, Settings, LogOut } from "lucide-react";
 
 interface SidebarProps {
@@ -10,13 +11,16 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
+  const pathname = usePathname();
+  const role = "worker";
+
   const menuItems = [
-    { name: "Dashboard", icon: <LayoutDashboard size={18} />, href: "/dashboard/worker" },
-    { name: "Monitor Students", icon: <Users size={18} />, href: "/dashboard/worker/students" },
-    { name: "Monitor Instructors", icon: <Activity size={18} />, href: "/dashboard/worker/instructors" },
-    { name: "Tasks", icon: <ClipboardList size={18} />, href: "/dashboard/worker/tasks" },
-    { name: "Notifications", icon: <Bell size={18} />, href: "/dashboard/worker/notifications" },
-    { name: "Settings", icon: <Settings size={18} />, href: "/dashboard/worker/settings" },
+    { name: "Dashboard", icon: <LayoutDashboard size={18} />, href: "/workers" },
+    { name: "Monitor Students", icon: <Users size={18} />, href: "/workers/students" },
+    { name: "Monitor Instructors", icon: <Activity size={18} />, href: "/workers/instructors" },
+    { name: "Tasks", icon: <ClipboardList size={18} />, href: "/workers/tasks" },
+    { name: "Notifications", icon: <Bell size={18} />, href: "/workers/notifications" },
+    { name: "Settings", icon: <Settings size={18} />, href: "/workers/settings" },
   ];
 
   return (
@@ -24,45 +28,55 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
       {/* Sidebar Overlay for Mobile */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-40 z-30 lg:hidden"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 lg:hidden"
           onClick={() => setIsOpen(false)}
         />
       )}
 
       {/* Sidebar */}
       <aside
-        className={`fixed lg:static top-0 left-0 h-full w-64 bg-gray-800 text-gray-200 transform ${
+        className={`fixed lg:static top-0 left-0 h-full w-64 bg-gray-900 border-r border-gray-700 text-gray-200 transform ${
           isOpen ? "translate-x-0" : "-translate-x-full"
-        } lg:translate-x-0 transition-transform duration-300 z-40`}
+        } lg:translate-x-0 transition-transform duration-300 z-40 flex flex-col`}
       >
         {/* Logo */}
-        <div className="flex items-center justify-center h-16 border-b border-gray-700">
-          <h2 className="text-xl font-bold text-white">Worker Panel</h2>
+        <div className="flex items-center px-6 h-16 border-b border-gray-700">
+          <h2 className="text-xl font-black text-white italic tracking-tighter uppercase">
+            Worker <span className="text-blue-500">Panel</span>
+          </h2>
         </div>
 
         {/* Menu */}
-        <nav className="flex-1 p-4 space-y-2">
-          {menuItems.map((item, index) => (
-            <Link
-              key={index}
-              href={item.href}
-              className="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-gray-700 transition"
-              onClick={() => setIsOpen(false)}
-            >
-              {item.icon}
-              <span>{item.name}</span>
-            </Link>
-          ))}
+        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+          {menuItems.map((item, index) => {
+            const active = pathname === item.href;
+            return (
+              <Link
+                key={index}
+                href={item.href}
+                className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-all ${
+                  active 
+                    ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20" 
+                    : "hover:bg-gray-800 text-gray-400 hover:text-white"
+                }`}
+                onClick={() => setIsOpen(false)}
+              >
+                {item.icon}
+                <span className="text-sm font-medium">{item.name}</span>
+              </Link>
+            );
+          })}
         </nav>
 
-        {/* Logout */}
+        {/* Universal Logout Link */}
         <div className="border-t border-gray-700 p-4">
-          <button
-            onClick={() => console.log("Logging out...")}
-            className="flex items-center gap-3 text-gray-300 hover:text-white w-full"
+          <Link
+            href={`/auth/logout?role=${role}`}
+            className="flex items-center gap-3 px-4 py-2 text-gray-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all group"
           >
-            <LogOut size={18} /> Logout
-          </button>
+            <LogOut size={18} className="group-hover:-translate-x-1 transition-transform" />
+            <span className="text-sm font-bold uppercase tracking-widest">Logout</span>
+          </Link>
         </div>
       </aside>
     </>

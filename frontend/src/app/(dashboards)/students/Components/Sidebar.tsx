@@ -3,10 +3,8 @@
 import React from "react";
 import {
   Home,
-  BookOpen,
   Video,
   Users,
-  MessageSquare,
   Group,
   LifeBuoy,
   Menu,
@@ -24,16 +22,17 @@ interface SidebarProps {
 
 export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
   const pathname = usePathname();
+  // We hardcode the role here since this is specifically the Student Sidebar
+  const role = "student"; 
 
   const navItems = [
     { name: "Dashboard", href: "/students", icon: Home },
     { name: "Live Sessions", href: "/students/live", icon: Video },
     { name: "Community", href: "/students/community", icon: Users },
     { name: "Study Mate", href: "/students/study-mate", icon: Group },
-    { name: "BookMark", href: "/students/bookmark", icon: Bookmark },
+    { name: "Bookmark", href: "/students/bookmark", icon: Bookmark },
     { name: "Support", href: "/students/support", icon: LifeBuoy },
     { name: "Settings", href: "/students/settings", icon: Settings },
-      
   ];
 
   return (
@@ -41,7 +40,8 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
       {/* Mobile overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-blur bg-opacity-40 z-20 lg:hidden"
+          // Fixed the class: replaced 'bg-blur' with proper Tailwind 'backdrop-blur-sm'
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-20 lg:hidden"
           onClick={() => setIsOpen(false)}
         />
       )}
@@ -54,7 +54,7 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
       >
         {/* Sidebar Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-700">
-          <h2 className="text-xl font-bold text-white">BASE</h2>
+          <h2 className="text-xl font-bold text-white tracking-tighter italic">BASE</h2>
           <button
             className="text-gray-300 lg:hidden"
             onClick={() => setIsOpen(false)}
@@ -79,11 +79,22 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
                 }`}
               >
                 <Icon size={18} />
-                <span>{item.name}</span>
+                <span className="text-sm font-medium">{item.name}</span>
               </Link>
             );
           })}
         </nav>
+
+        {/* --- ADDED LOGOUT SECTION --- */}
+        <div className="p-4 border-t border-gray-700">
+          <Link
+            href={`/auth/logout?role=${role}`}
+            className="flex items-center gap-3 w-full p-2 text-gray-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all group"
+          >
+            <LogOut size={18} className="group-hover:-translate-x-1 transition-transform" />
+            <span className="text-sm font-bold uppercase tracking-widest">Logout</span>
+          </Link>
+        </div>
       </aside>
     </>
   );
