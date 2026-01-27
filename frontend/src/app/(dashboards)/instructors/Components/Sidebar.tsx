@@ -13,6 +13,8 @@ import {
   Briefcase,
   ShieldCheck,
   Search,
+  Activity,
+  Group,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -30,9 +32,11 @@ export default function Sidebar({ isOpen, setIsOpen, role }: SidebarProps) {
   const menuConfigs = {
     instructor: [
       { name: "Dashboard", href: "/instructors", icon: LayoutDashboard },
-      { name: "Create Course", href: "/instructors/create-course", icon: FilePlus },
-      { name: "Community", href: "/students/community", icon: Users },
-      { name: "Notifications", href: "/instructors/notifications", icon: Bell },
+      { name: "Schedule Live", href: "/instructors/schedule", icon: FilePlus },
+      { name: "Active Students", href: "/instructors/active-students", icon: Users },
+      { name: "Study Mate", href: "/students/study-mate", icon: Group },
+      { name: "Q & A", href: "/students/qna", icon: BookOpen },
+      { name: "Weekly Activity", href: "/instructors/weekly-activity", icon: Activity },
       { name: "Settings", href: "/instructors/settings", icon: Settings },
     ],
     student: [
