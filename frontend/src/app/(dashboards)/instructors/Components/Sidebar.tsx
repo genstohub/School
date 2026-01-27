@@ -31,7 +31,7 @@ export default function Sidebar({ isOpen, setIsOpen, role }: SidebarProps) {
     instructor: [
       { name: "Dashboard", href: "/instructors", icon: LayoutDashboard },
       { name: "Create Course", href: "/instructors/create-course", icon: FilePlus },
-      { name: "Community", href: "/instructors/community", icon: Users },
+      { name: "Community", href: "/students/community", icon: Users },
       { name: "Notifications", href: "/instructors/notifications", icon: Bell },
       { name: "Settings", href: "/instructors/settings", icon: Settings },
     ],
