@@ -103,7 +103,7 @@ export default function InstructorHubPage() {
   const activeDrafts = INITIAL_COURSE_DATA.reduce((acc, curr) => acc + curr.drafts, 0);
 
   return (
-    <main className="min-h-screen bg-gray-800 rounded-2xl text-white p-6 md:p-12 pt-20">
+    <main className="min-h-screen bg-[#0F172A] rounded-2xl text-white p-6 md:p-12 pt-20">
       <div className="max-w-7xl mx-auto">
         
         <Link href="/instructors" className="flex items-center gap-2 text-gray-500 hover:text-[#035b77] mb-8 group transition-colors">
