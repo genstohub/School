@@ -33,7 +33,7 @@ export default function Sidebar({ isOpen, setIsOpen, role }: SidebarProps) {
     instructor: [
       { name: "Dashboard", href: "/instructors", icon: LayoutDashboard },
       { name: "Schedule Live", href: "/instructors/schedule", icon: FilePlus },
-      { name: "Active Students", href: "/instructors/active-students", icon: Users },
+      { name: "Active Students", href: "/instructors/students", icon: Users },
       { name: "Study Mate", href: "/students/study-mate", icon: Group },
       { name: "Go Live", href: "/instructors/go-live", icon: BookOpen },
       { name: "Weekly Activity", href: "/instructors/weekly-activity", icon: Activity },
