@@ -7,7 +7,6 @@ import {
   Settings,
   Users,
   Bell,
-  User,
   LogOut,
   Menu,
 } from "lucide-react";
@@ -17,18 +16,19 @@ import { usePathname } from "next/navigation";
 interface SidebarProps {
   isOpen: boolean;
   setIsOpen: (value: boolean) => void;
+  role: "instructor" | "student" | "worker" | "admin"; // Added role prop
 }
 
-export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
+export default function Sidebar({ isOpen, setIsOpen, role }: SidebarProps) {
   const pathname = usePathname();
 
+  // Filter out the logout from the main loop so we can style it specially at the bottom
   const navItems = [
-    { name: "Dashboard", href: "/instructors", icon: LayoutDashboard },
+    { name: "Dashboard", href: `/${role}s`, icon: LayoutDashboard },
     { name: "Create Course", href: "/instructors/create-course", icon: FilePlus },
-    { name: "Settings", href: "/instructors/settings", icon: Settings },
+    { name: "Settings", href: `/${role}s/settings`, icon: Settings },
     { name: "Community", href: "/instructors/community", icon: Users },
     { name: "Notifications", href: "/instructors/notifications", icon: Bell },
-    { name: "logout", href: "/instructors/logout", icon: LogOut },
   ];
 
   return (
@@ -49,7 +49,7 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
       >
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-700">
-          <h2 className="text-xl font-bold text-white">Uniqueness</h2>
+          <h2 className="text-xl font-bold text-white italic tracking-tighter">UNIQUENESS</h2>
           <button
             className="text-gray-300 lg:hidden"
             onClick={() => setIsOpen(false)}
@@ -74,11 +74,23 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
                 }`}
               >
                 <Icon size={18} />
-                <span>{item.name}</span>
+                <span className="text-sm font-medium">{item.name}</span>
               </Link>
             );
           })}
         </nav>
+
+        {/* Logout Section - Fixed to bottom */}
+        <div className="p-4 border-t border-gray-700 bg-gray-900/50">
+          <Link
+            // This points to your universal logout page with the role parameter
+            href={`/auth/logout?role=${role}`}
+            className="flex items-center gap-3 w-full p-2 text-gray-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all group"
+          >
+            <LogOut size={18} className="group-hover:-translate-x-1 transition-transform" />
+            <span className="text-sm font-bold uppercase tracking-widest">Logout</span>
+          </Link>
+        </div>
       </aside>
     </>
   );
