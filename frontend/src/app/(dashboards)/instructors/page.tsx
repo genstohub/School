@@ -19,7 +19,7 @@ export default function InstructorDashboard() {
     }, []);
 
     const actions = [
-        { title: "Go Live", icon: PlayCircle, color: "text-red-400", href: "/instructors/go-live" },
+        { title: "Q & A", icon: PlayCircle, color: "text-red-400", href: "/students/qna" },
         { title: "Create Material", icon: FileText, color: "text-blue-400", href: "/instructors/material" },
         { title: "Create Video", icon: Video, color: "text-green-400", href: "/instructors/video" },
         { title: "Create Summary", icon: BookOpen, color: "text-yellow-400", href: "/instructors/summary" },

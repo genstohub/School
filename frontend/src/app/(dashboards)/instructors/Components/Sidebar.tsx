@@ -35,7 +35,7 @@ export default function Sidebar({ isOpen, setIsOpen, role }: SidebarProps) {
       { name: "Schedule Live", href: "/instructors/schedule", icon: FilePlus },
       { name: "Active Students", href: "/instructors/active-students", icon: Users },
       { name: "Study Mate", href: "/students/study-mate", icon: Group },
-      { name: "Q & A", href: "/students/qna", icon: BookOpen },
+      { name: "Go Live", href: "/instructors/go-live", icon: BookOpen },
       { name: "Weekly Activity", href: "/instructors/weekly-activity", icon: Activity },
       { name: "Settings", href: "/instructors/settings", icon: Settings },
     ],
