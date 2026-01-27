@@ -8,7 +8,6 @@ import {
     Trophy, Clock, Home, Briefcase, 
     FileCheck, Loader2
 } from "lucide-react";
-import Link from "next/link";
 
 // Define the dash types
 type DashboardType = "student" | "worker" | "instructor" | "admin";
@@ -17,13 +16,11 @@ export default function UniversalLogoutPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     
-    // Determine who is logging out based on URL or local storage
     const userRole = (searchParams.get("role") || "student") as DashboardType;
 
     const [status, setStatus] = useState<"processing" | "success">("processing");
     const [confirmLogout, setConfirmLogout] = useState<boolean>(true);
 
-    // Dynamic UI Config based on role
     const roleConfig = useMemo(() => {
         const configs: Record<DashboardType, { 
             label: string; 
@@ -59,7 +56,6 @@ export default function UniversalLogoutPage() {
         return configs[userRole];
     }, [userRole]);
 
-    // Mock summary - in production, fetch this from your backend before clearing session
     const summary = {
         timeSpent: "4.2h",
         completed: 12,
@@ -76,16 +72,26 @@ export default function UniversalLogoutPage() {
             const res = await response.json();
 
             if (res.success) {
-                // Clear local items
+                // 1. Clear local items immediately
                 localStorage.removeItem("user_role");
                 sessionStorage.clear();
+                
+                // 2. Force Next.js to re-sync the server-side state (clears dashboard cache)
+                router.refresh(); 
                 
                 setStatus("success");
             }
         } catch (error) {
             console.error("Logout error:", error);
-            router.push(roleConfig.homePath); // Redirect back to dashboard if it fails
+            router.push(roleConfig.homePath); 
         }
+    };
+
+    // Helper for a clean exit
+    const handleFinalExit = () => {
+        // Using window.location.href forces a full browser reload
+        // ensuring no React state or dashboard memory persists.
+        window.location.href = "/";
     };
 
     return (
@@ -93,7 +99,6 @@ export default function UniversalLogoutPage() {
             <div className="max-w-md w-full animate-in fade-in zoom-in duration-300">
                 <div className="bg-[#0A0A0B] border border-zinc-800 rounded-[2.5rem] p-8 md:p-10 shadow-2xl text-center relative overflow-hidden">
                     
-                    {/* Role-based Ambient Glow */}
                     <div className={`absolute -top-24 -left-24 w-64 h-64 rounded-full blur-[80px] opacity-20 ${
                         userRole === 'admin' ? 'bg-red-600' : 'bg-blue-600'
                     }`}></div>
@@ -119,12 +124,12 @@ export default function UniversalLogoutPage() {
                                     >
                                         Yes, Secure Logout <ArrowRight size={18} />
                                     </button>
-                                    <Link
-                                        href={roleConfig.homePath}
+                                    <button
+                                        onClick={() => router.back()}
                                         className="w-full text-zinc-600 hover:text-white text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-colors"
                                     >
                                         Cancel and Return
-                                    </Link>
+                                    </button>
                                 </div>
                             </div>
                         ) : (
@@ -150,7 +155,6 @@ export default function UniversalLogoutPage() {
                                 </p>
                             </div>
 
-                            {/* DYNAMIC SUMMARY CARD */}
                             <div className="bg-black/40 border border-zinc-800 rounded-3xl p-6 grid grid-cols-3 gap-2">
                                 <div className="space-y-1">
                                     <Clock className="mx-auto text-blue-400" size={16} />
@@ -170,12 +174,12 @@ export default function UniversalLogoutPage() {
                             </div>
 
                             <div className="pt-4 space-y-4">
-                                <Link
-                                    href="/"
+                                <button
+                                    onClick={handleFinalExit}
                                     className="w-full bg-zinc-100 text-black py-4 rounded-2xl font-black uppercase text-xs tracking-widest flex items-center justify-center gap-2 hover:bg-cyan-400 transition-all"
                                 >
                                     Return to Home <Home size={18} />
-                                </Link>
+                                </button>
                             </div>
                         </div>
                     )}
@@ -188,7 +192,6 @@ export default function UniversalLogoutPage() {
     );
 }
 
-// Simple placeholder for ShieldCheck used in Admin config
 function ShieldCheck({ size, className }: { size: number, className: string }) {
     return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>;
 }

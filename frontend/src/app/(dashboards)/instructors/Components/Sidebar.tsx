@@ -9,6 +9,10 @@ import {
   Bell,
   LogOut,
   Menu,
+  BookOpen,
+  Briefcase,
+  ShieldCheck,
+  Search,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -16,50 +20,76 @@ import { usePathname } from "next/navigation";
 interface SidebarProps {
   isOpen: boolean;
   setIsOpen: (value: boolean) => void;
-  role: "instructor" | "student" | "worker" | "admin"; // Added role prop
+  role: "instructor" | "student" | "worker" | "admin";
 }
 
 export default function Sidebar({ isOpen, setIsOpen, role }: SidebarProps) {
   const pathname = usePathname();
 
-  // Filter out the logout from the main loop so we can style it specially at the bottom
-  const navItems = [
-    { name: "Dashboard", href: `/${role}s`, icon: LayoutDashboard },
-    { name: "Create Course", href: "/instructors/create-course", icon: FilePlus },
-    { name: "Settings", href: `/${role}s/settings`, icon: Settings },
-    { name: "Community", href: "/instructors/community", icon: Users },
-    { name: "Notifications", href: "/instructors/notifications", icon: Bell },
-  ];
+  // Define unique navigation items for each role
+  const menuConfigs = {
+    instructor: [
+      { name: "Dashboard", href: "/instructors", icon: LayoutDashboard },
+      { name: "Create Course", href: "/instructors/create-course", icon: FilePlus },
+      { name: "Community", href: "/instructors/community", icon: Users },
+      { name: "Notifications", href: "/instructors/notifications", icon: Bell },
+      { name: "Settings", href: "/instructors/settings", icon: Settings },
+    ],
+    student: [
+      { name: "My Learning", href: "/students", icon: BookOpen },
+      { name: "Browse Courses", href: "/students/browse", icon: Search },
+      { name: "Community", href: "/students/community", icon: Users },
+      { name: "Notifications", href: "/students/notifications", icon: Bell },
+      { name: "Settings", href: "/students/settings", icon: Settings },
+    ],
+    worker: [
+      { name: "Task Board", href: "/workers", icon: Briefcase },
+      { name: "Verification", href: "/workers/verify", icon: ShieldCheck },
+      { name: "Notifications", href: "/workers/notifications", icon: Bell },
+      { name: "Settings", href: "/workers/settings", icon: Settings },
+    ],
+    admin: [
+      { name: "Admin Panel", href: "/admin", icon: ShieldCheck },
+      { name: "Manage Users", href: "/admin/users", icon: Users },
+      { name: "System Logs", href: "/admin/logs", icon: LayoutDashboard },
+      { name: "Settings", href: "/admin/settings", icon: Settings },
+    ],
+  };
+
+  // Select the correct items based on the passed role
+  const navItems = menuConfigs[role] || [];
 
   return (
     <>
       {/* Mobile Overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-20 lg:hidden"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
           onClick={() => setIsOpen(false)}
         />
       )}
 
       {/* Sidebar */}
       <aside
-        className={`fixed lg:static z-30 transform ${
+        className={`fixed lg:static z-50 transform ${
           isOpen ? "translate-x-0" : "-translate-x-full"
-        } lg:translate-x-0 transition-transform duration-300 ease-in-out bg-gray-800 w-64 h-full flex flex-col`}
+        } lg:translate-x-0 transition-transform duration-300 ease-in-out bg-gray-900 border-r border-gray-800 w-64 h-full flex flex-col`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-700">
-          <h2 className="text-xl font-bold text-white italic tracking-tighter">UNIQUENESS</h2>
+        <div className="flex items-center justify-between p-6 border-b border-gray-800">
+          <h2 className="text-xl font-black text-white italic tracking-tighter">
+            UNIQUENESS
+          </h2>
           <button
-            className="text-gray-300 lg:hidden"
+            className="text-gray-400 lg:hidden hover:text-white"
             onClick={() => setIsOpen(false)}
           >
-            <Menu />
+            <Menu size={20} />
           </button>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto p-4 space-y-2">
+        <nav className="flex-1 overflow-y-auto p-4 space-y-1">
           {navItems.map((item) => {
             const Icon = item.icon;
             const active = pathname === item.href;
@@ -67,28 +97,29 @@ export default function Sidebar({ isOpen, setIsOpen, role }: SidebarProps) {
               <Link
                 key={item.name}
                 href={item.href}
-                className={`flex items-center gap-3 p-2 rounded-md transition-colors ${
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
                   active
-                    ? "bg-gray-700 text-white"
-                    : "text-gray-300 hover:bg-gray-700 hover:text-white"
+                    ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20"
+                    : "text-gray-400 hover:bg-gray-800 hover:text-white"
                 }`}
               >
-                <Icon size={18} />
-                <span className="text-sm font-medium">{item.name}</span>
+                <Icon size={20} strokeWidth={active ? 2.5 : 2} />
+                <span className={`text-sm ${active ? "font-bold" : "font-medium"}`}>
+                  {item.name}
+                </span>
               </Link>
             );
           })}
         </nav>
 
-        {/* Logout Section - Fixed to bottom */}
-        <div className="p-4 border-t border-gray-700 bg-gray-900/50">
+        {/* Logout Section */}
+        <div className="p-4 border-t border-gray-800">
           <Link
-            // This points to your universal logout page with the role parameter
             href={`/auth/logout?role=${role}`}
-            className="flex items-center gap-3 w-full p-2 text-gray-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all group"
+            className="flex items-center gap-3 w-full px-4 py-3 text-gray-400 hover:text-red-400 hover:bg-red-400/10 rounded-xl transition-all group"
           >
-            <LogOut size={18} className="group-hover:-translate-x-1 transition-transform" />
-            <span className="text-sm font-bold uppercase tracking-widest">Logout</span>
+            <LogOut size={20} className="group-hover:-translate-x-1 transition-transform" />
+            <span className="text-sm font-black uppercase tracking-widest">Logout</span>
           </Link>
         </div>
       </aside>
