@@ -33,7 +33,7 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
     { name: "BookMark", href: "/students/bookmark", icon: Bookmark },
     { name: "Support", href: "/students/support", icon: LifeBuoy },
     { name: "Settings", href: "/students/settings", icon: Settings },
-      { name: "Logout", href: "/students/logout", icon: LogOut },
+      
   ];
 
   return (
