@@ -30,7 +30,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
       
       try {
         setLoading(true);
-        const res = await fetch("/api/students/notifications"); // Replace with your Worker URL
+        const res = await fetch("/api/instructors/notifications"); // Replace with your Worker URL
         if (!res.ok) throw new Error("Failed to fetch");
         const data = await res.json();
         setNotifications(data.notifications || []);
