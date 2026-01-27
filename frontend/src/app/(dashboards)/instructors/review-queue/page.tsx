@@ -1,45 +1,51 @@
 "use client";
 
 import React from "react";
-import { AlertCircle, Edit3, ArrowLeft, FileText, Video } from "lucide-react";
+import { AlertCircle, Edit3, ArrowLeft, FileText, Video, HelpCircle } from "lucide-react";
 import Link from "next/link";
 
 export default function ReviewQueuePage() {
     const flaggedItems = [
-        { id: "1", type: "Video", title: "Advanced Quantum Mechanics", reason: "Audio clarity issues in second half", date: "2026-01-25" },
-        { id: "2", type: "Material", title: "Organic Chemistry PDF", reason: "Missing citations in Section 3", date: "2026-01-26" },
+        { id: "v101", type: "video", title: "Quantum Entanglement", reason: "Audio sync error", date: "Jan 25" },
+        { id: "m202", type: "material", title: "Thermodynamics Notes", reason: "Broken diagrams on page 4", date: "Jan 26" },
+        { id: "q303", type: "quiz", title: "Mid-Term Mock", reason: "Question 5 has no correct answer", date: "Jan 27" },
     ];
 
     return (
-        <div className="min-h-screen bg-[#0F172A] text-white p-8">
+        <div className="min-h-screen bg-[#050505] text-white p-8">
             <div className="max-w-4xl mx-auto">
-                <Link href="/instructors" className="flex items-center gap-2 text-slate-400 hover:text-white mb-8 transition">
-                    <ArrowLeft size={20} /> <span className="text-xs font-bold uppercase tracking-widest">Back to Hub</span>
+                <Link href="/instructors" className="flex items-center gap-2 text-zinc-500 hover:text-white mb-10 transition">
+                    <ArrowLeft size={18} /> <span className="text-[10px] font-black uppercase tracking-widest">Back to Dashboard</span>
                 </Link>
 
-                <h1 className="text-4xl font-black mb-2 italic">REVIEW <span className="text-yellow-500">QUEUE</span></h1>
-                <p className="text-slate-400 text-sm mb-10">Items below have been flagged by QA. Please apply corrections to proceed to approval.</p>
+                <h1 className="text-5xl font-black mb-12 tracking-tighter italic uppercase">
+                   Review <span className="text-yellow-500 underline decoration-2 underline-offset-8">Queue</span>
+                </h1>
 
-                <div className="space-y-4">
+                <div className="grid gap-4">
                     {flaggedItems.map((item) => (
-                        <div key={item.id} className="bg-[#1E293B] border border-[#334155] rounded-2xl p-6 flex justify-between items-center group">
-                            <div className="flex gap-5 items-center">
-                                <div className="p-4 bg-slate-900 rounded-2xl text-yellow-500">
-                                    {item.type === "Video" ? <Video size={24} /> : <FileText size={24} />}
+                        <div key={item.id} className="bg-[#0A0A0B] border border-zinc-900 rounded-3xl p-6 flex justify-between items-center group hover:border-zinc-700 transition-all">
+                            <div className="flex items-center gap-6">
+                                <div className="w-14 h-14 bg-zinc-900 rounded-2xl flex items-center justify-center text-zinc-400 group-hover:text-yellow-500 transition-colors">
+                                    {item.type === "video" && <Video size={24} />}
+                                    {item.type === "material" && <FileText size={24} />}
+                                    {item.type === "quiz" && <HelpCircle size={24} />}
                                 </div>
                                 <div>
-                                    <h3 className="font-bold text-lg leading-none">{item.title}</h3>
-                                    <div className="flex items-center gap-2 mt-2">
-                                        <AlertCircle size={14} className="text-red-400" />
-                                        <p className="text-red-400 text-xs font-semibold uppercase">{item.reason}</p>
+                                    <h3 className="font-bold text-lg">{item.title}</h3>
+                                    <div className="flex items-center gap-2 mt-1">
+                                        <AlertCircle size={12} className="text-red-500" />
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-red-500/80">{item.reason}</span>
                                     </div>
                                 </div>
                             </div>
+                            
+                            {/* Universal Link Logic */}
                             <Link 
-                                href={`/instructors/${item.type.toLowerCase()}/edit/${item.id}`}
-                                className="flex items-center gap-2 bg-yellow-500 text-black px-6 py-3 rounded-xl font-bold text-xs uppercase hover:bg-yellow-400 transition"
+                                href={`/instructors/edit/${item.type}/${item.id}`}
+                                className="bg-zinc-900 hover:bg-yellow-500 hover:text-black p-4 rounded-2xl transition-all"
                             >
-                                <Edit3 size={16} /> Edit
+                                <Edit3 size={20} />
                             </Link>
                         </div>
                     ))}

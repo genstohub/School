@@ -63,7 +63,7 @@ export default function TestCreationPage({ params }: { params: Promise<{ courseI
   };
 
   return (
-    <main className="min-h-screen bg-gray-950 text-white rounded-3xl  p-6 md:p-12">
+    <main className="min-h-screen bg-[#0F172A] text-white rounded-3xl  p-6 md:p-12">
       <div className="max-w-5xl rounded-2xl mx-auto">
         
         {/* Navigation */}
