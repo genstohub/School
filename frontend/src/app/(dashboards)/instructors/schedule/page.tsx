@@ -10,8 +10,7 @@ import {
   Info,
   Bell,
   CheckCircle2,
-  X,
-  Loader2
+  X
 } from "lucide-react";
 
 export default function ScheduleLivePage() {
@@ -32,18 +31,19 @@ export default function ScheduleLivePage() {
     e.preventDefault();
     setLoading(true);
 
-    // --- PLACEHOLDER FLOW START ---
-    // Simulating a REST API call to your backend
-    setTimeout(() => {
-      const mockBackendResponse = {
-        success: true,
-        notifiedCount: Math.floor(Math.random() * 100) + 50 // Simulates inviting 50-150 students
-      };
+    try {
+      // Replace with your actual API endpoint
+      const response = await fetch("/api/instructor/schedule", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
 
-      if (mockBackendResponse.success) {
-        setInvitedCount(mockBackendResponse.notifiedCount);
+      if (response.ok) {
+        const data = await response.json();
+        // Assuming your backend returns the count of active students notified
+        setInvitedCount(data.notifiedCount || 42); 
         setShowSuccess(true);
-        setLoading(false);
         
         // Clear the form on success
         setFormData({
@@ -55,38 +55,20 @@ export default function ScheduleLivePage() {
           isPublic: true
         });
       }
-    }, 2000); 
-    // --- PLACEHOLDER FLOW END ---
-
-    /* REAL API CODE (Uncomment when ready):
-    try {
-      const response = await fetch("/api/instructor/schedule", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setInvitedCount(data.notifiedCount);
-        setShowSuccess(true);
-        // ... clear form logic
-      }
-    } catch (error) { ... }
-    */
+    } catch (error) {
+      console.error("Submission failed:", error);
+      alert("Failed to schedule session. Please check your connection.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 relative">
       {/* Success Modal */}
       {showSuccess && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          {/* Animated Backdrop */}
-          <div 
-            className="absolute inset-0 bg-black/80 backdrop-blur-md animate-in fade-in duration-300"
-            onClick={() => setShowSuccess(false)}
-          />
-          
-          <div className="bg-zinc-900 border border-zinc-800 w-full max-w-md rounded-[2.5rem] p-8 text-center relative shadow-2xl shadow-blue-500/20 animate-in zoom-in-95 duration-300">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="bg-zinc-900 border border-zinc-800 w-full max-w-md rounded-[2.5rem] p-8 text-center relative shadow-2xl shadow-blue-500/10">
             <button 
               onClick={() => setShowSuccess(false)}
               className="absolute top-6 right-6 text-zinc-500 hover:text-white transition-colors"
@@ -94,7 +76,7 @@ export default function ScheduleLivePage() {
               <X size={20} />
             </button>
             
-            <div className="w-20 h-20 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-emerald-500/20">
+            <div className="w-20 h-20 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
               <CheckCircle2 className="text-emerald-500" size={40} />
             </div>
             
@@ -102,39 +84,35 @@ export default function ScheduleLivePage() {
               Broadcast <span className="text-blue-500">Live!</span>
             </h2>
             <p className="text-zinc-400 text-sm font-medium mb-6">
-              The session is locked in. Students have been notified via dashboard and email.
+              Your live session has been scheduled and added to the student calendars.
             </p>
             
-            <div className="bg-black/40 border border-zinc-800 rounded-2xl p-4 mb-8">
+            <div className="bg-zinc-800/50 rounded-2xl p-4 mb-8">
               <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 mb-1">
-                Student Notifications Sent
+                Invitations Dispatched
               </p>
-              <p className="text-3xl font-black text-white tabular-nums">
-                {invitedCount}
-              </p>
+              <p className="text-2xl font-black text-white">{invitedCount} Students</p>
             </div>
 
             <button 
               onClick={() => setShowSuccess(false)}
-              className="w-full bg-white text-black py-4 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-blue-500 hover:text-white transition-all active:scale-[0.98]"
+              className="w-full bg-white text-black py-4 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-blue-500 hover:text-white transition-all"
             >
-              Done
+              Dismiss
             </button>
           </div>
         </div>
       )}
 
       {/* Header */}
-      <div className="flex justify-between items-start">
-        <div>
-          <h1 className="text-3xl font-black italic tracking-tighter uppercase flex items-center gap-3">
-            <Video className="text-blue-500" size={32} />
-            Schedule <span className="text-blue-500">Live Session</span>
-          </h1>
-          <p className="text-zinc-500 text-xs font-bold uppercase tracking-widest mt-2">
-            Real-time synchronization engine
-          </p>
-        </div>
+      <div>
+        <h1 className="text-3xl font-black italic tracking-tighter uppercase flex items-center gap-3">
+          <Video className="text-blue-500" size={32} />
+          Schedule <span className="text-blue-500">Live Session</span>
+        </h1>
+        <p className="text-zinc-500 text-xs font-bold uppercase tracking-widest mt-2">
+          Sync with your students in real-time
+        </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -151,15 +129,15 @@ export default function ScheduleLivePage() {
                   required
                   type="text" 
                   value={formData.title}
-                  placeholder="e.g. Mastering Server Components"
-                  className="w-full bg-black border border-zinc-800 rounded-2xl py-4 px-6 focus:outline-none focus:border-blue-500 transition-all text-white placeholder:text-zinc-800"
+                  placeholder="e.g. Advanced React Patterns Deep Dive"
+                  className="w-full bg-black border border-zinc-800 rounded-2xl py-4 px-6 focus:outline-none focus:border-blue-500 transition-all text-white placeholder:text-zinc-700"
                   onChange={(e) => setFormData({...formData, title: e.target.value})}
                 />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ml-1">
+                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ml-1 text-nowrap">
                     Date
                   </label>
                   <div className="relative">
@@ -168,7 +146,7 @@ export default function ScheduleLivePage() {
                       required
                       type="date" 
                       value={formData.date}
-                      className="w-full bg-black border border-zinc-800 rounded-2xl py-4 pl-12 pr-6 focus:outline-none focus:border-blue-500 transition-all text-white appearance-none color-scheme-dark"
+                      className="w-full bg-black border border-zinc-800 rounded-2xl py-4 pl-12 pr-6 focus:outline-none focus:border-blue-500 transition-all text-white appearance-none"
                       onChange={(e) => setFormData({...formData, date: e.target.value})}
                     />
                   </div>
@@ -193,14 +171,14 @@ export default function ScheduleLivePage() {
 
               <div className="space-y-2">
                 <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ml-1">
-                  Agenda & Key Takeaways
+                  Things To Learn...
                 </label>
                 <textarea 
                   required
                   rows={4}
                   value={formData.description}
-                  placeholder="Outline the main goals of this session..."
-                  className="w-full bg-black border border-zinc-800 rounded-2xl py-4 px-6 focus:outline-none focus:border-blue-500 transition-all text-white placeholder:text-zinc-800 resize-none"
+                  placeholder="What will students learn in this session?"
+                  className="w-full bg-black border border-zinc-800 rounded-2xl py-4 px-6 focus:outline-none focus:border-blue-500 transition-all text-white placeholder:text-zinc-700 resize-none"
                   onChange={(e) => setFormData({...formData, description: e.target.value})}
                 />
               </div>
@@ -208,12 +186,10 @@ export default function ScheduleLivePage() {
               <button 
                 disabled={loading}
                 type="submit"
-                className="w-full bg-white text-black py-5 rounded-2xl font-black uppercase text-xs tracking-[0.2em] flex items-center justify-center gap-2 hover:bg-blue-600 hover:text-white transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed group"
+                className="w-full bg-white text-black py-5 rounded-2xl font-black uppercase text-xs tracking-widest flex items-center justify-center gap-2 hover:bg-blue-500 hover:text-white transition-all active:scale-[0.98] shadow-lg shadow-white/5 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? (
-                  <Loader2 className="animate-spin" size={20} />
-                ) : (
-                  <>Broadcast Schedule <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" /></>
+                {loading ? "Syncing with Students..." : (
+                  <>Broadcast Schedule <ArrowRight size={18} /></>
                 )}
               </button>
             </form>
@@ -222,58 +198,57 @@ export default function ScheduleLivePage() {
 
         {/* Preview Sidebar */}
         <div className="space-y-6">
-          <div className="bg-blue-600/5 border border-blue-500/20 rounded-4xl p-6 relative overflow-hidden">
-            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-500 mb-6 flex items-center gap-2">
-              <Info size={14} /> Student Live Preview
+          <div className="bg-blue-600/10 border border-blue-500/20 rounded-4xl p-6 relative overflow-hidden group">
+            <div className="absolute -top-10 -right-10 w-32 h-32 bg-blue-500 blur-[60px] opacity-20"></div>
+            
+            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-400 mb-6 flex items-center gap-2">
+              <Info size={14} /> Student Preview
             </h3>
 
-            <div className="bg-black border border-zinc-800 rounded-2xl p-5 relative z-10">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="bg-red-500 w-2 h-2 rounded-full animate-pulse"></span>
-                <span className="text-[9px] font-black text-red-500 uppercase tracking-widest">Live Event</span>
-              </div>
-              <h4 className="font-black text-lg leading-tight uppercase italic truncate text-zinc-200">
-                {formData.title || "Untitled Session"}
-              </h4>
-              <div className="mt-4 space-y-2">
-                <div className="flex items-center gap-2 text-zinc-500 text-[10px] font-bold">
-                  <Calendar size={12} /> {formData.date || "YY-MM-DD"}
+            <div className="space-y-4">
+              <div className="bg-black/60 rounded-2xl p-5 border border-white/5">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="bg-red-500 w-2 h-2 rounded-full animate-pulse"></span>
+                  <span className="text-[9px] font-black text-red-500 uppercase tracking-widest">Live Event</span>
                 </div>
-                <div className="flex items-center gap-2 text-zinc-500 text-[10px] font-bold">
-                  <Clock size={12} /> {formData.time || "00:00"}
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-4 flex items-center justify-between px-2">
-              <div className="flex -space-x-2">
-                {[1, 2, 3].map(i => (
-                  <div key={i} className="w-8 h-8 rounded-full border-2 border-zinc-900 bg-zinc-800 flex items-center justify-center text-[10px] font-bold">
-                    U
+                <h4 className="font-black text-lg leading-tight uppercase italic truncate">
+                  {formData.title || "Untitled Session"}
+                </h4>
+                <div className="mt-4 space-y-2">
+                  <div className="flex items-center gap-2 text-zinc-400 text-[10px] font-bold">
+                    <Calendar size={12} /> {formData.date || "Set Date"}
                   </div>
-                ))}
-                <div className="w-8 h-8 rounded-full border-2 border-zinc-900 bg-blue-600 flex items-center justify-center text-[8px] font-bold">
-                  +120
+                  <div className="flex items-center gap-2 text-zinc-400 text-[10px] font-bold">
+                    <Clock size={12} /> {formData.time || "Set Time"} (GMT+1)
+                  </div>
                 </div>
               </div>
-              <span className="text-[9px] font-black text-zinc-600 uppercase">Invited</span>
+
+              <div className="flex items-center justify-between px-2">
+                <div className="flex -space-x-2">
+                  {[1,2,3].map(i => (
+                    <div key={i} className="w-6 h-6 rounded-full border-2 border-zinc-900 bg-zinc-800"></div>
+                  ))}
+                  <div className="w-6 h-6 rounded-full border-2 border-zinc-900 bg-blue-600 flex items-center justify-center text-[8px] font-bold text-white">+42</div>
+                </div>
+                <span className="text-[9px] font-black text-zinc-500 uppercase tracking-tighter">Students Invited</span>
+              </div>
             </div>
           </div>
 
           <div className="bg-zinc-900/30 border border-zinc-800 rounded-3xl p-6">
-            <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-600 mb-4">Automation rules</h4>
-            <div className="space-y-4">
-              <div className="flex gap-3">
-                <Globe size={16} className="text-zinc-700 shrink-0" />
-                <p className="text-[10px] font-bold text-zinc-500 leading-relaxed uppercase tracking-tight">Timezone auto-detect enabled for global students</p>
-              </div>
-              <div className="flex gap-3">
-                <Bell size={16} className="text-zinc-700 shrink-0" />
-                <p className="text-[10px] font-bold text-zinc-500 leading-relaxed uppercase tracking-tight">Push notifications scheduled for 15m prior</p>
-              </div>
-            </div>
+            <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-4">Platform Auto-Sync</h4>
+            <ul className="space-y-3">
+              <li className="flex items-start gap-3 text-[10px] font-bold text-zinc-400 uppercase tracking-tight">
+                <Globe size={14} className="text-zinc-600 shrink-0" /> Automatically adjust to student timezones
+              </li>
+              <li className="flex items-start gap-3 text-[10px] font-bold text-zinc-400 uppercase tracking-tight">
+                <Bell size={14} className="text-zinc-600 shrink-0" /> Send push notification 15m before start
+              </li>
+            </ul>
           </div>
         </div>
+
       </div>
     </div>
   );
