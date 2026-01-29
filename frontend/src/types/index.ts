@@ -60,3 +60,13 @@ export interface AxiosErrorResponse {
     };
     message?: string;
 }
+
+export interface Course {
+  id: string;
+  code: string;
+  level: "100L" | "200L";
+  title: string;
+  description: string;
+  drafts: number;
+  published: number;
+}
