@@ -188,7 +188,7 @@ export default function LiveClassroom() {
         <aside className="w-full lg:w-[400px] bg-zinc-950 border-t lg:border-t-0 lg:border-l border-zinc-900 flex flex-col h-[45vh] lg:h-auto">
           <div className="p-4 border-b border-zinc-900 flex items-center gap-2">
             <MessageSquare size={16} className="text-blue-500" />
-            <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Classroom Chat</h4>
+            <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Classroom Chats</h4>
           </div>
           
           <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-hide">
