@@ -1,271 +1,790 @@
 "use client";
 
-import React, { useState, use, useRef, useEffect } from "react";
-import Link from "next/link";
-import { 
-  Image as ImageIcon, Send, ChevronLeft, X, Upload, Info, 
-  CheckCircle2, Bold, Italic, Sigma, AlignLeft, AlignCenter, 
-  AlignRight, ChevronDown, Minus, Plus, History as HistoryIcon,
-  ListIcon, FunctionSquare
+import React, { useEffect, useRef, useState } from "react";
+import {
+  Bold,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  AlignJustify,
+  Image as ImageIcon,
+  Sparkles,
+  Italic,
+  Underline,
+  List,
+  ListOrdered,
+  Omega,
+  Palette,
+  Type,
+  Eraser,
+  Highlighter,
+  PaintBucket,
+  StickyNote,
+  Quote,
+  X,
+  ChevronDown,
+  Type as FontIcon,
+  Pilcrow,
+  Upload,
+  FileImage,
+  SendIcon,
 } from "lucide-react";
+import { useParams } from "next/navigation";
 
-const SYMBOLS = {
-  Calculus: ["∫", "∬", "∭", "∮", "∇", "∂", "dx", "dy", "dt", "∆", "ε", "δ", "lim", "→", "∞", "f'", "f''"],
-  Math: ["π", "Σ", "√", "≈", "≠", "±", "≤", "≥", "Δ", "∏", "θ", "ω", "τ", "∠", "∝", "≡"],
-  Science: ["α", "β", "γ", "λ", "μ", "Ω", "℃", "℉", "⇌", "ΔH", "ρ", "ψ", "κ", "Å", "ν", "σ", "ζ", "χ"],
-  Stats: ["μ", "σ", "ρ", "χ²", "n!", "P(A)", "x̄", "ŷ", "∈", "⊂", "∀", "∃", "∩", "∪", "¬", "∧", "∨", "⊕", "⇒", "⇔"],
-  Operators: ["+", "-", "=", "×", "÷", "/", "_", "^", "{", "}", "[", "]", "|", "~", "¬", "±", "∓", "∗", "∘", "∙", ">", "<"],
-  General: ["©", "®", "™", "•", "§", "†", "‡", "¶", "«", "»", "“", "”", "‘", "’"]
+// --- CONSTANTS ---
+const SYMBOL_GROUPS = {
+  // Math: ["π", "∞", "Σ", "√", "Δ", "±", "≈", "≠", "≤", "≥", "∫", "∂"],
+  Greek: ["μ", "θ", "Ω", "α", "β", "γ", "λ", "φ", "ε", "δ", "ψ"],
+  Publishing: ["™", "©", "®", "§", "†", "•", "→", "⇒", "↔", "¶"],
+  Calculus: [
+    "∫",
+    "∬",
+    "∭",
+    "∮",
+    "∇",
+    "∂",
+    "dx",
+    "dy",
+    "dt",
+    "∆",
+    "ε",
+    "δ",
+    "lim",
+    "→",
+    "∞",
+    "f'",
+    "f''",
+  ],
+  Math: [
+    "π",
+    "Σ",
+    "√",
+    "≈",
+    "≠",
+    "±",
+    "≤",
+    "≥",
+    "Δ",
+    "∏",
+    "θ",
+    "ω",
+    "τ",
+    "∠",
+    "∝",
+    "≡",
+  ],
+  Science: [
+    "α",
+    "β",
+    "γ",
+    "λ",
+    "μ",
+    "Ω",
+    "℃",
+    "℉",
+    "⇌",
+    "ΔH",
+    "ρ",
+    "ψ",
+    "κ",
+    "Å",
+    "ν",
+    "σ",
+    "ζ",
+    "χ",
+  ],
+  Stats: [
+    "μ",
+    "σ",
+    "ρ",
+    "χ²",
+    "n!",
+    "P(A)",
+    "x̄",
+    "ŷ",
+    "∈",
+    "⊂",
+    "∀",
+    "∃",
+    "∩",
+    "∪",
+    "¬",
+    "∧",
+    "∨",
+    "⊕",
+    "⇒",
+    "⇔",
+  ],
+  Operators: [
+    "+",
+    "-",
+    "=",
+    "×",
+    "÷",
+    "/",
+    "_",
+    "^",
+    "{",
+    "}",
+    "[",
+    "]",
+    "|",
+    "~",
+    "¬",
+    "±",
+    "∓",
+    "∗",
+    "∘",
+    "∙",
+    ">",
+    "<",
+  ],
+  General: [
+    "©",
+    "®",
+    "™",
+    "•",
+    "§",
+    "†",
+    "‡",
+    "¶",
+    "«",
+    "»",
+    "“",
+    "”",
+    "‘",
+    "’",
+  ],
 };
 
-export default function InstructorPublishPage({ params }: { params: Promise<{ courseId: string }> }) {
-  const resolvedParams = use(params);
-  const courseCode = (resolvedParams?.courseId || "").toUpperCase();
+const COLOR_PALETTE = [
+  { name: "Reset", hex: "transparent" },
+  { name: "Dark", hex: "#0f172a" },
+  { name: "Crimson", hex: "#be123c" },
+  { name: "Azure", hex: "#1d4ed8" },
+  { name: "Emerald", hex: "#047857" },
+  { name: "Gold", hex: "#eab308" },
+  { name: "Plum", hex: "#7e22ce" },
+  { name: "Paper", hex: "#ffffff" },
+];
 
-  const [topic, setTopic] = useState("");
-  const [subTopic, setSubTopic] = useState("");
-  const [content, setContent] = useState("");
-  const [imageSize, setImageSize] = useState(300);
-  const [toc, setToc] = useState<string[]>([]);
-  
-  const [isPreview, setIsPreview] = useState(false);
-  const [isMediaModalOpen, setIsMediaModalOpen] = useState(false);
-  const [isSymbolOpen, setIsSymbolOpen] = useState(false);
-  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
-  
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+export default function OmniArchitectEditor() {
+  const editorRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    const lines = content.split('\n');
-    const headers = lines
-      .filter(line => line.startsWith('# '))
-      .map(line => line.replace('# ', ''));
-    setToc(headers);
-  }, [content]);
+  // Params
+  const { courseId } = useParams();
+  const course_code = courseId?.toString().toUpperCase();
 
-  // Clears the form after submission
-  const clearForm = () => {
-    setTopic("");
-    setSubTopic("");
-    setContent("");
-    setImageSize(300);
-    setIsSuccessModalOpen(false);
+  // State
+  const [title, setTitle] = useState("Research Manuscript V1");
+  const [activeMenu, setActiveMenu] = useState<string | null>(null);
+  const [font, setFont] = useState("font-serif");
+  const [theme, setTheme] = useState("bg-white");
+  const [showImageModal, setShowImageModal] = useState(false);
+  const [dragActive, setDragActive] = useState(false);
+
+  // This stores the actual binary files to be sent to server
+  // Tell TypeScript this is an array that contains either Files or nulls
+  const [stagedFiles, setStagedFiles] = useState<(File | null)[]>([]);
+
+  // --- CORE EXECUTION ---
+  const exec = (cmd: string, val?: string) => {
+    document.execCommand(cmd, false, val);
+    editorRef.current?.focus();
+    setActiveMenu(null);
   };
 
-  const applyStyle = (prefix: string, suffix: string = "") => {
-    const textarea = textareaRef.current;
-    if (!textarea) return;
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selectedText = content.substring(start, end);
-    const replacement = selectedText || "text";
-    const newText = content.substring(0, start) + prefix + replacement + suffix + content.substring(end);
-    setContent(newText);
-    setTimeout(() => {
-      textarea.focus();
-      textarea.setSelectionRange(start + prefix.length, start + prefix.length + replacement.length);
-    }, 10);
-  };
+  // --- RESCUE FEATURES ---
+  const forceParagraph = () => exec("formatBlock", "p");
 
-  const handleDeviceUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const imageUrl = URL.createObjectURL(file);
-      applyStyle(`\n![${file.name}](${imageUrl})\n`);
-      setIsMediaModalOpen(false);
+  const powerReset = () => {
+    exec("removeFormat");
+    const selection = window.getSelection();
+    if (!selection || !selection.anchorNode) return;
+    let node: Node | null = selection.anchorNode;
+    while (node && node !== editorRef.current) {
+      if (node instanceof HTMLElement) {
+        node.removeAttribute("style");
+        node.className = "";
+      }
+      node = node.parentNode;
     }
   };
 
-  const parseContent = (text: string) => {
-    // We remove markdown image syntax from the HTML view to prevent link leakage
-    const cleanedText = text.replace(/!\[.*?\]\((.*?)\)/g, '');
-    
-    return cleanedText
-      .replace(/# (.*?)(\n|$)/g, '<h3 class="text-xl font-bold text-gray-900 mt-6 mb-2">$1</h3>')
-      .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')
-      .replace(/_(.*?)_/g, '<i>$1</i>')
-      .replace(/\$(.*?)\$/g, '<code class="bg-blue-50 text-blue-700 px-1 rounded font-mono">$1</code>')
-      .replace(/\n/g, '<br/>')
-      .replace(/<p align='(.*?)'>(.*?)<\/p>/g, '<div style="text-align:$1">$2</div>');
+  const applyBlockFill = (color: string) => {
+    const selection = window.getSelection();
+    if (!selection || !selection.anchorNode) return;
+    let node: Node | null = selection.anchorNode;
+    while (
+      node &&
+      !["P", "H1", "H2", "H3", "LI", "DIV"].includes(node.nodeName)
+    ) {
+      node = node.parentNode;
+    }
+    if (node instanceof HTMLElement && node !== editorRef.current) {
+      node.style.backgroundColor = color;
+      node.style.padding = color === "transparent" ? "0" : "24px";
+      node.style.borderRadius = "8px";
+    }
+    setActiveMenu(null);
   };
 
-  const extractImageUrl = () => {
-    const match = content.match(/!\[.*?\]\((.*?)\)/);
-    return match ? match[1] : null;
+  // --- IMAGE & MODAL LOGIC ---
+  const insertImage = (file: File) => {
+    const tempUrl = URL.createObjectURL(file);
+    const imageIndex = stagedFiles.length;
+    setStagedFiles((prev) => [...prev, file]);
+
+    // THIS IS THE HTML STRING
+  const html = `
+    <div class="figure-wrap" 
+        contenteditable="false" 
+        style="display: inline-block; vertical-align: top; margin: 10px; position: relative; user-select: none; touch-action: none; text-align: center;">
+      
+      <div class="resize-container" style="position: relative; display: inline-block; resize: both; overflow: hidden; width: 300px; line-height: 0; background: white; border: 1px solid #e2e8f0; border-radius: 4px;">
+        
+        <div class="drag-overlay" 
+            onpointerdown="
+              const el = this.closest('.figure-wrap');
+              el.setPointerCapture(event.pointerId);
+              
+              if (el.style.position !== 'absolute') {
+                const rect = el.getBoundingClientRect();
+                const parentRect = el.offsetParent.getBoundingClientRect();
+                el.style.width = rect.width + 'px';
+                el.style.left = (rect.left - parentRect.left) + 'px';
+                el.style.top = (rect.top - parentRect.top) + 'px';
+                el.style.position = 'absolute';
+                el.style.margin = '0';
+                el.style.zIndex = '1000';
+              }
+              
+              let startX = event.clientX;
+              let startY = event.clientY;
+              let startLeft = parseFloat(el.style.left);
+              let startTop = parseFloat(el.style.top);
+
+              const onPointerMove = (e) => {
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+                el.style.left = (startLeft + dx) + 'px';
+                el.style.top = (startTop + dy) + 'px';
+              };
+
+              const onPointerUp = (e) => {
+                el.releasePointerCapture(e.pointerId);
+                el.removeEventListener('pointermove', onPointerMove);
+                el.removeEventListener('pointerup', onPointerUp);
+              };
+
+              el.addEventListener('pointermove', onPointerMove);
+              el.addEventListener('pointerup', onPointerUp);
+            "
+            style="position: absolute; inset: 0; cursor: move; z-index: 5;">
+        </div>
+
+        <button 
+          type="button"
+          onpointerdown="event.stopPropagation()"
+          onclick="this.closest('.figure-wrap').remove(); window.dispatchEvent(new CustomEvent('removeStagedFile', { detail: ${imageIndex} }));"
+          style="position: absolute; top: 5px; right: 5px; z-index: 60; background: #ef4444; color: white; border: none; border-radius: 50%; width: 28px; height: 28px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px;">✕</button>
+
+        <img src="${tempUrl}" data-index="${imageIndex}" style="width: 100%; height: 100%; object-fit: contain; pointer-events: none;" />
+        
+        <div style="position: absolute; bottom: 0; right: 0; width: 20px; height: 20px; background: linear-gradient(135deg, transparent 50%, #6366f1 50%); pointer-events: none; z-index: 10;"></div>
+      </div>
+
+      <div contenteditable="true" 
+          style="margin-top: 8px; 
+                  font-style: italic; 
+                  color: #64748b; 
+                  font-size: 0.85rem; 
+                  width: 100%; 
+                  display: block; 
+                  text-align: center; 
+                  line-height: 1.4;
+                  outline: none;
+                  cursor: text;">
+        Enter Figure Caption...
+      </div>
+    </div>`;
+
+    // 2. This command actually pushes the HTML string into the editor
+    exec("insertHTML", html);
+    setShowImageModal(false);
+  };
+
+  interface RemoveFileEvent extends CustomEvent {
+    detail: number; // The index of the file to "null" out
+  }
+
+  useEffect(() => {
+    const handleRemoveFile = (e: Event) => {
+      // Cast the generic Event to our specific RemoveFileEvent
+      const customEvent = e as RemoveFileEvent;
+      const indexToRemove = customEvent.detail;
+
+      setStagedFiles((prev) => {
+        const newFiles = [...prev];
+        newFiles[indexToRemove] = null; // Valid now because of our state type
+        return newFiles;
+      });
+    };
+
+    // Use 'window' as the target for our custom communication
+    window.addEventListener("removeStagedFile", handleRemoveFile);
+    return () =>
+      window.removeEventListener("removeStagedFile", handleRemoveFile);
+  }, []);
+
+  const handleDrag = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") setDragActive(true);
+    else if (e.type === "dragleave") setDragActive(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0])
+      insertImage(e.dataTransfer.files[0]);
+  };
+
+  // --- ANNOTATIONS ---
+  const addInnerNote = () => {
+    const html = `<div class="inner-note" style="background: #f8fafc; border-left: 8px solid #0f172a; padding: 24px; margin: 24px 0; border-radius: 4px; font-family: sans-serif;"><b style="text-transform: uppercase; font-size: 0.7rem; color: #475569;">Study Note</b><div style="margin-top: 8px;">Key insight here.</div></div><p><br></p>`;
+    exec("insertHTML", html);
+  };
+
+  const addSideNote = () => {
+    const html = `<aside contenteditable="false" style="float: right; width: 220px; margin: 0 -280px 20px 20px; padding: 20px; background: #fffbeb; border-left: 6px solid #d97706; border-radius: 4px; box-shadow: 10px 10px 30px rgba(0,0,0,0.05);"><div contenteditable="true" style="font-size: 0.85rem; font-family: sans-serif; color: #92400e; line-height: 1.5;"><b>MARGINALIA:</b> Add definitions or references.</div></aside>`;
+    exec("insertHTML", html);
   };
 
   return (
-    <div className="min-h-screen bg-[#14314e] rounded-2xl p-4 md:p-10 text-[#0F172A]">
-      <div className="max-w-7xl mx-auto">
-        <Link href="/instructors/material" className="inline-flex items-center text-sm font-medium text-[#64748B] mb-8 group transition-colors">
-          <ChevronLeft size={18} className="mr-1 group-hover:-translate-x-1 transition-transform" /> 
-          Back to Selection
-        </Link>
+    <div className="flex flex-col h-screen bg-slate-400 text-slate-900 font-sans overflow-hidden">
+      {/* FIXED TOOLBAR */}
+      <header className="bg-white border-b-2 border-slate-600 shadow-2xl z-[100] shrink-0">
+        <div className="flex items-center gap-4 px-6 py-2 bg-slate-50 border-b relative">
+          <div className="flex bg-white border rounded shadow-sm flex-wrap">
+            <button
+              onClick={() =>
+                setActiveMenu(activeMenu === "font" ? null : "font")
+              }
+              className="px-3 py-1 text-[10px] font-black uppercase flex items-center gap-2 border-r"
+            >
+              <FontIcon size={14} /> {font.split("-")[1]}{" "}
+              <ChevronDown size={12} />
+            </button>
+            <button
+              onClick={() =>
+                setActiveMenu(activeMenu === "theme" ? null : "theme")
+              }
+              className="px-3 py-1 text-[10px] font-black uppercase flex items-center gap-2"
+            >
+              <Palette size={14} /> {theme === "bg-white" ? "Plain" : "Book"}{" "}
+              <ChevronDown size={12} />
+            </button>
+          </div>
 
-        <div className="flex flex-col lg:flex-row gap-8">
-          <div className="flex-1">
-            <div className="flex justify-between items-end mb-10">
-              <div>
-                <h1 className="text-3xl font-black tracking-tight">{courseCode} Pro Editor</h1>
-                <p className="text-[#64748B] mt-2 text-xs font-bold uppercase tracking-widest tracking-[0.2em]">Academic Content Environment</p>
-              </div>
-              <div className="flex gap-3">
-                <button onClick={() => setIsPreview(!isPreview)} className="flex items-center gap-2 px-6 py-2.5 bg-white border border-[#E2E8F0] rounded-xl font-bold shadow-sm hover:bg-gray-50 transition-all">
-                   {isPreview ? "Resume Writing" : "Full Preview"}
-                </button>
-                <button onClick={() => setIsSuccessModalOpen(true)} className="flex items-center gap-2 px-6 py-2.5 bg-[#035b77] text-white rounded-xl font-bold shadow-lg hover:shadow-cyan-900/20 transition-all">
-                  <Send size={18} /> Publish
-                </button>
-              </div>
-            </div>
+          <div className="flex bg-white border rounded p-1 gap-1 relative">
+            <button
+              onClick={() =>
+                setActiveMenu(activeMenu === "fore" ? null : "fore")
+              }
+              className="p-1.5 hover:bg-slate-100 rounded"
+              title="Text Color"
+            >
+              <Type size={18} />
+            </button>
+            <button
+              onClick={() =>
+                setActiveMenu(activeMenu === "hilite" ? null : "hilite")
+              }
+              className="p-1.5 hover:bg-slate-100 rounded text-yellow-500"
+              title="Highlight"
+            >
+              <Highlighter size={18} />
+            </button>
+            <button
+              onClick={() =>
+                setActiveMenu(activeMenu === "fill" ? null : "fill")
+              }
+              className="p-1.5 hover:bg-slate-100 rounded text-indigo-600"
+              title="Block Fill"
+            >
+              <PaintBucket size={18} />
+            </button>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-              <input value={topic} onChange={(e) => setTopic(e.target.value)} placeholder="Primary Topic Title" className="p-4 bg-white border border-[#E2E8F0] rounded-xl font-bold outline-none focus:ring-2 focus:ring-[#035b77]/20" />
-              <input value={subTopic} onChange={(e) => setSubTopic(e.target.value)} placeholder="Sub-module Title" className="p-4 bg-white border border-[#E2E8F0] rounded-xl font-bold outline-none focus:ring-2 focus:ring-[#035b77]/20" />
-            </div>
-
-            {!isPreview && (
-              <div className="bg-[#1E293B] p-2 rounded-t-2xl flex flex-wrap gap-2 items-center border-b border-white/10 relative">
-                <ToolbarBtn onClick={() => applyStyle("**", "**")} icon={<Bold size={18}/>} title="Bold" />
-                <ToolbarBtn onClick={() => applyStyle("_", "_")} icon={<Italic size={18}/>} title="Italic" />
-                <div className="h-6 w-[1px] bg-white/20 mx-1" />
-                <ToolbarBtn onClick={() => applyStyle("# ", "")} icon={<ListIcon size={18}/>} title="Header" />
-                <ToolbarBtn onClick={() => applyStyle("$", "$")} icon={<FunctionSquare size={18}/>} title="Formula" />
-                <div className="h-6 w-[1px] bg-white/20 mx-1" />
-                <ToolbarBtn onClick={() => applyStyle("<p align='left'>", "</p>")} icon={<AlignLeft size={18}/>} />
-                <ToolbarBtn onClick={() => applyStyle("<p align='center'>", "</p>")} icon={<AlignCenter size={18}/>} />
-                <ToolbarBtn onClick={() => applyStyle("<p align='right'>", "</p>")} icon={<AlignRight size={18}/>} />
-                
-                <div className="relative">
-                  <button onClick={() => setIsSymbolOpen(!isSymbolOpen)} className="p-2 text-white/70 hover:text-white flex items-center gap-1 bg-white/5 rounded-lg transition-colors">
-                    <Sigma size={18} /> <ChevronDown size={14} />
-                  </button>
-                  {isSymbolOpen && (
-                    <div className="absolute top-12 left-0 z-[100] bg-white shadow-2xl rounded-2xl p-5 w-80 border border-[#E2E8F0] max-h-[450px] overflow-y-auto">
-                      {Object.entries(SYMBOLS).map(([category, syms]) => (
-                        <div key={category} className="mb-4">
-                          <p className="text-[10px] font-black uppercase text-[#035b77] mb-2 tracking-tighter border-b border-gray-100 pb-1">{category}</p>
-                          <div className="grid grid-cols-6 gap-1">
-                            {syms.map(s => (
-                              <button key={s} onClick={() => { applyStyle(s); setIsSymbolOpen(false); }} className="p-2 hover:bg-gray-100 rounded-lg text-sm transition-colors text-gray-800 font-medium">
-                                {s}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                <button onClick={() => setIsMediaModalOpen(true)} className="ml-auto flex items-center gap-2 px-4 py-1.5 bg-[#035b77] text-white rounded-lg text-xs font-bold uppercase hover:bg-[#047194]">
-                  <ImageIcon size={14} /> Add Asset
-                </button>
+            {["fore", "hilite", "fill"].includes(activeMenu || "") && (
+              <div className="absolute top-10 left-0 bg-white border-2 border-black shadow-2xl p-3 rounded z-[210] grid grid-cols-4 gap-2">
+                {COLOR_PALETTE.map((c) => (
+                  <button
+                    key={c.hex}
+                    onClick={() => {
+                      if (activeMenu === "fore") exec("foreColor", c.hex);
+                      if (activeMenu === "hilite") exec("hiliteColor", c.hex);
+                      if (activeMenu === "fill") applyBlockFill(c.hex);
+                    }}
+                    className="w-8 h-8 border rounded hover:scale-110 transition"
+                    style={{ background: c.hex }}
+                  />
+                ))}
               </div>
             )}
+          </div>
 
-            <div className="bg-white rounded-b-2xl border border-[#E2E8F0] shadow-sm overflow-hidden min-h-[650px] flex flex-col md:flex-row">
-              {/* Writer Panel */}
-              <div className={`p-8 flex-1 ${isPreview ? 'hidden' : 'block'}`}>
-                <textarea 
-                  ref={textareaRef} 
-                  value={content} 
-                  onChange={(e) => setContent(e.target.value)} 
-                  className="w-full h-full min-h-[500px] focus:outline-none text-lg leading-[1.9] resize-none text-gray-800 font-serif"
-                  placeholder="Start writing academic material..."
-                />
-              </div>
+          {/* Menus for Font/Theme */}
+          {activeMenu === "font" && (
+            <div className="absolute top-12 left-6 bg-white border-2 border-black shadow-xl p-1 rounded w-40 z-[210]">
+              {["font-serif", "font-sans", "font-mono"].map((f) => (
+                <button
+                  key={f}
+                  onClick={() => {
+                    setFont(f);
+                    setActiveMenu(null);
+                  }}
+                  className="w-full text-left px-4 py-2 hover:bg-black hover:text-white text-[10px] font-black uppercase"
+                >
+                  {f.split("-")[1]}
+                </button>
+              ))}
+            </div>
+          )}
+          {activeMenu === "theme" && (
+            <div className="absolute top-12 left-32 bg-white border-2 border-black shadow-xl p-1 rounded w-40 z-[210]">
+              {["bg-white", "bg-[#fcf9f2]", "bg-[#f4f1ea]"].map((t) => (
+                <button
+                  key={t}
+                  onClick={() => {
+                    setTheme(t);
+                    setActiveMenu(null);
+                  }}
+                  className="w-full text-left px-4 py-2 hover:bg-black hover:text-white text-[10px] font-black uppercase"
+                >
+                  {t.includes("white") ? "Classic" : "Parchment"}
+                </button>
+              ))}
+            </div>
+          )}
 
-              {/* Preview Panel */}
-              <div className={`flex-1 bg-[#F8FAFC] border-l border-[#E2E8F0] p-8 overflow-y-auto ${isPreview ? 'w-full block' : 'hidden md:block w-[480px]'}`}>
-                {/* ToC and Image Resizer ONLY visible during writing/split-mode */}
-                {!isPreview && (
-                  <>
-                    {toc.length > 0 && (
-                      <div className="mb-6 p-4 bg-white rounded-xl border border-[#E2E8F0] border-l-4 border-l-[#035b77]">
-                        <h4 className="text-[10px] font-black uppercase text-gray-400 mb-2 tracking-widest">Live Outline</h4>
-                        <ul className="space-y-1">
-                          {toc.map((item, i) => (
-                            <li key={i} className="text-xs font-bold text-[#035b77] truncate">{item}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
+          <button className="ml-auto bg-indigo-700 text-white px-5 py-2 rounded-full font-black text-[10px] tracking-widest flex items-center gap-2">
+            {/* <Sparkles size={14} /> GENERATIVE ENGINE */}
+            <SendIcon size={14} /> PUBLISH
+          </button>
+        </div>
 
-                    {extractImageUrl() && (
-                      <div className="mb-8 p-4 bg-white rounded-xl border border-[#E2E8F0]">
-                         <div className="flex items-center justify-between mb-3">
-                          <span className="text-[10px] font-black text-[#035b77] uppercase">Scaling Engine</span>
-                          <span className="text-[10px] font-bold text-gray-400">{imageSize}px</span>
-                        </div>
-                        <input type="range" min="150" max="1000" value={imageSize} onChange={(e) => setImageSize(parseInt(e.target.value))} className="w-full accent-[#035b77] mb-2" />
-                      </div>
-                    )}
-                  </>
-                )}
+        <div className="flex items-center gap-1 p-2 bg-white flex-wrap">
+          <div className="flex border-r-2 pr-2 gap-1 items-center">
+            <button
+              onClick={() => exec("formatBlock", "h1")}
+              className="px-3 py-1 font-black border-2 border-black rounded hover:bg-black hover:text-white transition"
+            >
+              H1
+            </button>
+            <button
+              onClick={() => exec("formatBlock", "h2")}
+              className="px-3 py-1 font-black border border-slate-300 text-slate-400 rounded"
+            >
+              H2
+            </button>
+            <div className="flex gap-1 ml-2 pl-2 border-l-2">
+              <button
+                onClick={forceParagraph}
+                className="p-2 bg-slate-100 text-slate-700 border border-slate-300 rounded hover:bg-black hover:text-white transition"
+                title="To Paragraph (¶)"
+              >
+                <Pilcrow size={20} />
+              </button>
+              <button
+                onClick={powerReset}
+                className="p-2 bg-red-50 text-red-600 border border-red-200 rounded hover:bg-red-600 hover:text-white transition"
+                title="Deep Eraser"
+              >
+                <Eraser size={20} />
+              </button>
+            </div>
+          </div>
 
-                {/* Final Rendered Content */}
-                <div className="prose prose-slate max-w-none">
-                  <h1 className="text-4xl font-black mb-1">{topic || "Draft Material"}</h1>
-                  <h2 className="text-lg font-bold text-[#035b77]/60 mb-8 tracking-tight">{subTopic}</h2>
-                  
-                  {/* Image Render - Link is never shown as text */}
-                  {extractImageUrl() && (
-                    <div className="mb-6 flex justify-center">
-                      <img src={extractImageUrl()!} alt="Asset" style={{ width: `${imageSize}px` }} className="rounded-xl shadow-md border border-gray-100" />
-                    </div>
-                  )}
+          <div className="flex border-r-2 px-2 gap-1">
+            <button
+              onClick={() => exec("bold")}
+              className="p-2 hover:bg-slate-100 rounded"
+            >
+              <Bold size={18} />
+            </button>
+            <button
+              onClick={() => exec("italic")}
+              className="p-2 hover:bg-slate-100 rounded italic"
+            >
+              <Italic size={18} />
+            </button>
+            <button
+              onClick={() => exec("underline")}
+              className="p-2 hover:bg-slate-100 rounded underline"
+            >
+              <Underline size={18} />
+            </button>
+          </div>
 
-                  <div 
-                    className="text-gray-700 leading-relaxed text-lg" 
-                    dangerouslySetInnerHTML={{ __html: parseContent(content) }} 
-                  />
+          <div className="flex border-r-2 px-2 gap-1">
+            <button
+              onClick={() => exec("justifyLeft")}
+              className="p-2 hover:bg-slate-100 rounded"
+            >
+              <AlignLeft size={18} />
+            </button>
+            <button
+              onClick={() => exec("justifyCenter")}
+              className="p-2 hover:bg-slate-100 rounded"
+            >
+              <AlignCenter size={18} />
+            </button>
+            <button
+              onClick={() => exec("justifyRight")}
+              className="p-2 hover:bg-slate-100 rounded"
+              title="Align Right"
+            >
+              <AlignRight size={18} />
+            </button>
+            <button
+              onClick={() => exec("justifyFull")}
+              className="p-2 hover:bg-slate-100 rounded"
+            >
+              <AlignJustify size={18} />
+            </button>
+          </div>
+
+          <div className="flex border-r-2 px-2 gap-1">
+            <button
+              onClick={() => exec("insertUnorderedList")}
+              className="p-2 hover:bg-slate-100 rounded"
+            >
+              <List size={20} />
+            </button>
+            <button
+              onClick={() => exec("insertOrderedList")}
+              className="p-2 hover:bg-slate-100 rounded"
+            >
+              <ListOrdered size={20} />
+            </button>
+            <button
+              onClick={() =>
+                setActiveMenu(activeMenu === "symbols" ? null : "symbols")
+              }
+              className={`p-2 rounded transition ${activeMenu === "symbols" ? "bg-black text-white" : ""}`}
+            >
+              <Omega size={20} />
+            </button>
+          </div>
+
+          <div className="flex gap-2 ml-4">
+            <button
+              onClick={() => setShowImageModal(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded font-bold text-xs"
+            >
+              <ImageIcon size={14} /> MEDIA
+            </button>
+            <button
+              onClick={addInnerNote}
+              className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded font-bold text-xs"
+            >
+              <Quote size={14} /> CALLOUT
+            </button>
+            <button
+              onClick={addSideNote}
+              className="flex items-center gap-2 px-4 py-2 bg-amber-600 text-white rounded font-bold text-xs"
+            >
+              <StickyNote size={14} /> SIDE NOTE
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* 🧩 SYMBOL MENU */}
+      {activeMenu === "symbols" && (
+        <div className="fixed top-32 right-10 bg-white border-4 border-black shadow-[20px_20px_0px_rgba(0,0,0,0.1)] rounded-xl z-[250] w-[420px] flex flex-col max-h-[70vh]">
+          {/* Pinned Header */}
+          <div className="flex justify-between items-center p-6 border-b-2 bg-slate-50 rounded-t-lg shrink-0">
+            <h3 className="font-black uppercase text-xs tracking-widest text-slate-500">
+              Symbol Library
+            </h3>
+            <button
+              onClick={() => setActiveMenu(null)}
+              className="hover:bg-red-100 p-1 rounded transition"
+            >
+              <X size={18} />
+            </button>
+          </div>
+
+          {/* SCROLLABLE SECTION */}
+          <div className="flex-1 overflow-y-auto p-6 custom-scroll">
+            {Object.entries(SYMBOL_GROUPS).map(([name, set]) => (
+              <div key={name} className="mb-6 last:mb-0">
+                <p className="text-[10px] font-black text-indigo-600 uppercase mb-3 tracking-widest">
+                  {name}
+                </p>
+                <div className="grid grid-cols-6 gap-2">
+                  {set.map((s) => (
+                    <button
+                      key={s}
+                      onClick={() => exec("insertHTML", s)}
+                      className="h-12 w-12 border-2 border-slate-100 hover:border-black hover:bg-black hover:text-white transition font-bold rounded-lg text-lg flex items-center justify-center"
+                    >
+                      {s}
+                    </button>
+                  ))}
                 </div>
               </div>
-            </div>
+            ))}
           </div>
         </div>
-      </div>
-
-      {/* Modal for Device Upload */}
-      {isMediaModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-[2rem] p-10 max-w-lg w-full shadow-2xl animate-in zoom-in duration-200">
-            <div className="flex justify-between items-center mb-8">
-              <h2 className="text-xl font-black text-gray-900">ATTACH IMAGE</h2>
-              <button onClick={() => setIsMediaModalOpen(false)} className="p-2 hover:bg-gray-100 rounded-full transition-colors"><X /></button>
+      )}
+      {/* 🖼️ IMAGE UPLOAD MODAL */}
+      {showImageModal && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[300] p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl w-full max-w-xl overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="p-6 border-b flex justify-between items-center bg-slate-50">
+              <h3 className="font-black text-xs uppercase tracking-widest">
+                Insert Digital Figure
+              </h3>
+              <button
+                onClick={() => setShowImageModal(false)}
+                className="p-2 hover:bg-slate-200 rounded-full"
+              >
+                <X size={20} />
+              </button>
             </div>
-            <button onClick={() => fileInputRef.current?.click()} className="w-full p-16 border-2 border-dashed border-gray-100 rounded-3xl hover:border-[#035b77] hover:bg-blue-50/50 transition-all flex flex-col items-center gap-4 group">
-              <Upload size={32} className="text-gray-300 group-hover:text-[#035b77]" /> 
-              <span className="text-[10px] font-black uppercase text-gray-400 group-hover:text-[#035b77]">Select from Device</span>
-            </button>
-            <input type="file" ref={fileInputRef} onChange={handleDeviceUpload} className="hidden" accept="image/*" />
+
+            <div
+              className={`p-12 m-6 border-4 border-dashed rounded-xl flex flex-col items-center justify-center transition-all ${dragActive ? "border-indigo-600 bg-indigo-50" : "border-slate-200"}`}
+              onDragEnter={handleDrag}
+              onDragLeave={handleDrag}
+              onDragOver={handleDrag}
+              onDrop={handleDrop}
+            >
+              <FileImage size={48} className="text-slate-300 mb-4" />
+              <p className="text-slate-500 font-bold text-center mb-6">
+                Drag and drop your image here <br />{" "}
+                <span className="text-xs font-normal">or</span>
+              </p>
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="px-8 py-3 bg-black text-white rounded-full font-black text-xs uppercase tracking-widest flex items-center gap-2 hover:scale-105 transition"
+              >
+                <Upload size={16} /> Browse Files
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                className="hidden"
+                accept="image/*"
+                onChange={(e) =>
+                  e.target.files && insertImage(e.target.files[0])
+                }
+              />
+            </div>
+
+            <div className="p-6 bg-slate-50 text-center">
+              <p className="text-[10px] text-slate-400 font-bold uppercase">
+                Supported: PNG, JPG, SVG, WebP
+              </p>
+            </div>
           </div>
         </div>
       )}
 
-      {/* Submission Success Modal */}
-      {isSuccessModalOpen && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-[#035b77]/10 backdrop-blur-md p-4">
-          <div className="bg-white rounded-[2.5rem] p-12 max-w-sm w-full text-center shadow-2xl">
-            <div className="w-16 h-16 bg-green-50 text-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
-              <CheckCircle2 size={32} />
-            </div>
-            <h2 className="text-2xl font-black mb-2">Published!</h2>
-            <p className="text-gray-500 text-sm mb-8 leading-relaxed">Content has been saved and forms cleared for your next entry.</p>
-            <button onClick={clearForm} className="w-full py-4 bg-[#035b77] text-white rounded-2xl font-bold shadow-lg hover:bg-black transition-all">Start New Topic</button>
+      {/* SCROLLABLE WORKSPACE */}
+      <main className="flex-1 h-full overflow-y-auto p-6 lg:p-12 flex justify-center custom-scroll">
+        <div
+          className={`relative w-full max-w-[calc(100svw - 10px)] min-h-[1600px] h-fit shadow-2xl transition-all duration-300 ${theme} ${font} border border-slate-300 pb-96 doc-container`}
+        >
+          <div className="w-full items-center mb-0 flex p-10 gap-2 absolute flex-wrap">
+            <span className="text-xs md:text-lg text-center font-black text-nowrap !text-[navyblue]">
+              {course_code} Pro Editor
+            </span>
+            {" | "}
+            <span className="text-[#64748B] text-xs font-bold uppercase tracking-widest text-nowrap">
+              Academic Content Environment
+            </span>
+          </div>
+          <div className="px-20 pt-32 pb-12 mx-10 border-b-8 border-slate-900">
+            <input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="w-full text-3xl font-black uppercase tracking-tighter outline-none bg-transparent"
+            />
+          </div>
+
+          <div
+            ref={editorRef}
+            contentEditable
+            suppressContentEditableWarning
+            className="prose-editor px-10 lg:px-20 py-10 outline-none text-lg leading-[1.8] text-slate-900 min-h-[1200px] h-fit"
+          >
+            <h1>Omni-Architect Ready</h1>
+            <p>
+              Select this header and click the <b>¶ icon</b> to turn it back
+              into a paragraph.
+            </p>
+            <ul>
+              <li>Lists are visible and styled.</li>
+              <li>Floating side notes are active.</li>
+            </ul>
+            <p>
+              Click <b>MEDIA</b> to use the new drag-and-drop modal.
+            </p>
           </div>
         </div>
-      )}
+      </main>
+
+      <style jsx global>{`
+        .prose-editor h1 {
+          font-size: 3rem;
+          font-weight: 900;
+          margin-bottom: 1.5rem;
+          display: block;
+        }
+        .prose-editor h2 {
+          font-size: 1.75rem;
+          font-weight: 800;
+          margin-top: 1rem;
+          display: block;
+        }
+
+        .prose-editor ul {
+          list-style-type: disc !important;
+          margin-left: 3.5rem !important;
+          margin-bottom: 2rem !important;
+          display: block !important;
+        }
+        .prose-editor ol {
+          list-style-type: decimal !important;
+          margin-left: 3.5rem !important;
+          margin-bottom: 2rem !important;
+          display: block !important;
+        }
+        .prose-editor li {
+          display: list-item !important;
+          margin-bottom: 0.75rem;
+        }
+
+        .custom-scroll::-webkit-scrollbar {
+          width: 10px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+          background: #475569;
+          border-radius: 5px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+          background: #cbd5e1;
+        }
+      `}</style>
     </div>
   );
 }
 
-function ToolbarBtn({ icon, onClick, title }: { icon: React.ReactNode, onClick: () => void, title?: string }) {
-  return (
-    <button onClick={onClick} title={title} className="p-2.5 text-white/60 hover:text-white hover:bg-white/10 rounded-xl transition-all">
-      {icon}
-    </button>
-  );
-}
+
