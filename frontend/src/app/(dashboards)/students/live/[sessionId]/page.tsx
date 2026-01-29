@@ -3,16 +3,15 @@
 import React, { useState, useEffect, useRef } from "react";
 import { 
   Send, Users, Mic, MicOff, Hand, ArrowLeft, 
-  Loader2, Settings, Timer, Video, MessageSquare 
+  Loader2, Timer, Video, MessageSquare 
 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 
-// --- Types & Interfaces ---
 interface SessionData {
   title: string;
   tutor: string;
-  startTime: string; // ISO String from Backend
+  startTime: string;
   description: string;
 }
 
@@ -21,87 +20,83 @@ interface Message {
   user: string;
   text: string;
   isSystem?: boolean;
-  timestamp: Date;
-}
-
-interface TimeLeft {
-  minutes: string;
-  seconds: string;
-  ms: string;
 }
 
 export default function LiveClassroom() {
   const params = useParams();
   const sessionId = params.sessionId as string;
   const scrollRef = useRef<HTMLDivElement>(null);
+  
+  // Audio handling
+  const [isMicActive, setIsMicActive] = useState(false);
+  const audioStream = useRef<MediaStream | null>(null);
 
-  // --- States ---
   const [loading, setLoading] = useState(true);
   const [isLive, setIsLive] = useState(false);
   const [sessionData, setSessionData] = useState<SessionData | null>(null);
-  const [timeLeft, setTimeLeft] = useState<TimeLeft>({ minutes: "00", seconds: "00", ms: "00" });
+  const [timeLeft, setTimeLeft] = useState({ min: "00", sec: "00" });
   const [messageInput, setMessageInput] = useState("");
   const [messages, setMessages] = useState<Message[]>([
-    { id: "1", user: "System", text: "Welcome! Syncing stream...", isSystem: true, timestamp: new Date() }
+    { id: "1", user: "System", text: "Microphone access requested for live interaction.", isSystem: true }
   ]);
 
-  // --- 1. Fetch Session Data ---
+  // 1. Fetch Session (Set to 30s countdown for immediate feel)
   useEffect(() => {
     const fetchSession = async () => {
-      // Simulation of fetching the instructor's scheduled session
       setTimeout(() => {
         setSessionData({
           title: "Advanced React Patterns",
           tutor: "Dr. Sarah",
-          startTime: new Date(Date.now() + 1000 * 60 * 5).toISOString(), // Starts in 5 mins
+          startTime: new Date(Date.now() + 1000 * 30).toISOString(), // 30 Seconds Countdown
           description: "Mastering server actions and concurrent mode."
         });
         setLoading(false);
-      }, 800);
+      }, 500);
     };
     fetchSession();
   }, [sessionId]);
 
-  // --- 2. Countdown Timer Logic ---
+  // 2. Countdown Logic
   useEffect(() => {
     if (!sessionData || isLive) return;
-
     const timer = setInterval(() => {
-      const now = new Date().getTime();
-      const distance = new Date(sessionData.startTime).getTime() - now;
-
+      const distance = new Date(sessionData.startTime).getTime() - new Date().getTime();
       if (distance < 0) {
+        setIsLive(true);
         clearInterval(timer);
-        setIsLive(true); // Automatically go live when time hits zero
-        return;
+      } else {
+        setTimeLeft({
+          min: Math.floor((distance / 1000 / 60) % 60).toString().padStart(2, '0'),
+          sec: Math.floor((distance / 1000) % 60).toString().padStart(2, '0')
+        });
       }
-
-      setTimeLeft({
-        minutes: Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0'),
-        seconds: Math.floor((distance % (1000 * 60)) / 1000).toString().padStart(2, '0'),
-        ms: Math.floor((distance % 1000) / 10).toString().padStart(2, '0')
-      });
-    }, 50);
-
+    }, 1000);
     return () => clearInterval(timer);
   }, [sessionData, isLive]);
 
-  // --- 3. Chat Logic ---
-  useEffect(() => {
-    scrollRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  // 3. Microphone Toggle Logic
+  const toggleMic = async () => {
+    try {
+      if (!isMicActive) {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        audioStream.current = stream;
+        setIsMicActive(true);
+      } else {
+        audioStream.current?.getTracks().forEach(track => track.stop());
+        setIsMicActive(false);
+      }
+    } catch (err) {
+      alert("Please allow microphone access to speak.");
+    }
+  };
 
+  // 4. Chat Messaging
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
     if (!messageInput.trim()) return;
-    const msg: Message = {
-      id: Date.now().toString(),
-      user: "Me",
-      text: messageInput,
-      timestamp: new Date()
-    };
-    setMessages(prev => [...prev, msg]);
+    setMessages(prev => [...prev, { id: Date.now().toString(), user: "Me", text: messageInput }]);
     setMessageInput("");
+    setTimeout(() => scrollRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
   };
 
   if (loading) return (
@@ -111,121 +106,105 @@ export default function LiveClassroom() {
   );
 
   return (
-    <div className="h-screen bg-black text-white flex flex-col overflow-hidden font-sans">
+    <div className="h-screen bg-black text-white flex flex-col overflow-hidden font-sans italic">
       
-      {/* Header */}
-      <header className="bg-zinc-900/50 border-b border-zinc-800 p-4 flex justify-between items-center z-20">
-        <div className="flex items-center gap-4">
-          <Link href="/students/live" className="p-2 hover:bg-zinc-800 rounded-xl transition-colors text-zinc-400 hover:text-white">
-            <ArrowLeft size={20} />
+      {/* Header - Optimized */}
+      <header className="bg-zinc-900/80 backdrop-blur-md border-b border-zinc-800 p-5 flex justify-between items-center z-20">
+        <div className="flex items-center gap-6">
+          <Link href="/students/live" className="text-zinc-400 hover:text-white transition-colors">
+            <ArrowLeft size={24} />
           </Link>
-          <div>
-            <h2 className="font-black text-xs uppercase tracking-widest italic text-blue-500">{sessionData?.title}</h2>
-            <p className="text-[10px] text-zinc-500 font-bold uppercase">{sessionData?.tutor}</p>
+          <div className="border-l border-zinc-700 pl-6">
+            <h1 className="text-sm font-black uppercase tracking-[0.2em] text-blue-500 line-clamp-1">
+              {sessionData?.title}
+            </h1>
+            <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mt-0.5">
+              Host: {sessionData?.tutor}
+            </p>
           </div>
         </div>
-        <div className="flex items-center gap-4">
-            <div className="hidden sm:flex items-center gap-2 bg-zinc-800 px-4 py-2 rounded-full">
-                <Users size={14} className="text-blue-500" />
-                <span className="text-[10px] font-black tabular-nums">2,481</span>
-            </div>
-            <Settings size={18} className="text-zinc-600 cursor-pointer hover:text-white" />
+        <div className="flex items-center gap-3 bg-red-500/10 px-4 py-2 rounded-full border border-red-500/20">
+          <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+          <span className="text-[10px] font-black text-red-500 uppercase tracking-tighter">Live Session</span>
         </div>
       </header>
 
       <div className="flex flex-1 flex-col lg:flex-row overflow-hidden">
         
-        {/* Main Viewport (Video or Countdown) */}
-        <div className="flex-1 bg-black relative flex items-center justify-center p-4 lg:p-8">
+        {/* Main Viewport */}
+        <div className="flex-1 bg-zinc-950 relative flex items-center justify-center p-6">
           {!isLive ? (
-            <div className="text-center space-y-8 max-w-md animate-in fade-in zoom-in duration-1000">
-              <div className="w-24 h-24 bg-blue-500/10 rounded-[2.5rem] flex items-center justify-center mx-auto border border-blue-500/20 shadow-2xl shadow-blue-500/10">
-                <Timer className="text-blue-500 animate-pulse" size={42} />
-              </div>
+            <div className="text-center space-y-6 animate-in fade-in duration-700">
+              <Timer className="text-blue-500 mx-auto animate-bounce" size={48} />
               <div>
-                <h3 className="text-3xl font-black italic uppercase tracking-tighter">
-                    Syncing <span className="text-blue-500">Live...</span>
-                </h3>
-                <p className="text-zinc-500 text-[10px] font-black uppercase tracking-[0.3em] mt-2">
-                    Class starts in
-                </p>
+                <h3 className="text-4xl font-black uppercase tracking-tighter italic">Joining <span className="text-blue-500 text-5xl">Room</span></h3>
+                <div className="flex justify-center gap-2 mt-4 tabular-nums text-2xl font-black">
+                  <span className="bg-zinc-900 px-4 py-2 rounded-xl border border-zinc-800">{timeLeft.min}</span>
+                  <span className="text-zinc-700 self-center">:</span>
+                  <span className="bg-zinc-900 px-4 py-2 rounded-xl border border-zinc-800">{timeLeft.sec}</span>
+                </div>
               </div>
-              
-              <div className="grid grid-cols-3 gap-4">
-                {[
-                  { val: timeLeft.minutes, label: "Min" },
-                  { val: timeLeft.seconds, label: "Sec" },
-                  { val: timeLeft.ms, label: "Ms" }
-                ].map((item) => (
-                  <div key={item.label} className="bg-zinc-900 border border-zinc-800 p-5 rounded-3xl">
-                    <div className="text-3xl font-black tabular-nums tracking-tighter">{item.val}</div>
-                    <div className="text-[9px] font-black uppercase text-zinc-600 tracking-widest mt-1">{item.label}</div>
-                  </div>
-                ))}
-              </div>
-              <p className="text-zinc-600 text-[10px] font-bold uppercase italic max-w-[250px] mx-auto leading-relaxed">
-                Agenda: {sessionData?.description}
-              </p>
             </div>
           ) : (
-            <div className="w-full h-full bg-zinc-900/40 rounded-[2.5rem] border border-zinc-800 flex items-center justify-center overflow-hidden relative group">
-                <div className="text-center space-y-4">
-                    <Video size={48} className="text-zinc-800 mx-auto mb-2 group-hover:text-blue-500/20 transition-colors" />
-                    <p className="text-[10px] font-black text-zinc-700 uppercase tracking-[0.4em]">Broadcast Encrypted</p>
-                </div>
-                {/* Simulated Controls */}
-                <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-3 bg-zinc-900/95 backdrop-blur-xl p-3 rounded-3xl border border-white/5 shadow-2xl">
-                    <button className="p-4 bg-zinc-800 rounded-2xl hover:bg-red-500/20 hover:text-red-500 transition-all"><MicOff size={20} /></button>
-                    <button className="flex items-center gap-3 px-8 py-4 bg-blue-600 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-500 transition-all shadow-lg shadow-blue-500/20">
-                        <Hand size={18} /> Raise Hand
+            <div className="w-full h-full bg-zinc-900 rounded-[3rem] border border-zinc-800 flex items-center justify-center relative overflow-hidden group">
+                <Video size={64} className="text-zinc-800 group-hover:text-blue-500/20 transition-all duration-700" />
+                
+                {/* Fixed Interactive Controls */}
+                <div className="absolute bottom-10 flex items-center gap-4 bg-zinc-950/90 backdrop-blur-2xl p-4 rounded-[2.5rem] border border-white/10 shadow-2xl">
+                    <button 
+                      onClick={toggleMic}
+                      className={`p-5 rounded-[1.5rem] transition-all duration-300 ${isMicActive ? 'bg-green-600 text-white' : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'}`}
+                    >
+                      {isMicActive ? <Mic size={24} /> : <MicOff size={24} />}
+                    </button>
+                    <button className="flex items-center gap-3 px-10 py-5 bg-blue-600 rounded-[1.5rem] font-black text-xs uppercase tracking-widest hover:bg-blue-500 shadow-xl shadow-blue-500/20 transition-all active:scale-95">
+                        <Hand size={20} /> Ask To Speak
                     </button>
                 </div>
             </div>
           )}
         </div>
 
-        {/* Sidebar (Live Chat) */}
-        <aside className="w-full lg:w-[400px] bg-zinc-950 border-t lg:border-t-0 lg:border-l border-zinc-900 flex flex-col h-[45vh] lg:h-auto">
-          <div className="p-4 border-b border-zinc-900 flex items-center gap-2">
-            <MessageSquare size={16} className="text-blue-500" />
-            <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Classroom Chats</h4>
+        {/* Sidebar Chat - Enter Key Functional */}
+        <aside className="w-full lg:w-[420px] bg-zinc-950 border-l border-zinc-900 flex flex-col h-[40vh] lg:h-full">
+          <div className="p-6 border-b border-zinc-900 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <MessageSquare size={18} className="text-blue-500" />
+              <h4 className="text-xs font-black uppercase tracking-[0.2em]">Live Chat</h4>
+            </div>
+            <div className="flex items-center gap-2 text-zinc-500">
+               <Users size={14} />
+               <span className="text-[10px] font-bold">1,240</span>
+            </div>
           </div>
           
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-hide">
+          <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-hide">
             {messages.map((msg) => (
-              <div key={msg.id} className={`animate-in slide-in-from-bottom-2 duration-300 ${msg.isSystem ? 'text-center py-2' : ''}`}>
-                {msg.isSystem ? (
-                  <span className="text-[9px] font-black uppercase text-zinc-600 tracking-widest bg-zinc-900/50 px-3 py-1 rounded-full">
+              <div key={msg.id} className={`${msg.isSystem ? 'bg-zinc-900/50 p-3 rounded-xl text-center' : 'space-y-1'} animate-in slide-in-from-right-4`}>
+                <span className={`text-[10px] font-black uppercase ${msg.user === "Me" ? 'text-blue-500' : 'text-zinc-500'}`}>
+                    {msg.user}
+                </span>
+                <p className={`text-sm ${msg.isSystem ? 'text-zinc-500 text-xs italic' : 'text-zinc-200'}`}>
                     {msg.text}
-                  </span>
-                ) : (
-                  <div className="space-y-1">
-                    <span className={`text-[10px] font-black uppercase tracking-tight ${msg.user === "Me" ? 'text-blue-500' : 'text-zinc-500'}`}>
-                        {msg.user}
-                    </span>
-                    <p className="text-sm text-zinc-200 bg-zinc-900/50 p-3 rounded-2xl rounded-tl-none border border-white/5">
-                        {msg.text}
-                    </p>
-                  </div>
-                )}
+                </p>
               </div>
             ))}
             <div ref={scrollRef} />
           </div>
 
-          <form onSubmit={handleSendMessage} className="p-4 bg-zinc-900/30 border-t border-zinc-900">
-            <div className="flex gap-2">
+          <form onSubmit={handleSendMessage} className="p-6 bg-zinc-900/20 border-t border-zinc-900">
+            <div className="relative group">
               <input 
                 type="text"
                 value={messageInput}
                 onChange={(e) => setMessageInput(e.target.value)}
-                placeholder="Type a message..."
-                className="flex-1 bg-black border border-zinc-800 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 transition-all text-white placeholder:text-zinc-700"
+                placeholder="Say something..."
+                className="w-full bg-black border border-zinc-800 rounded-2xl pl-5 pr-14 py-4 text-sm focus:outline-none focus:border-blue-500 transition-all"
               />
               <button 
                 type="submit"
+                className="absolute right-2 top-2 bottom-2 px-4 bg-zinc-800 rounded-xl text-zinc-400 hover:text-white hover:bg-blue-600 transition-all disabled:opacity-0"
                 disabled={!messageInput.trim()}
-                className="bg-white text-black p-3 rounded-2xl hover:bg-blue-500 hover:text-white transition-all disabled:opacity-20"
               >
                 <Send size={18} />
               </button>

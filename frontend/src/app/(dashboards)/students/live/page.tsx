@@ -1,22 +1,24 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Video, Calendar, Clock, User, ArrowRight } from "lucide-react";
+import { Video, Calendar, Clock, User, ArrowRight, Bell, SpellCheck } from "lucide-react";
 import Link from "next/link";
 
 interface LiveSession {
   id: string;
   title: string;
   tutor: string;
-  date: string; // YYYY-MM-DD from instructor
-  time: string; // HH:mm from instructor
-  description: string; // "Things to learn" from instructor
+  date: string; 
+  time: string; 
+  description: string;
   status: "live" | "scheduled";
   studentsJoined?: number;
 }
 
 export default function LiveSessionsDashboard() {
-  const [sessions, setSessions] = useState<LiveSession[]>([
+  const [reminders, setReminders] = useState<string[]>([]); // Track IDs of sessions with reminders
+
+  const [sessions] = useState<LiveSession[]>([
     { 
       id: "chm-101", 
       title: "Organic Chemistry: Carbon Bonds", 
@@ -38,12 +40,48 @@ export default function LiveSessionsDashboard() {
     },
   ]);
 
+  // Function to handle scheduling the notification
+  const handleSetReminder = async (session: LiveSession) => {
+    // 1. Request Browser Permission
+    if (!("Notification" in window)) {
+      alert("This browser does not support desktop notifications.");
+      return;
+    }
+
+    const permission = await Notification.requestPermission();
+    
+    if (permission === "granted") {
+      // 2. Calculate the trigger time (5 minutes before)
+      const sessionDateTime = new Date(`${session.date}T${session.time}`);
+      const reminderTime = sessionDateTime.getTime() - (5 * 60 * 1000); // Subtract 5 mins in ms
+      const now = new Date().getTime();
+      const delay = reminderTime - now;
+
+      if (delay <= 0) {
+        alert("This class is starting in less than 5 minutes or has already started!");
+        return;
+      }
+
+      // 3. Set the Timeout for the notification
+      setTimeout(() => {
+        new Notification("Class Starting Soon!", {
+          body: `${session.title} with ${session.tutor} starts in 5 minutes.`,
+          icon: "/favicon.ico", // Ensure you have an icon path
+        });
+      }, delay);
+
+      // 4. Update UI State
+      setReminders((prev) => [...prev, session.id]);
+      console.log(`Reminder set for ${session.title} in ${Math.round(delay/1000/60)} minutes.`);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gray-950 text-white p-6 md:p-10">
+    <div className="min-h-screen bg-gray-950 text-white p-6 md:p-10 font-sans italic">
       <div className="max-w-6xl mx-auto">
         <header className="mb-10">
           <h1 className="text-4xl font-black mb-2 tracking-tight uppercase italic">Virtual <span className="text-blue-500">Classrooms</span></h1>
-          <p className="text-gray-500 font-medium uppercase text-xs tracking-widest">Real-time learning synchronization</p>
+          <p className="text-gray-500 font-medium uppercase text-[10px] tracking-[0.3em]">Real-time learning synchronization</p>
         </header>
 
         {/* Live Now */}
@@ -62,8 +100,8 @@ export default function LiveSessionsDashboard() {
                   <p className="text-zinc-500 text-sm mb-6 line-clamp-2">{session.description}</p>
                   
                   <div className="flex items-center gap-4 text-zinc-400 text-xs font-bold mb-8">
-                    <span className="flex items-center gap-1 uppercase"><User size={14} className="text-blue-500"/> {session.tutor}</span>
-                    <span className="text-blue-500 uppercase">{session.studentsJoined} Watching</span>
+                    <span className="flex items-center gap-1 uppercase tracking-wider"><User size={14} className="text-blue-500"/> {session.tutor}</span>
+                    <span className="text-blue-500 uppercase tracking-wider">{session.studentsJoined} Watching</span>
                   </div>
                   
                   <Link href={`/students/live/${session.id}`} className="inline-flex items-center gap-2 bg-white text-black hover:bg-blue-500 hover:text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all">
@@ -84,20 +122,37 @@ export default function LiveSessionsDashboard() {
 
           <div className="grid gap-3">
             {sessions.filter(s => s.status === "scheduled").map(session => (
-              <div key={session.id} className="bg-zinc-900/40 border border-zinc-800 p-6 rounded-3xl flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-zinc-900 transition-colors">
+              <div key={session.id} className="bg-zinc-900/40 border border-zinc-800 p-6 rounded-[2rem] flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-zinc-900 transition-colors group">
                 <div className="flex items-center gap-5">
-                  <div className="w-14 h-14 bg-zinc-800 rounded-2xl flex items-center justify-center text-zinc-500 border border-zinc-700">
+                  <div className="w-14 h-14 bg-zinc-800 rounded-2xl flex items-center justify-center text-zinc-500 border border-zinc-700 group-hover:border-blue-500/50 group-hover:text-blue-500 transition-all">
                     <Clock size={24} />
                   </div>
                   <div>
                     <h4 className="font-black uppercase italic tracking-tight">{session.title}</h4>
-                    <p className="text-[10px] text-zinc-500 font-bold uppercase mt-1">
+                    <p className="text-[10px] text-zinc-500 font-bold uppercase mt-1 tracking-widest">
                       {session.tutor} • {session.date} @ {session.time} GMT+1
                     </p>
                   </div>
                 </div>
-                <button className="bg-zinc-800 hover:bg-blue-600 text-[10px] font-black px-6 py-4 rounded-xl transition-all uppercase tracking-[0.2em]">
-                  Set Reminder
+
+                <button 
+                  onClick={() => handleSetReminder(session)}
+                  disabled={reminders.includes(session.id)}
+                  className={`flex items-center gap-2 text-[10px] font-black px-8 py-4 rounded-xl transition-all uppercase tracking-[0.2em] border ${
+                    reminders.includes(session.id) 
+                    ? "bg-blue-500/10 border-blue-500/50 text-blue-500" 
+                    : "bg-zinc-800 border-zinc-700 hover:bg-blue-600 hover:border-blue-500"
+                  }`}
+                >
+                  {reminders.includes(session.id) ? (
+                    <>
+                      <SpellCheck size={14} /> Reminder Set
+                    </>
+                  ) : (
+                    <>
+                      <Bell size={14} /> Set Reminder
+                    </>
+                  )}
                 </button>
               </div>
             ))}
