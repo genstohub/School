@@ -30,6 +30,16 @@ import {
   SendIcon,
 } from "lucide-react";
 import { useParams } from "next/navigation";
+import { set, get } from "idb-keyval";
+import {
+  rehydrateImages,
+  restoreBaseClickAttr,
+  sanitizeEditorHTML,
+  StagedFiles,
+} from "./utils/editor-helpers";
+import { useAutoSave } from "./hooks/useAutoSave";
+import DraftModal from "../../Components/DraftModal";
+import { useEditorInteractions } from "./hooks/useEditorInteractions";
 
 // --- CONSTANTS ---
 const SYMBOL_GROUPS = {
@@ -174,25 +184,107 @@ export default function OmniArchitectEditor() {
 
   // Params
   const { courseId } = useParams();
-  const course_code = courseId?.toString().toUpperCase();
+  const courseCode = courseId?.toString().toUpperCase() || "";
 
   // State
-  const [title, setTitle] = useState("Research Manuscript V1");
+  const [topic, setTopic] = useState("Research Manuscript V1");
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [font, setFont] = useState("font-serif");
   const [theme, setTheme] = useState("bg-white");
   const [showImageModal, setShowImageModal] = useState(false);
   const [dragActive, setDragActive] = useState(false);
+  const [showDraftModal, setShowDraftModal] = useState<boolean>(false);
 
   // This stores the actual binary files to be sent to server
-  // Tell TypeScript this is an array that contains either Files or nulls
-  const [stagedFiles, setStagedFiles] = useState<(File | null)[]>([]);
+  const [stagedFiles, setStagedFiles] = useState<(File | null)[]>([]); // Tell TypeScript this is an array that contains either Files or nulls
+  // Add a simple counter to force hooks to reset
+  const [restoreCount, setRestoreCount] = useState(0);
+
+  // All that complex drag/delete logic is now just one line!
+  useEditorInteractions(editorRef, setStagedFiles);
 
   // --- CORE EXECUTION ---
   const exec = (cmd: string, val?: string) => {
     document.execCommand(cmd, false, val);
     editorRef.current?.focus();
     setActiveMenu(null);
+  };
+
+  // Declaring a useAutoSave hook to save the work
+  const { saveNow, lastSaved, clearDraft } = useAutoSave(
+    editorRef,
+    stagedFiles,
+    topic,
+    courseCode,
+  );
+
+  // 1. Check for draft specific to THIS course on mount
+  useEffect(() => {
+    const checkDraft = async () => {
+      // Look for the key tied to this specific courseCode
+      const draft = await get<{
+        html: string;
+        topic: string;
+        courseCode: string;
+        stagedFiles: StagedFiles;
+      }>(courseCode);
+
+      const draftedHtml = draft?.html;
+
+      if (draftedHtml && draftedHtml.length > 50) {
+        setShowDraftModal(true);
+      }
+    };
+    checkDraft();
+  }, [courseCode]); // Re-run if the user switches courses
+
+  // 2. The Restore Function
+  const handleDraftRestore = async () => {
+    const draft = await get(courseCode);
+    if (!draft || !editorRef.current) return;
+
+    const editor = editorRef.current;
+
+    // 1. Force a "Reset" of the editor's internal engine
+    editor.blur();
+    editor.innerHTML = "";
+
+    // 2. Sync React State
+    setTopic(draft.topic || "");
+    setStagedFiles(draft.stagedFiles || []);
+
+    // 3. Inject the HTML
+    const cleanHtml = sanitizeEditorHTML(draft.html);
+    editor.innerHTML = cleanHtml;
+
+    // 4. THE RE-IGNITION (Crucial for interaction)
+    // We wait for two frames to ensure React and the DOM are in sync
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        // Fix the image blobs
+        rehydrateImages(editor, draft.stagedFiles);
+
+        // Force the browser to 'realize' these are real elements
+        const images = editor.querySelectorAll("img");
+        images.forEach((img) => {
+          void img.offsetHeight; // The 'void' fix for your ESLint error
+        });
+
+        // Place cursor at the start so the editor is 'active'
+        editor.focus();
+      });
+    });
+
+    setShowDraftModal(false);
+  };
+
+  const handleDraftDiscard = async () => {
+    // 4. Reset the editor UI if you want them to start a new one
+    setTopic("New Research Manuscript");
+    if (editorRef.current)
+      editorRef.current.innerHTML = "<h1>New Manuscript</h1>";
+    setStagedFiles([]);
+    setShowDraftModal(false);
   };
 
   // --- RESCUE FEATURES ---
@@ -237,78 +329,35 @@ export default function OmniArchitectEditor() {
     setStagedFiles((prev) => [...prev, file]);
 
     // THIS IS THE HTML STRING
-  const html = `
-    <div class="figure-wrap" 
-        contenteditable="false" 
-        style="display: inline-block; vertical-align: top; margin: 10px; position: relative; user-select: none; touch-action: none; text-align: center;">
-      
-      <div class="resize-container" style="position: relative; display: inline-block; resize: both; overflow: hidden; width: 300px; line-height: 0; background: white; border: 1px solid #e2e8f0; border-radius: 4px;">
+    const html = `
+      <div class="figure-wrap" 
+          contenteditable="false" 
+          data-index="${imageIndex}"
+          style="display: inline-block; vertical-align: top; margin: 10px; position: relative; user-select: none; touch-action: none; text-align: center;">
         
-        <div class="drag-overlay" 
-            onpointerdown="
-              const el = this.closest('.figure-wrap');
-              el.setPointerCapture(event.pointerId);
-              
-              if (el.style.position !== 'absolute') {
-                const rect = el.getBoundingClientRect();
-                const parentRect = el.offsetParent.getBoundingClientRect();
-                el.style.width = rect.width + 'px';
-                el.style.left = (rect.left - parentRect.left) + 'px';
-                el.style.top = (rect.top - parentRect.top) + 'px';
-                el.style.position = 'absolute';
-                el.style.margin = '0';
-                el.style.zIndex = '1000';
-              }
-              
-              let startX = event.clientX;
-              let startY = event.clientY;
-              let startLeft = parseFloat(el.style.left);
-              let startTop = parseFloat(el.style.top);
+        <div class="resize-container" style="position: relative; display: inline-block; resize: both; overflow: hidden; width: 300px; line-height: 0; background: white; border: 1px solid #e2e8f0; border-radius: 4px;">
+          
+          <div class="drag-overlay" 
+              data-action="drag-handle"
+              style="position: absolute; inset: 0; cursor: move; z-index: 5; background: rgba(0,0,0,0);">
+          </div>
 
-              const onPointerMove = (e) => {
-                const dx = e.clientX - startX;
-                const dy = e.clientY - startY;
-                el.style.left = (startLeft + dx) + 'px';
-                el.style.top = (startTop + dy) + 'px';
-              };
+          <button 
+            type="button"
+            data-action="delete-figure"
+            data-index="${imageIndex}"
+            style="position: absolute; top: 5px; right: 5px; z-index: 60; background: #ef4444; color: white; border: none; border-radius: 50%; width: 28px; height: 28px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px;">✕</button>
 
-              const onPointerUp = (e) => {
-                el.releasePointerCapture(e.pointerId);
-                el.removeEventListener('pointermove', onPointerMove);
-                el.removeEventListener('pointerup', onPointerUp);
-              };
-
-              el.addEventListener('pointermove', onPointerMove);
-              el.addEventListener('pointerup', onPointerUp);
-            "
-            style="position: absolute; inset: 0; cursor: move; z-index: 5;">
+          <img src="${tempUrl}" data-index="${imageIndex}" style="width: 100%; height: 100%; object-fit: contain; pointer-events: none;" />
+          
+          <div style="position: absolute; bottom: 0; right: 0; width: 20px; height: 20px; background: linear-gradient(135deg, transparent 50%, #6366f1 50%); pointer-events: none; z-index: 10;"></div>
         </div>
 
-        <button 
-          type="button"
-          onpointerdown="event.stopPropagation()"
-          onclick="this.closest('.figure-wrap').remove(); window.dispatchEvent(new CustomEvent('removeStagedFile', { detail: ${imageIndex} }));"
-          style="position: absolute; top: 5px; right: 5px; z-index: 60; background: #ef4444; color: white; border: none; border-radius: 50%; width: 28px; height: 28px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px;">✕</button>
-
-        <img src="${tempUrl}" data-index="${imageIndex}" style="width: 100%; height: 100%; object-fit: contain; pointer-events: none;" />
-        
-        <div style="position: absolute; bottom: 0; right: 0; width: 20px; height: 20px; background: linear-gradient(135deg, transparent 50%, #6366f1 50%); pointer-events: none; z-index: 10;"></div>
-      </div>
-
-      <div contenteditable="true" 
-          style="margin-top: 8px; 
-                  font-style: italic; 
-                  color: #64748b; 
-                  font-size: 0.85rem; 
-                  width: 100%; 
-                  display: block; 
-                  text-align: center; 
-                  line-height: 1.4;
-                  outline: none;
-                  cursor: text;">
-        Enter Figure Caption...
-      </div>
-    </div>`;
+        <div contenteditable="true" class="figure-caption"
+            style="margin-top: 8px; font-style: italic; color: #64748b; font-size: 0.85rem; width: 100%; display: block; text-align: center; line-height: 1.4; outline: none; cursor: text;">
+          Enter Figure Caption...
+        </div>
+      </div>`;
 
     // 2. This command actually pushes the HTML string into the editor
     exec("insertHTML", html);
@@ -362,6 +411,49 @@ export default function OmniArchitectEditor() {
   const addSideNote = () => {
     const html = `<aside contenteditable="false" style="float: right; width: 220px; margin: 0 -280px 20px 20px; padding: 20px; background: #fffbeb; border-left: 6px solid #d97706; border-radius: 4px; box-shadow: 10px 10px 30px rgba(0,0,0,0.05);"><div contenteditable="true" style="font-size: 0.85rem; font-family: sans-serif; color: #92400e; line-height: 1.5;"><b>MARGINALIA:</b> Add definitions or references.</div></aside>`;
     exec("insertHTML", html);
+  };
+
+  const handlePublish = async () => {
+    if (!editorRef.current) return;
+
+    // 1. Force a final save so IndexedDB is current (Optional but safe)
+    await saveNow();
+
+    // 2. Prepare your data for the server
+    const finalContent = sanitizeEditorHTML(editorRef.current.innerHTML);
+    const formData = new FormData();
+    formData.append("topic", topic);
+    formData.append("content", finalContent);
+
+    // Add files that aren't null
+    stagedFiles.forEach((file) => {
+      if (file) formData.append("images", file);
+    });
+
+    try {
+      const response = await fetch("/api/publish", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (response.ok) {
+        // 3. THE MAGIC STEP: Wipe the local draft
+        // This ensures the "Restore" modal won't show up again.
+        await clearDraft();
+
+        // 4. Reset the editor UI if you want them to start a new one
+        setTopic("New Research Manuscript");
+        editorRef.current.innerHTML = "<h1>New Manuscript</h1>";
+        setStagedFiles([]);
+
+        alert("Published successfully! Draft cleared.");
+      } else {
+        alert("Server error. Your draft is still safe in the browser.");
+      }
+    } catch (error) {
+      console.error("Network error:", error);
+      alert("Check your connection. Your draft was NOT lost.");
+    }
   };
 
   return (
@@ -471,7 +563,10 @@ export default function OmniArchitectEditor() {
             </div>
           )}
 
-          <button className="ml-auto bg-indigo-700 text-white px-5 py-2 rounded-full font-black text-[10px] tracking-widest flex items-center gap-2">
+          <button
+            className="ml-auto bg-indigo-700 text-white px-5 py-2 rounded-full font-black text-[10px] tracking-widest flex items-center gap-2"
+            onClick={handlePublish}
+          >
             {/* <Sparkles size={14} /> GENERATIVE ENGINE */}
             <SendIcon size={14} /> PUBLISH
           </button>
@@ -604,7 +699,7 @@ export default function OmniArchitectEditor() {
         </div>
       </header>
 
-      {/* 🧩 SYMBOL MENU */}
+      {/* SYMBOL MENU */}
       {activeMenu === "symbols" && (
         <div className="fixed top-32 right-10 bg-white border-4 border-black shadow-[20px_20px_0px_rgba(0,0,0,0.1)] rounded-xl z-[250] w-[420px] flex flex-col max-h-[70vh]">
           {/* Pinned Header */}
@@ -643,7 +738,7 @@ export default function OmniArchitectEditor() {
           </div>
         </div>
       )}
-      {/* 🖼️ IMAGE UPLOAD MODAL */}
+      {/* IMAGE UPLOAD MODAL */}
       {showImageModal && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[300] p-4 backdrop-blur-sm">
           <div className="bg-white rounded-2xl w-full max-w-xl overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
@@ -704,7 +799,7 @@ export default function OmniArchitectEditor() {
         >
           <div className="w-full items-center mb-0 flex p-10 gap-2 absolute flex-wrap">
             <span className="text-xs md:text-lg text-center font-black text-nowrap !text-[navyblue]">
-              {course_code} Pro Editor
+              {courseCode} Pro Editor
             </span>
             {" | "}
             <span className="text-[#64748B] text-xs font-bold uppercase tracking-widest text-nowrap">
@@ -713,8 +808,9 @@ export default function OmniArchitectEditor() {
           </div>
           <div className="px-20 pt-32 pb-12 mx-10 border-b-8 border-slate-900">
             <input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              value={topic}
+              onBlur={() => saveNow()}
+              onChange={(e) => setTopic(e.target.value)}
               className="w-full text-3xl font-black uppercase tracking-tighter outline-none bg-transparent"
             />
           </div>
@@ -740,6 +836,45 @@ export default function OmniArchitectEditor() {
           </div>
         </div>
       </main>
+
+      {/* DRAFT STATUS INDICATOR */}
+      <div className="fixed bottom-6 right-6 z-[100] flex items-center gap-3 bg-white/80 backdrop-blur-md px-4 py-2 rounded-2xl border border-slate-200 shadow-lg transition-all duration-500">
+        {lastSaved ? (
+          <>
+            <div className="relative flex h-3 w-3">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">
+                Auto-Draft Active
+              </span>
+              <span className="text-xs font-bold text-slate-700">
+                Last Synced: {lastSaved}
+              </span>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="h-3 w-3 rounded-full bg-slate-300"></div>
+            <div className="flex flex-col">
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">
+                Local Storage
+              </span>
+              <span className="text-xs font-bold text-slate-400 italic">
+                No active draft
+              </span>
+            </div>
+          </>
+        )}
+      </div>
+
+      {showDraftModal && (
+        <DraftModal
+          onDiscard={handleDraftDiscard}
+          onRestore={handleDraftRestore}
+        />
+      )}
 
       <style jsx global>{`
         .prose-editor h1 {
@@ -782,9 +917,43 @@ export default function OmniArchitectEditor() {
         .custom-scroll::-webkit-scrollbar-track {
           background: #cbd5e1;
         }
+        .figure-wrap {
+          display: inline-block;
+          position: relative;
+          /* This is the magic line: it stops the editor from 'grabbing' the click */
+          user-select: none !important;
+          -webkit-user-modify: read-only !important;
+        }
+
+        [data-action="drag-handle"],
+        [data-action="delete-figure"] {
+          pointer-events: all !important;
+          cursor: pointer !important;
+        }
+
+        .drag-overlay {
+          background: rgba(0, 0, 0, 0);
+        }
+
+        /* This stops the browser from showing the 'blue' selection box 
+           on images which blocks clicks to our 'X' button */
+        .figure-wrap img {
+          -webkit-user-drag: none;
+          user-select: none;
+          pointer-events: none; /* The handle and 'X' will catch the click instead */
+        }
+
+        /* Ensure the editor doesn't try to 'type' inside the figure-wrap */
+        .figure-wrap {
+          -webkit-user-modify: read-only !important;
+        }
+
+        /* BUT the caption MUST be editable */
+        .figure-caption {
+          -webkit-user-modify: read-write-plaintext-only !important;
+          pointer-events: auto !important;
+        }
       `}</style>
     </div>
   );
 }
-
-
