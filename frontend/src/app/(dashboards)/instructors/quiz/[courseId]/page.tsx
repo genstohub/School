@@ -3,246 +3,130 @@
 import React, { useState, use } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  ChevronLeft, Plus, Trash2, Rocket, 
-  Trophy, Target, Zap
-} from "lucide-react";
+import { ChevronLeft, Save, Trash2, Plus, Clock, HelpCircle, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 
-interface QuizQuestion {
+interface Question {
   id: string;
-  question: string;
-  options: string[];
-  correctIdx: number;
-  points: number;
-  difficulty: "Easy" | "Medium" | "Hard";
+  type: "mcq" | "tf";
+  text: string;
+  answer: string;
+  options: { key: string; text: string }[];
 }
 
-export default function QuizCreationPage({ params }: { params: Promise<{ courseId: string }> }) {
+export default function QuizBuilderPage({ params }: { params: Promise<{ courseId: string }> }) {
   const router = useRouter();
-  const resolvedParams = use(params);
-  const courseCode = (resolvedParams?.courseId || "").toUpperCase();
-
-  const [quizName, setQuizName] = useState("");
-  const [questions, setQuestions] = useState<QuizQuestion[]>([
-    { id: "1", question: "", options: ["", "", ""], correctIdx: 0, points: 10, difficulty: "Easy" }
+  const { courseId } = use(params);
+  
+  const [title, setTitle] = useState("");
+  const [topicId, setTopicId] = useState("");
+  const [duration, setDuration] = useState(10);
+  const [questions, setQuestions] = useState<Question[]>([
+    { id: crypto.randomUUID(), type: "mcq", text: "", answer: "A", options: [
+      { key: "A", text: "" }, { key: "B", text: "" }, { key: "C", text: "" }, { key: "D", text: "" }
+    ]}
   ]);
   const [isSuccess, setIsSuccess] = useState(false);
 
-  const addQuestion = () => {
-    setQuestions([...questions, {
-      id: Math.random().toString(36).substr(2, 9),
-      question: "",
-      options: ["", "", ""],
-      correctIdx: 0,
-      points: 10,
-      difficulty: "Easy"
-    }]);
+  const addQuestion = (type: "mcq" | "tf") => {
+    const newQ: Question = {
+      id: crypto.randomUUID(),
+      type,
+      text: "",
+      answer: type === "mcq" ? "A" : "True",
+      options: type === "mcq" ? [
+        { key: "A", text: "" }, { key: "B", text: "" }, { key: "C", text: "" }, { key: "D", text: "" }
+      ] : []
+    };
+    setQuestions([...questions, newQ]);
   };
 
-  /**
-   * Refactored update handler:
-   * Uses a generic <K> to ensure the 'value' matches the 'field' type in QuizQuestion.
-   */
-  const updateQuestion = <K extends keyof QuizQuestion>(id: string, field: K, value: QuizQuestion[K]) => {
-    setQuestions(prev => prev.map(q => q.id === id ? { ...q, [field]: value } : q));
+  const updateQuestion = (id: string, field: string, value: string) => {
+    setQuestions(questions.map(q => q.id === id ? { ...q, [field]: value } : q));
   };
 
-  const updateOption = (qId: string, optIdx: number, val: string) => {
-    setQuestions(prev => prev.map(q => {
-      if (q.id === qId) {
-        const newOpts = [...q.options];
-        newOpts[optIdx] = val;
-        return { ...q, options: newOpts };
-      }
-      return q;
-    }));
+  const handlePublish = async () => {
+    const payload = { courseId, topicId, title, durationMinutes: duration, questions };
+    const res = await fetch('/api/quizzes/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (res.ok) setIsSuccess(true);
   };
 
   return (
-    <main className="min-h-screen  text-white rounded-3xl p-6 md:p-12">
-      <div className="max-w-6xl mx-auto">
+    <main className="min-h-screen bg-[#050505] text-white p-6 md:p-12">
+      <div className="max-w-5xl mx-auto">
+        <Link href="/instructors/material" className="flex items-center gap-2 text-gray-500 mb-8"><ChevronLeft size={18}/> Back</Link>
         
-        {/* Navigation */}
-        <Link href="/instructors" className="inline-flex items-center gap-2 text-gray-500 hover:text-violet-500 mb-10 group transition-colors">
-          <ChevronLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
-          <span className="text-[10px] font-black uppercase tracking-widest">Back to Hub</span>
-        </Link>
-
-        {/* Header */}
-        <header className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-8 mb-16 border-l-4 border-violet-600 pl-6">
-          <div>
-            <h1 className="text-4xl md:text-6xl font-black tracking-tighter uppercase leading-none">
-              Flash <span className="text-violet-600">Quiz</span>
-            </h1>
-            <p className="text-gray-500 text-[10px] font-black tracking-[0.2em] mt-3 uppercase">
-              Interactive knowledge check for {courseCode}
-            </p>
-          </div>
-          
-          <div className="flex gap-4">
-             <div className="bg-violet-600/10 border border-violet-500/20 px-6 py-3 rounded-2xl flex items-center gap-3">
-                <Trophy className="text-violet-500" size={18} />
-                <span className="text-lg font-black">{questions.reduce((acc, q) => acc + q.points, 0)} Total Pts</span>
-             </div>
-          </div>
+        <header className="mb-12 border-l-4 border-blue-500 pl-6">
+          <h1 className="text-4xl font-black uppercase">Quiz <span className="text-blue-500">Engine</span></h1>
+          <p className="text-gray-500 text-xs font-bold mt-2 uppercase tracking-widest">Course: {courseId}</p>
         </header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-          
-          <div className="lg:col-span-8 space-y-6">
-            <input 
-              value={quizName}
-              onChange={(e) => setQuizName(e.target.value)}
-              placeholder="Give your quiz a name..."
-              className="w-full bg-transparent text-3xl font-black outline-none border-b border-gray-900 pb-4 mb-8 focus:border-violet-600 transition-colors"
-            />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 space-y-6">
+            <div className="bg-gray-900/40 p-8 rounded-[2rem] border border-gray-800 space-y-4">
+              <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Quiz Title (e.g. Chapter 1 Basics)" className="bg-transparent text-2xl font-bold w-full outline-none" />
+              <input value={topicId} onChange={(e) => setTopicId(e.target.value.toLowerCase().replace(/\s/g, '-'))} placeholder="Topic Slug (e.g. introduction-to-react)" className="bg-transparent text-blue-500 font-mono text-sm w-full outline-none" />
+            </div>
 
-            <AnimatePresence mode="popLayout">
-              {questions.map((q, idx) => (
-                <motion.div 
-                  key={q.id}
-                  layout
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  className="bg-[#0D0C12] border border-gray-800 rounded-[2.5rem] p-8 relative overflow-hidden group"
-                >
-                  <div className="absolute top-0 right-0 px-6 py-2 bg-gray-900 border-l border-b border-gray-800 rounded-bl-2xl">
-                     <span className={`text-[9px] font-black uppercase tracking-widest ${
-                       q.difficulty === 'Easy' ? 'text-green-500' : q.difficulty === 'Medium' ? 'text-violet-500' : 'text-red-500'
-                     }`}>
-                       {q.difficulty}
-                     </span>
-                  </div>
-
-                  <div className="flex gap-6 mb-8">
-                    <span className="text-4xl font-black text-gray-800 italic">#{idx + 1}</span>
-                    <textarea 
-                      value={q.question}
-                      onChange={(e) => updateQuestion(q.id, 'question', e.target.value)}
-                      placeholder="Ask something interesting..."
-                      className="w-full bg-transparent text-xl font-bold outline-none resize-none pt-2"
-                    />
-                  </div>
-
-                  <div className="space-y-3 mb-8">
-                    {q.options.map((opt, optIdx) => (
-                      <div key={optIdx} className="flex items-center gap-4 group/opt">
-                        <button 
-                          type="button"
-                          onClick={() => updateQuestion(q.id, 'correctIdx', optIdx)}
-                          className={`w-10 h-10 rounded-xl border flex items-center justify-center transition-all ${
-                            q.correctIdx === optIdx ? "bg-violet-600 border-violet-600 text-white" : "border-gray-800 text-gray-700"
-                          }`}
-                        >
-                          <span className="font-black text-xs">{String.fromCharCode(65 + optIdx)}</span>
-                        </button>
-                        <input 
-                          value={opt}
-                          onChange={(e) => updateOption(q.id, optIdx, e.target.value)}
-                          placeholder="Option text..."
-                          className={`flex-1 bg-gray-900/40 p-4 rounded-xl text-sm font-bold outline-none border transition-all ${
-                            q.correctIdx === optIdx ? "border-violet-600/50" : "border-transparent"
-                          }`}
-                        />
+            {questions.map((q, idx) => (
+              <div key={q.id} className="bg-[#0A0A0A] border border-gray-800 rounded-[2rem] p-8 relative">
+                <button onClick={() => setQuestions(questions.filter(item => item.id !== q.id))} className="absolute top-8 right-8 text-gray-600 hover:text-red-500"><Trash2 size={18}/></button>
+                <p className="text-[10px] font-black text-blue-500 uppercase mb-4">Question {idx + 1} — {q.type}</p>
+                <textarea value={q.text} onChange={(e) => updateQuestion(q.id, 'text', e.target.value)} placeholder="Write the question here..." className="bg-transparent w-full text-lg font-medium outline-none resize-none mb-6" />
+                
+                {q.type === 'mcq' ? (
+                  <div className="space-y-3">
+                    {q.options.map((opt, oIdx) => (
+                      <div key={opt.key} className="flex items-center gap-4">
+                        <button onClick={() => updateQuestion(q.id, 'answer', opt.key)} className={`w-10 h-10 rounded-xl font-bold border ${q.answer === opt.key ? "bg-blue-600 border-blue-600" : "border-gray-800 text-gray-600"}`}>{opt.key}</button>
+                        <input value={opt.text} onChange={(e) => {
+                          const newOpts = [...q.options];
+                          newOpts[oIdx].text = e.target.value;
+                          setQuestions(questions.map(item => item.id === q.id ? { ...item, options: newOpts } : item));
+                        }} className="bg-gray-900/50 border border-gray-800 p-3 rounded-xl flex-1 text-sm" placeholder={`Option ${opt.key}...`} />
                       </div>
                     ))}
                   </div>
-
-                  <div className="flex justify-between items-center pt-6 border-t border-gray-900">
-                    <div className="flex gap-4">
-                      {(["Easy", "Medium", "Hard"] as const).map(level => (
-                        <button 
-                          key={level}
-                          type="button"
-                          onClick={() => updateQuestion(q.id, 'difficulty', level)}
-                          className={`text-[9px] font-black uppercase tracking-widest transition-colors ${
-                            q.difficulty === level ? "text-white" : "text-gray-600 hover:text-gray-400"
-                          }`}
-                        >
-                          {level}
-                        </button>
-                      ))}
-                    </div>
-                    <button 
-                      type="button"
-                      onClick={() => setQuestions(prev => prev.filter(item => item.id !== q.id))}
-                      className="text-gray-700 hover:text-red-500 transition-colors"
-                    >
-                      <Trash2 size={18} />
-                    </button>
+                ) : (
+                  <div className="flex gap-4">
+                    {["True", "False"].map(val => (
+                      <button key={val} onClick={() => updateQuestion(q.id, 'answer', val)} className={`flex-1 py-4 rounded-xl border-2 font-bold ${q.answer === val ? "border-blue-600 bg-blue-600/10 text-blue-500" : "border-gray-800 text-gray-500"}`}>{val}</button>
+                    ))}
                   </div>
-                </motion.div>
-              ))}
-            </AnimatePresence>
+                )}
+              </div>
+            ))}
 
-            <button 
-              type="button"
-              onClick={addQuestion}
-              className="w-full py-6 rounded-[2rem] border-2 border-dashed border-gray-900 flex items-center justify-center gap-3 text-gray-600 hover:border-violet-600 hover:text-violet-600 transition-all"
-            >
-              <Plus size={20} />
-              <span className="text-[10px] font-black uppercase tracking-widest">Add Question</span>
-            </button>
+            <div className="flex gap-4">
+              <button onClick={() => addQuestion('mcq')} className="flex-1 py-4 border-2 border-dashed border-gray-800 rounded-2xl text-gray-500 flex items-center justify-center gap-2 hover:border-blue-500 hover:text-blue-500 transition-all font-bold"><Plus size={18}/> Multiple Choice</button>
+              <button onClick={() => addQuestion('tf')} className="flex-1 py-4 border-2 border-dashed border-gray-800 rounded-2xl text-gray-500 flex items-center justify-center gap-2 hover:border-blue-500 hover:text-blue-500 transition-all font-bold"><Plus size={18}/> True/False</button>
+            </div>
           </div>
 
-          {/* Sidebar */}
-          <aside className="lg:col-span-4 space-y-6">
-            <div className="bg-violet-600 p-8 rounded-[2.5rem] text-black">
-              <Zap className="mb-4" size={32} />
-              <h3 className="text-2xl font-black uppercase tracking-tighter leading-none mb-2">Power Quiz</h3>
-              <p className="text-[10px] font-bold uppercase tracking-tight opacity-80 mb-6">
-                Keep questions punchy and options distinct for rapid recall.
-              </p>
-              
-              <div className="space-y-4">
-                 <div className="flex justify-between items-center bg-black/10 p-4 rounded-2xl">
-                    <span className="text-[9px] font-black uppercase">Auto-Shuffle</span>
-                    <div className="w-8 h-4 bg-black/20 rounded-full relative"><div className="absolute right-1 top-1 w-2 h-2 bg-black rounded-full"/></div>
-                 </div>
-              </div>
+          <div className="space-y-6">
+            <div className="bg-[#0A0A0A] border border-gray-800 p-6 rounded-3xl">
+              <div className="flex items-center gap-2 mb-4 text-gray-400"><Clock size={16}/> <span className="text-[10px] font-bold uppercase">Duration</span></div>
+              <input type="number" value={duration} onChange={(e) => setDuration(Number(e.target.value))} className="bg-transparent text-3xl font-black w-full outline-none" />
+              <p className="text-[10px] text-gray-600 mt-1 uppercase font-bold">Minutes to complete</p>
             </div>
-
-            <button 
-              type="button"
-              onClick={() => setIsSuccess(true)}
-              disabled={!quizName || questions.some(q => !q.question)}
-              className="w-full py-6 bg-white text-black rounded-[2rem] font-black uppercase text-xs tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-violet-500 hover:text-white transition-all shadow-xl disabled:opacity-30 disabled:cursor-not-allowed"
-            >
-              <Rocket size={18} />
-              Launch Quiz
-            </button>
-          </aside>
+            <button onClick={handlePublish} className="w-full py-6 bg-blue-600 text-white rounded-3xl font-black uppercase text-xs tracking-widest hover:bg-blue-500 shadow-xl shadow-blue-900/20 flex items-center justify-center gap-2"><Save size={18}/> Publish Quiz</button>
+          </div>
         </div>
       </div>
 
-      {/* Success Modal */}
       <AnimatePresence>
         {isSuccess && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-gray-950/95 backdrop-blur-2xl p-6">
-            <motion.div 
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              className="bg-violet-600 text-white rounded-[4rem] p-12 max-w-md w-full text-center shadow-2xl relative overflow-hidden"
-            >
-              <div className="absolute -top-10 -right-10 opacity-10">
-                <Rocket size={200} />
-              </div>
-              <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-8">
-                <Target size={40} />
-              </div>
-              <h2 className="text-4xl font-black tracking-tighter uppercase mb-4 leading-none">Quiz Live!</h2>
-              <p className="text-white/80 text-[10px] font-black uppercase tracking-widest mb-10">
-                Students can now challenge {quizName}
-              </p>
-              <button 
-                type="button"
-                onClick={() => router.push('/instructors')} 
-                className="w-full py-5 bg-black text-white rounded-[2rem] font-black uppercase text-xs tracking-widest hover:scale-105 transition-transform"
-              >
-                Back to Dashboard
-              </button>
-            </motion.div>
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-xl">
+             <motion.div initial={{scale: 0.9}} animate={{scale: 1}} className="bg-white p-12 rounded-[3rem] text-center max-w-sm">
+                <CheckCircle2 size={60} className="mx-auto text-green-500 mb-6"/>
+                <h2 className="text-gray-950 text-2xl font-black uppercase mb-2">Quiz Live</h2>
+                <p className="text-gray-500 text-sm font-bold mb-8">Your topic practice is now available for students.</p>
+                <button onClick={() => router.push('/instructors/material')} className="w-full bg-gray-950 text-white py-4 rounded-2xl font-bold uppercase text-xs tracking-widest">Done</button>
+             </motion.div>
           </div>
         )}
       </AnimatePresence>
