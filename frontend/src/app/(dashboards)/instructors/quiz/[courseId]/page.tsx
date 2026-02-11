@@ -56,7 +56,7 @@ export default function QuizBuilderPage({ params }: { params: Promise<{ courseId
   };
 
   return (
-    <main className="min-h-screen bg-[#050505] text-white p-6 md:p-12">
+    <main className="min-h-screen  text-white p-6 md:p-12">
       <div className="max-w-5xl mx-auto">
         <Link href="/instructors/material" className="flex items-center gap-2 text-gray-500 mb-8"><ChevronLeft size={18}/> Back</Link>
         
