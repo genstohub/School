@@ -15,13 +15,17 @@ export default function VideoStudioPage({ params }: { params: Promise<{ courseId
   const { courseId } = use(params);
   const courseCode = courseId.toUpperCase();
 
+  // Media & UI States
   const [topic, setTopic] = useState("");
   const [subTopic, setSubTopic] = useState("");
   const [isRecording, setIsRecording] = useState(false);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [recordedBlob, setRecordedBlob] = useState<Blob | null>(null);
-  
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+
+  // Tools States
   const [recordingTime, setRecordingTime] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [audioBoost, setAudioBoost] = useState(1); 
@@ -76,9 +80,6 @@ export default function VideoStudioPage({ params }: { params: Promise<{ courseId
     }
   };
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
-
   const handleSubmit = async () => {
     if (!recordedBlob) return;
     setIsSubmitting(true);
@@ -91,7 +92,8 @@ export default function VideoStudioPage({ params }: { params: Promise<{ courseId
     formData.append("metadata", JSON.stringify({ filter, isFlipped, audioBoost }));
 
     try {
-      const response = await fetch("http://localhost:5000/api/videos/upload", {
+      // Using your dynamic API URL from environment variables
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/videos/upload`, {
         method: "POST",
         body: formData,
       });
@@ -99,24 +101,26 @@ export default function VideoStudioPage({ params }: { params: Promise<{ courseId
       if (response.ok) {
         setIsSuccess(true);
       } else {
-        alert("Upload failed. Please try again.");
+        const errData = await response.json();
+        alert(`Upload failed: ${errData.error || "Unknown error"}`);
       }
     } catch (err) {
       console.error("Submission Error:", err);
+      alert("Network error. Please check your connection.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleClearAndReturn = () => {
-    // Refresh browser and return to selector page
+    // Hard refresh to clear memory and return to selector page
     window.location.href = '/instructors/material';
   };
 
   const formatTime = (s: number) => `${Math.floor(s/60)}:${(s%60).toString().padStart(2,'0')}`;
 
   return (
-    <main className="min-h-screen bg-[#050505] text-white p-4 md:p-10">
+    <main className="min-h-screen bg-[#050505] text-white p-4 md:p-10 font-sans">
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-10">
           <Link href="/instructors/material" className="flex items-center gap-2 text-gray-500 hover:text-white transition-colors group">
@@ -186,18 +190,15 @@ export default function VideoStudioPage({ params }: { params: Promise<{ courseId
           <div className="lg:col-span-4 space-y-6">
             <div className="bg-[#0A0A0A] border border-white/5 p-8 rounded-[3.5rem] sticky top-10">
               <h2 className="text-2xl font-black uppercase mb-8 leading-none">Lesson <br/><span className="text-gray-600">Manifest</span></h2>
-              
               <div className="space-y-6">
                 <div className="space-y-2">
                   <label className="text-[10px] font-black text-gray-500 uppercase ml-2">Lecture Topic</label>
-                  <input value={topic} onChange={e=>setTopic(e.target.value)} placeholder="e.g. Quantum Physics" className="w-full bg-white/5 border border-white/10 p-5 rounded-3xl outline-none focus:border-blue-600 font-bold transition-all" />
+                  <input value={topic} onChange={e=>setTopic(e.target.value)} placeholder="Topic name..." className="w-full bg-white/5 border border-white/10 p-5 rounded-3xl outline-none focus:border-blue-600 font-bold transition-all" />
                 </div>
-                
                 <div className="space-y-2">
                   <label className="text-[10px] font-black text-gray-500 uppercase ml-2">Worker Directives</label>
-                  <textarea value={subTopic} onChange={e=>setSubTopic(e.target.value)} placeholder="Specific instructions..." className="w-full bg-white/5 border border-white/10 p-5 rounded-3xl outline-none focus:border-blue-600 font-medium h-32 resize-none transition-all" />
+                  <textarea value={subTopic} onChange={e=>setSubTopic(e.target.value)} placeholder="Notes for editors..." className="w-full bg-white/5 border border-white/10 p-5 rounded-3xl outline-none focus:border-blue-600 font-medium h-32 resize-none transition-all" />
                 </div>
-
                 <div className="pt-6 border-t border-white/5">
                   <button 
                     disabled={!isPreviewMode || !topic || isSubmitting}
@@ -222,7 +223,7 @@ export default function VideoStudioPage({ params }: { params: Promise<{ courseId
                 <CheckCircle2 size={50} />
               </div>
               <h3 className="text-4xl font-black uppercase tracking-tighter mb-4">Transfer <br/>Complete</h3>
-              <p className="text-gray-500 text-[11px] font-bold uppercase tracking-widest mb-10">Your footage has been sent to the worker queue.</p>
+              <p className="text-gray-500 text-[11px] font-bold uppercase tracking-widest mb-10">Your lesson has been logged and sent to workers.</p>
               <button onClick={handleClearAndReturn} className="w-full py-6 bg-gray-950 text-white rounded-[2rem] font-black uppercase text-xs tracking-widest hover:scale-[1.02] transition-all">
                 Finish & Exit
               </button>
