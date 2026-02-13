@@ -15,7 +15,6 @@ export default function VideoStudioPage({ params }: { params: Promise<{ courseId
   const { courseId } = use(params);
   const courseCode = courseId.toUpperCase();
 
-  // Form & UI State
   const [topic, setTopic] = useState("");
   const [subTopic, setSubTopic] = useState("");
   const [isRecording, setIsRecording] = useState(false);
@@ -23,20 +22,17 @@ export default function VideoStudioPage({ params }: { params: Promise<{ courseId
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [recordedBlob, setRecordedBlob] = useState<Blob | null>(null);
   
-  // Studio Tools State (Functional)
   const [recordingTime, setRecordingTime] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [audioBoost, setAudioBoost] = useState(1); 
   const [filter, setFilter] = useState("none"); 
   const [isPlaying, setIsPlaying] = useState(false);
 
-  // Video Refs
   const videoRef = useRef<HTMLVideoElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // 1. Functional Camera Start
   const startCamera = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ 
@@ -44,22 +40,16 @@ export default function VideoStudioPage({ params }: { params: Promise<{ courseId
         audio: true 
       });
       if (videoRef.current) videoRef.current.srcObject = stream;
-    } catch (err) {
-      console.error("Camera error:", err);
-    }
+    } catch (err) { console.error("Camera error:", err); }
   };
 
-  useEffect(() => {
-    if (!isPreviewMode) startCamera();
-  }, [isPreviewMode]);
+  useEffect(() => { if (!isPreviewMode) startCamera(); }, [isPreviewMode]);
 
-  // 2. Functional Recording Logic
   const toggleRecording = () => {
     if (!isRecording) {
       const stream = videoRef.current?.srcObject as MediaStream;
       chunksRef.current = [];
       const recorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
-      
       recorder.ondataavailable = (e) => chunksRef.current.push(e.data);
       recorder.onstop = () => {
         const blob = new Blob(chunksRef.current, { type: 'video/webm' });
@@ -67,7 +57,6 @@ export default function VideoStudioPage({ params }: { params: Promise<{ courseId
         setVideoUrl(URL.createObjectURL(blob));
         setIsPreviewMode(true);
       };
-
       recorder.start();
       mediaRecorderRef.current = recorder;
       setIsRecording(true);
@@ -79,7 +68,6 @@ export default function VideoStudioPage({ params }: { params: Promise<{ courseId
     }
   };
 
-  // 3. Functional Preview Controls
   const togglePlay = () => {
     if (videoRef.current) {
       if (isPlaying) videoRef.current.pause();
@@ -88,39 +76,48 @@ export default function VideoStudioPage({ params }: { params: Promise<{ courseId
     }
   };
 
-  // 4. Submission & Clear Routine
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
   const handleSubmit = async () => {
+    if (!recordedBlob) return;
     setIsSubmitting(true);
-    // Simulate API Call
-    setTimeout(() => {
+
+    const formData = new FormData();
+    formData.append("video", recordedBlob, `lesson-${Date.now()}.webm`);
+    formData.append("courseId", courseId);
+    formData.append("topic", topic);
+    formData.append("subTopic", subTopic);
+    formData.append("metadata", JSON.stringify({ filter, isFlipped, audioBoost }));
+
+    try {
+      const response = await fetch("http://localhost:5000/api/videos/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (response.ok) {
+        setIsSuccess(true);
+      } else {
+        alert("Upload failed. Please try again.");
+      }
+    } catch (err) {
+      console.error("Submission Error:", err);
+    } finally {
       setIsSubmitting(false);
-      setIsSuccess(true);
-    }, 2000);
+    }
   };
 
   const handleClearAndReturn = () => {
-    // Clean up states
-    setTopic("");
-    setSubTopic("");
-    setVideoUrl(null);
-    setRecordedBlob(null);
-    setIsPreviewMode(false);
-    setIsSuccess(false);
-    setRecordingTime(0);
-    // Return user to dashboard
-    router.push('/instructors/material');
+    // Refresh browser and return to selector page
+    window.location.href = '/instructors/material';
   };
 
   const formatTime = (s: number) => `${Math.floor(s/60)}:${(s%60).toString().padStart(2,'0')}`;
 
   return (
-    <main className="min-h-screen  text-white p-4 md:p-10 font-sans">
+    <main className="min-h-screen bg-[#050505] text-white p-4 md:p-10">
       <div className="max-w-7xl mx-auto">
-        
-        {/* Header */}
         <div className="flex justify-between items-center mb-10">
           <Link href="/instructors/material" className="flex items-center gap-2 text-gray-500 hover:text-white transition-colors group">
             <ChevronLeft size={20} className="group-hover:-translate-x-1 transition-transform"/>
@@ -133,8 +130,6 @@ export default function VideoStudioPage({ params }: { params: Promise<{ courseId
         </div>
 
         <div className="grid lg:grid-cols-12 gap-10">
-          
-          {/* LEFT: Video Stage */}
           <div className="lg:col-span-8 space-y-6">
             <div className="relative aspect-video bg-black rounded-[3rem] overflow-hidden border border-white/5 shadow-2xl group">
               <video 
@@ -150,7 +145,6 @@ export default function VideoStudioPage({ params }: { params: Promise<{ courseId
                 className="w-full h-full object-cover transition-all duration-700"
               />
 
-              {/* RECORDING OVERLAY */}
               {!isPreviewMode && (
                 <div className="absolute inset-0 flex flex-col justify-between p-10 pointer-events-none">
                   <div className={`self-start px-5 py-2 rounded-full backdrop-blur-md border border-white/10 flex items-center gap-3 ${isRecording ? 'bg-red-600' : 'bg-black/40'}`}>
@@ -165,7 +159,6 @@ export default function VideoStudioPage({ params }: { params: Promise<{ courseId
                 </div>
               )}
 
-              {/* PREVIEW CONTROLS */}
               {isPreviewMode && (
                 <div className="absolute inset-0 bg-black/20 flex items-center justify-center group-hover:bg-black/40 transition-all">
                   <button onClick={togglePlay} className="p-8 bg-white/10 backdrop-blur-xl rounded-full border border-white/20 hover:scale-110 transition-all">
@@ -175,7 +168,6 @@ export default function VideoStudioPage({ params }: { params: Promise<{ courseId
               )}
             </div>
 
-            {/* EDITING TOOLS (ONLY IN PREVIEW) */}
             <div className={`grid grid-cols-4 gap-4 transition-all duration-500 ${isPreviewMode ? 'opacity-100 translate-y-0' : 'opacity-30 pointer-events-none translate-y-4'}`}>
                {[
                  { icon: <Wand2 size={20}/>, label: "Filters", active: filter !== 'none', onClick: () => setFilter(filter === 'none' ? 'grayscale' : 'none') },
@@ -191,7 +183,6 @@ export default function VideoStudioPage({ params }: { params: Promise<{ courseId
             </div>
           </div>
 
-          {/* RIGHT: Meta & Publish */}
           <div className="lg:col-span-4 space-y-6">
             <div className="bg-[#0A0A0A] border border-white/5 p-8 rounded-[3.5rem] sticky top-10">
               <h2 className="text-2xl font-black uppercase mb-8 leading-none">Lesson <br/><span className="text-gray-600">Manifest</span></h2>
@@ -199,12 +190,12 @@ export default function VideoStudioPage({ params }: { params: Promise<{ courseId
               <div className="space-y-6">
                 <div className="space-y-2">
                   <label className="text-[10px] font-black text-gray-500 uppercase ml-2">Lecture Topic</label>
-                  <input value={topic} onChange={e=>setTopic(e.target.value)} placeholder="e.g. Quantum Entanglement" className="w-full bg-white/5 border border-white/10 p-5 rounded-3xl outline-none focus:border-blue-600 font-bold transition-all" />
+                  <input value={topic} onChange={e=>setTopic(e.target.value)} placeholder="e.g. Quantum Physics" className="w-full bg-white/5 border border-white/10 p-5 rounded-3xl outline-none focus:border-blue-600 font-bold transition-all" />
                 </div>
                 
                 <div className="space-y-2">
                   <label className="text-[10px] font-black text-gray-500 uppercase ml-2">Worker Directives</label>
-                  <textarea value={subTopic} onChange={e=>setSubTopic(e.target.value)} placeholder="Any specific editing instructions..." className="w-full bg-white/5 border border-white/10 p-5 rounded-3xl outline-none focus:border-blue-600 font-medium h-32 resize-none transition-all" />
+                  <textarea value={subTopic} onChange={e=>setSubTopic(e.target.value)} placeholder="Specific instructions..." className="w-full bg-white/5 border border-white/10 p-5 rounded-3xl outline-none focus:border-blue-600 font-medium h-32 resize-none transition-all" />
                 </div>
 
                 <div className="pt-6 border-t border-white/5">
@@ -216,7 +207,6 @@ export default function VideoStudioPage({ params }: { params: Promise<{ courseId
                     {isSubmitting ? <RefreshCcw className="animate-spin" size={18}/> : <CloudUpload size={18}/>}
                     {isSubmitting ? "UPLOADING..." : "SUBMIT FOR REVIEW"}
                   </button>
-                  <p className="text-[9px] text-gray-600 font-bold text-center mt-4 uppercase tracking-tighter">Everything stays on platform. No downloads permitted.</p>
                 </div>
               </div>
             </div>
@@ -224,7 +214,6 @@ export default function VideoStudioPage({ params }: { params: Promise<{ courseId
         </div>
       </div>
 
-      {/* SUCCESS MODAL */}
       <AnimatePresence>
         {isSuccess && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-3xl p-6">
@@ -233,7 +222,7 @@ export default function VideoStudioPage({ params }: { params: Promise<{ courseId
                 <CheckCircle2 size={50} />
               </div>
               <h3 className="text-4xl font-black uppercase tracking-tighter mb-4">Transfer <br/>Complete</h3>
-              <p className="text-gray-500 text-[11px] font-bold uppercase tracking-widest mb-10">Your footage has been locked and sent to the worker review queue.</p>
+              <p className="text-gray-500 text-[11px] font-bold uppercase tracking-widest mb-10">Your footage has been sent to the worker queue.</p>
               <button onClick={handleClearAndReturn} className="w-full py-6 bg-gray-950 text-white rounded-[2rem] font-black uppercase text-xs tracking-widest hover:scale-[1.02] transition-all">
                 Finish & Exit
               </button>
