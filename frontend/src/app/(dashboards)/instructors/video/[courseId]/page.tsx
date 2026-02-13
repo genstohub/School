@@ -16,7 +16,6 @@ export default function VideoStudioPage({ params }: { params: Promise<{ courseId
   const { courseId } = use(params);
   const courseCode = courseId.toUpperCase();
 
-  // Media & UI States
   const [topic, setTopic] = useState("");
   const [subTopic, setSubTopic] = useState("");
   const [isRecording, setIsRecording] = useState(false);
@@ -26,8 +25,7 @@ export default function VideoStudioPage({ params }: { params: Promise<{ courseId
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
-  // Tools States
-  const [recordingTime, setRecordingTime] = useState(0); // This becomes the "Max Duration"
+  const [recordingTime, setRecordingTime] = useState(0);
   const [previewCountdown, setPreviewCountdown] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [audioBoost, setAudioBoost] = useState(1); 
@@ -41,19 +39,41 @@ export default function VideoStudioPage({ params }: { params: Promise<{ courseId
   const chunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
+  // 1. Camera Management
   const startCamera = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ 
         video: { facingMode: "user", width: 1280, height: 720 }, 
         audio: true 
       });
-      if (videoRef.current) videoRef.current.srcObject = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.muted = true; // Always mute live preview to avoid feedback
+        videoRef.current.play();
+      }
     } catch (err) { console.error("Camera error:", err); }
   };
 
-  useEffect(() => { if (!isPreviewMode) startCamera(); }, [isPreviewMode]);
+  useEffect(() => {
+    if (!isPreviewMode) {
+      startCamera();
+    } else {
+      // Stop camera tracks when entering preview mode to save resources
+      const stream = videoRef.current?.srcObject as MediaStream;
+      stream?.getTracks().forEach(track => track.stop());
+      if (videoRef.current) videoRef.current.srcObject = null;
+    }
+  }, [isPreviewMode]);
 
-  // Handle Countdown Logic during Preview
+  // 2. Fix: Ensure Video element is ready before playing in preview
+  useEffect(() => {
+    if (isPreviewMode && videoUrl && videoRef.current) {
+      videoRef.current.load(); // Force the element to recognize the new blob URL
+      setIsPlaying(false);
+    }
+  }, [videoUrl, isPreviewMode]);
+
+  // 3. Countdown Logic
   useEffect(() => {
     if (isPreviewMode && isPlaying && videoRef.current) {
       const interval = setInterval(() => {
@@ -64,7 +84,7 @@ export default function VideoStudioPage({ params }: { params: Promise<{ courseId
         if (current >= recordingTime) {
           videoRef.current?.pause();
           setIsPlaying(false);
-          setPreviewCountdown(0);
+          setPreviewCountdown(recordingTime); // Reset countdown display
         }
       }, 100);
       return () => clearInterval(interval);
@@ -79,10 +99,10 @@ export default function VideoStudioPage({ params }: { params: Promise<{ courseId
       recorder.ondataavailable = (e) => chunksRef.current.push(e.data);
       recorder.onstop = () => {
         const blob = new Blob(chunksRef.current, { type: 'video/webm' });
+        const url = URL.createObjectURL(blob);
         setRecordedBlob(blob);
-        setVideoUrl(URL.createObjectURL(blob));
+        setVideoUrl(url);
         setIsPreviewMode(true);
-        setPreviewCountdown(recordingTime);
       };
       recorder.start();
       mediaRecorderRef.current = recorder;
@@ -101,10 +121,12 @@ export default function VideoStudioPage({ params }: { params: Promise<{ courseId
       if (isPlaying) {
         videoRef.current.pause();
       } else {
+        // If at the end, restart
         if (videoRef.current.currentTime >= recordingTime) {
-            videoRef.current.currentTime = 0;
+          videoRef.current.currentTime = 0;
         }
-        videoRef.current.play();
+        videoRef.current.muted = false; // Unmute for playback
+        videoRef.current.play().catch(err => console.error("Playback failed:", err));
       }
       setIsPlaying(!isPlaying);
     }
@@ -113,7 +135,6 @@ export default function VideoStudioPage({ params }: { params: Promise<{ courseId
   const handleSubmit = async () => {
     if (!recordedBlob) return;
     setIsSubmitting(true);
-
     const formData = new FormData();
     formData.append("video", recordedBlob, `lesson-${Date.now()}.webm`);
     formData.append("courseId", courseId);
@@ -128,7 +149,6 @@ export default function VideoStudioPage({ params }: { params: Promise<{ courseId
         method: "POST",
         body: formData,
       });
-
       if (response.ok) setIsSuccess(true);
       else alert("Upload failed.");
     } catch (err) {
@@ -147,7 +167,6 @@ export default function VideoStudioPage({ params }: { params: Promise<{ courseId
   return (
     <main className="min-h-screen bg-[#050505] text-white p-4 md:p-10 font-sans">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
         <div className="flex justify-between items-center mb-10">
           <Link href="/instructors/material" className="flex items-center gap-2 text-gray-500 hover:text-white transition-colors group">
             <ChevronLeft size={20} className="group-hover:-translate-x-1 transition-transform"/>
@@ -165,8 +184,7 @@ export default function VideoStudioPage({ params }: { params: Promise<{ courseId
               <video 
                 ref={videoRef} 
                 src={videoUrl || undefined} 
-                autoPlay={!isPreviewMode}
-                muted={!isPreviewMode}
+                playsInline
                 style={{ 
                   filter: filter === 'grayscale' ? 'grayscale(1)' : filter === 'sepia' ? 'sepia(1)' : 'none',
                   transform: `${isFlipped ? 'scaleX(-1)' : 'scaleX(1)'} ${isCropped ? 'scale(1.2)' : 'scale(1)'}`,
@@ -174,7 +192,6 @@ export default function VideoStudioPage({ params }: { params: Promise<{ courseId
                 className="w-full h-full object-cover transition-all duration-700"
               />
 
-              {/* Status Badge */}
               <div className="absolute top-6 left-6 z-20">
                 <div className={`px-4 py-2 rounded-full backdrop-blur-md border border-white/10 flex items-center gap-3 ${isRecording ? 'bg-red-600' : 'bg-black/40'}`}>
                     <div className={`w-2 h-2 rounded-full ${isRecording ? 'bg-white animate-pulse' : 'bg-green-500'}`} />
@@ -194,14 +211,13 @@ export default function VideoStudioPage({ params }: { params: Promise<{ courseId
 
               {isPreviewMode && (
                 <div className="absolute inset-0 bg-black/20 flex items-center justify-center group">
-                  <button onClick={togglePlay} className="p-8 bg-white/10 backdrop-blur-xl rounded-full border border-white/20 hover:scale-110 transition-all opacity-0 group-hover:opacity-100">
+                  <button onClick={togglePlay} className="p-8 bg-white/10 backdrop-blur-xl rounded-full border border-white/20 hover:scale-110 transition-all opacity-0 group-hover:opacity-100 pointer-events-auto">
                     {isPlaying ? <Pause size={40} fill="white" /> : <Play size={40} fill="white" className="ml-2"/>}
                   </button>
                 </div>
               )}
             </div>
 
-            {/* Editing Tools */}
             <div className={`grid grid-cols-3 md:grid-cols-6 gap-4 transition-all duration-500 ${isPreviewMode ? 'opacity-100' : 'opacity-30 pointer-events-none'}`}>
                {[
                  { icon: <Wand2 size={20}/>, label: "Filters", active: filter !== 'none', onClick: () => setFilter(filter === 'none' ? 'grayscale' : 'none') },
@@ -209,9 +225,9 @@ export default function VideoStudioPage({ params }: { params: Promise<{ courseId
                  { icon: <Crop size={20}/>, label: "Crop", active: isCropped, onClick: () => setIsCropped(!isCropped) },
                  { icon: <Mic size={20}/>, label: "Voiceover", active: voiceoverEnabled, onClick: () => setVoiceoverEnabled(!voiceoverEnabled) },
                  { icon: <Volume2 size={20}/>, label: "Boost", active: audioBoost > 1, onClick: () => setAudioBoost(audioBoost === 1 ? 2 : 1) },
-                 { icon: <RotateCcw size={20}/>, label: "Reset", active: false, onClick: () => { setIsPreviewMode(false); setRecordingTime(0); } }
+                 { icon: <RotateCcw size={20}/>, label: "Reset", active: false, onClick: () => { setIsPreviewMode(false); setVideoUrl(null); } }
                ].map((tool, i) => (
-                 <button key={i} onClick={tool.onClick} className={`flex flex-col items-center gap-2 p-4 rounded-3xl border transition-all ${tool.active ? 'bg-blue-600 border-blue-400' : 'bg-gray-900/50 border-white/5 hover:border-white/20'}`}>
+                 <button key={i} onClick={tool.onClick} className={`flex flex-col items-center gap-2 p-4 rounded-3xl border transition-all ${tool.active ? 'bg-blue-600 border-blue-400 shadow-lg shadow-blue-600/20' : 'bg-gray-900/50 border-white/5 hover:border-white/20'}`}>
                    {tool.icon}
                    <span className="text-[8px] font-black uppercase tracking-widest">{tool.label}</span>
                  </button>
@@ -219,7 +235,6 @@ export default function VideoStudioPage({ params }: { params: Promise<{ courseId
             </div>
           </div>
 
-          {/* Form */}
           <div className="lg:col-span-4">
             <div className="bg-[#0A0A0A] border border-white/5 p-8 rounded-[3.5rem] sticky top-10">
               <h2 className="text-2xl font-black uppercase mb-8 leading-none">Lesson <br/><span className="text-gray-600">Manifest</span></h2>
@@ -246,6 +261,7 @@ export default function VideoStudioPage({ params }: { params: Promise<{ courseId
         </div>
       </div>
 
+      {/* Success Modal remains the same */}
       <AnimatePresence>
         {isSuccess && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-3xl p-6">
