@@ -16,11 +16,11 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
 
   const menuItems = [
     { name: "Dashboard", icon: <LayoutDashboard size={18} />, href: "/workers" },
-    { name: "Monitor Students", icon: <Users size={18} />, href: "/workers/students" },
-    { name: "Monitor Instructors", icon: <Activity size={18} />, href: "/workers/instructors" },
-    { name: "Tasks", icon: <ClipboardList size={18} />, href: "/workers/tasks" },
-    { name: "Notifications", icon: <Bell size={18} />, href: "/workers/notifications" },
-    { name: "Settings", icon: <Settings size={18} />, href: "/workers/settings" },
+    { name: "Monitor Students", icon: <Users size={18} />, href: "/students" },
+    { name: "Monitor Instructors", icon: <Activity size={18} />, href: "/instructors" },
+    { name: "Tasks", icon: <ClipboardList size={18} />, href: "/tasks" },
+    { name: "Notifications", icon: <Bell size={18} />, href: "/notifications" },
+    { name: "Settings", icon: <Settings size={18} />, href: "/settings" },
   ];
 
   return (
