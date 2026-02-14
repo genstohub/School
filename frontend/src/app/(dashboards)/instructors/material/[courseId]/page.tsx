@@ -8,7 +8,6 @@ import {
   AlignRight,
   AlignJustify,
   Image as ImageIcon,
-  Sparkles,
   Italic,
   Underline,
   List,
@@ -28,18 +27,22 @@ import {
   Upload,
   FileImage,
   SendIcon,
+  FileText,
+  CloudIcon,
+  Check,
 } from "lucide-react";
 import { useParams } from "next/navigation";
 import { set, get } from "idb-keyval";
 import {
   rehydrateImages,
-  restoreBaseClickAttr,
   sanitizeEditorHTML,
   StagedFiles,
 } from "./utils/editor-helpers";
 import { useAutoSave } from "./hooks/useAutoSave";
 import DraftModal from "../../Components/DraftModal";
 import { useEditorInteractions } from "./hooks/useEditorInteractions";
+import { REST_API } from "@/constants";
+import { useUser } from "@/hooks";
 
 // --- CONSTANTS ---
 const SYMBOL_GROUPS = {
@@ -178,9 +181,12 @@ const COLOR_PALETTE = [
   { name: "Paper", hex: "#ffffff" },
 ];
 
-export default function OmniArchitectEditor() {
+export default function OmniMaterialEditor() {
   const editorRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // User hook
+  const { user } = useUser();
 
   // Params
   const { courseId } = useParams();
@@ -197,8 +203,13 @@ export default function OmniArchitectEditor() {
 
   // This stores the actual binary files to be sent to server
   const [stagedFiles, setStagedFiles] = useState<(File | null)[]>([]); // Tell TypeScript this is an array that contains either Files or nulls
-  // Add a simple counter to force hooks to reset
-  const [restoreCount, setRestoreCount] = useState(0);
+
+  const [isPublishing, setIsPublishing] = useState(false);
+  const [publishStatus, setPublishStatus] = useState("Compiling...");
+  // phases: 'loading' | 'success' | 'error'
+  const [publishPhase, setPublishPhase] = useState<
+    "loading" | "success" | "error"
+  >("loading");
 
   // All that complex drag/delete logic is now just one line!
   useEditorInteractions(editorRef, setStagedFiles);
@@ -218,7 +229,7 @@ export default function OmniArchitectEditor() {
     courseCode,
   );
 
-  // 1. Check for draft specific to THIS course on mount
+  // Check for draft specific to THIS course on mount
   useEffect(() => {
     const checkDraft = async () => {
       // Look for the key tied to this specific courseCode
@@ -238,26 +249,26 @@ export default function OmniArchitectEditor() {
     checkDraft();
   }, [courseCode]); // Re-run if the user switches courses
 
-  // 2. The Restore Function
+  // The Restore Function
   const handleDraftRestore = async () => {
     const draft = await get(courseCode);
     if (!draft || !editorRef.current) return;
 
     const editor = editorRef.current;
 
-    // 1. Force a "Reset" of the editor's internal engine
+    // Force a "Reset" of the editor's internal engine
     editor.blur();
     editor.innerHTML = "";
 
-    // 2. Sync React State
+    //  Sync React State
     setTopic(draft.topic || "");
     setStagedFiles(draft.stagedFiles || []);
 
-    // 3. Inject the HTML
+    //Inject the HTML
     const cleanHtml = sanitizeEditorHTML(draft.html);
     editor.innerHTML = cleanHtml;
 
-    // 4. THE RE-IGNITION (Crucial for interaction)
+    //  THE RE-IGNITION (Crucial for interaction)
     // We wait for two frames to ensure React and the DOM are in sync
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
@@ -279,7 +290,7 @@ export default function OmniArchitectEditor() {
   };
 
   const handleDraftDiscard = async () => {
-    // 4. Reset the editor UI if you want them to start a new one
+    //  Reset the editor UI if you want them to start a new one
     setTopic("New Research Manuscript");
     if (editorRef.current)
       editorRef.current.innerHTML = "<h1>New Manuscript</h1>";
@@ -324,6 +335,11 @@ export default function OmniArchitectEditor() {
 
   // --- IMAGE & MODAL LOGIC ---
   const insertImage = (file: File) => {
+    // Check if file is > 5MB
+    if (file.size > 5 * 1024 * 1024) {
+      alert("This image is too heavy! Please choose a file smaller than 5MB.");
+      return;
+    }
     const tempUrl = URL.createObjectURL(file);
     const imageIndex = stagedFiles.length;
     setStagedFiles((prev) => [...prev, file]);
@@ -333,13 +349,15 @@ export default function OmniArchitectEditor() {
       <div class="figure-wrap" 
           contenteditable="false" 
           data-index="${imageIndex}"
-          style="display: inline-block; vertical-align: top; margin: 10px; position: relative; user-select: none; touch-action: none; text-align: center;">
+          style="display: inline-block; vertical-align: top; margin: 10px; position: relative; user-select: none; touch-action: none; text-align: center; width: min-content;">
         
-        <div class="resize-container" style="position: relative; display: inline-block; resize: both; overflow: hidden; width: 300px; line-height: 0; background: white; border: 1px solid #e2e8f0; border-radius: 4px;">
+        <div class="resize-container" style="position: relative; display: inline-block; resize: both; overflow: hidden; width: 300px; min-width: 100px; min-height: 100px; line-height: 0; background: white; border: 1px solid #e2e8f0; border-radius: 4px; pointer-events: auto !important;">
           
           <div class="drag-overlay" 
               data-action="drag-handle"
-              style="position: absolute; inset: 0; cursor: move; z-index: 5; background: rgba(0,0,0,0);">
+              style="position: absolute; inset: 0; cursor: move; z-index: 5; background: rgba(0,0,0,0); 
+              /* This cuts a 20px hole in the bottom-right so you can grab the resize handle */
+              clip-path: polygon(0% 0%, 100% 0%, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0% 100%);">
           </div>
 
           <button 
@@ -354,12 +372,12 @@ export default function OmniArchitectEditor() {
         </div>
 
         <div contenteditable="true" class="figure-caption"
-            style="margin-top: 8px; font-style: italic; color: #64748b; font-size: 0.85rem; width: 100%; display: block; text-align: center; line-height: 1.4; outline: none; cursor: text;">
+            style="margin-top: 8px; font-style: italic; color: #64748b; font-size: 0.85rem; width: 100%; display: block; text-align: center; line-height:4; outline: none; cursor: text;">
           Enter Figure Caption...
         </div>
       </div>`;
 
-    // 2. This command actually pushes the HTML string into the editor
+    // This command actually pushes the HTML string into the editor
     exec("insertHTML", html);
     setShowImageModal(false);
   };
@@ -409,50 +427,68 @@ export default function OmniArchitectEditor() {
   };
 
   const addSideNote = () => {
-    const html = `<aside contenteditable="false" style="float: right; width: 220px; margin: 0 -280px 20px 20px; padding: 20px; background: #fffbeb; border-left: 6px solid #d97706; border-radius: 4px; box-shadow: 10px 10px 30px rgba(0,0,0,0.05);"><div contenteditable="true" style="font-size: 0.85rem; font-family: sans-serif; color: #92400e; line-height: 1.5;"><b>MARGINALIA:</b> Add definitions or references.</div></aside>`;
+    const html = `<aside contenteditable="false" style="float: right; width: 220px; margin: 0 -280px 20px 20px; padding: 20px; background: #fffbeb; border-left: 6px solid #d97706; border-radius: 4px; box-shadow: 10px 10px 30px rgba(0,0,0,0.05);"><div contenteditable="true" style="font-size: 0.85rem; font-family: sans-serif; color: #92400e; line-height:5;"><b>MARGINALIA:</b> Add definitions or references.</div></aside>`;
     exec("insertHTML", html);
   };
 
   const handlePublish = async () => {
     if (!editorRef.current) return;
 
-    // 1. Force a final save so IndexedDB is current (Optional but safe)
-    await saveNow();
+    setIsPublishing(true);
+    setPublishPhase("loading");
+    setPublishStatus("Compiling...");
 
-    // 2. Prepare your data for the server
-    const finalContent = sanitizeEditorHTML(editorRef.current.innerHTML);
-    const formData = new FormData();
-    formData.append("topic", topic);
-    formData.append("content", finalContent);
-
-    // Add files that aren't null
-    stagedFiles.forEach((file) => {
-      if (file) formData.append("images", file);
-    });
+    // Rotate status messages to keep user engaged
+    const statusTimers = [
+      setTimeout(() => setPublishStatus("Analyzing Assets..."), 1500),
+      setTimeout(() => setPublishStatus("Finalizing Metadata..."), 3000),
+      setTimeout(
+        () => setPublishStatus("Uplinking to Academic Servers..."),
+        4500,
+      ),
+    ];
 
     try {
-      const response = await fetch("/api/publish", {
-        method: "POST",
-        body: formData,
+      const finalContent = sanitizeEditorHTML(editorRef.current.innerHTML);
+      const formData = new FormData();
+
+      await saveNow(); // Sync IndexedDB
+
+      formData.append("topic", topic);
+      formData.append("content", finalContent);
+      formData.append("courseCode", courseCode.toLowerCase());
+      formData.append("user_id", user.user_id);
+
+      stagedFiles.forEach((file, index) => {
+        if (file) formData.append(`image_${index}`, file);
       });
 
+      const response = await fetch(
+        REST_API + "/courses/materials/new/publish",
+        {
+          method: "POST",
+          credentials: "include",
+          body: formData,
+        },
+      );
+
+      // Clear all simulated timers
+      statusTimers.forEach((t) => clearTimeout(t));
+
       if (response.ok) {
-        // 3. THE MAGIC STEP: Wipe the local draft
-        // This ensures the "Restore" modal won't show up again.
+        setPublishPhase("success");
         await clearDraft();
 
-        // 4. Reset the editor UI if you want them to start a new one
-        setTopic("New Research Manuscript");
+        // Clean up Editor UI
+        setTopic("New Topic Manuscript");
         editorRef.current.innerHTML = "<h1>New Manuscript</h1>";
         setStagedFiles([]);
-
-        alert("Published successfully! Draft cleared.");
       } else {
-        alert("Server error. Your draft is still safe in the browser.");
+        setPublishPhase("error");
       }
     } catch (error) {
-      console.error("Network error:", error);
-      alert("Check your connection. Your draft was NOT lost.");
+      statusTimers.forEach((t) => clearTimeout(t));
+      setPublishPhase("error");
     }
   };
 
@@ -487,7 +523,7 @@ export default function OmniArchitectEditor() {
               onClick={() =>
                 setActiveMenu(activeMenu === "fore" ? null : "fore")
               }
-              className="p-1.5 hover:bg-slate-100 rounded"
+              className="p5 hover:bg-slate-100 rounded"
               title="Text Color"
             >
               <Type size={18} />
@@ -496,7 +532,7 @@ export default function OmniArchitectEditor() {
               onClick={() =>
                 setActiveMenu(activeMenu === "hilite" ? null : "hilite")
               }
-              className="p-1.5 hover:bg-slate-100 rounded text-yellow-500"
+              className="p5 hover:bg-slate-100 rounded text-yellow-500"
               title="Highlight"
             >
               <Highlighter size={18} />
@@ -505,7 +541,7 @@ export default function OmniArchitectEditor() {
               onClick={() =>
                 setActiveMenu(activeMenu === "fill" ? null : "fill")
               }
-              className="p-1.5 hover:bg-slate-100 rounded text-indigo-600"
+              className="p5 hover:bg-slate-100 rounded text-indigo-600"
               title="Block Fill"
             >
               <PaintBucket size={18} />
@@ -819,7 +855,7 @@ export default function OmniArchitectEditor() {
             ref={editorRef}
             contentEditable
             suppressContentEditableWarning
-            className="prose-editor px-10 lg:px-20 py-10 outline-none text-lg leading-[1.8] text-slate-900 min-h-[1200px] h-fit"
+            className="prose-editor px-10 lg:px-20 py-10 outline-none text-lg leading-8] text-slate-900 min-h-[1200px] h-fit"
           >
             <h1>Omni-Architect Ready</h1>
             <p>
@@ -830,6 +866,7 @@ export default function OmniArchitectEditor() {
               <li>Lists are visible and styled.</li>
               <li>Floating side notes are active.</li>
             </ul>
+            <p>Please note: you must choose an image smaller than 5MB.</p>
             <p>
               Click <b>MEDIA</b> to use the new drag-and-drop modal.
             </p>
@@ -876,20 +913,116 @@ export default function OmniArchitectEditor() {
         />
       )}
 
+      {/* PUBLISHING OVERLAY MODAL */}
+      {isPublishing && (
+        <div className="fixed inset-0 z-[600] flex flex-col items-center justify-center bg-slate-950/95 backdrop-blur-2xl animate-in fade-in duration-500">
+          <div className="relative w-96 p-8 rounded-3xl border border-white/10 bg-white/5 shadow-2xl text-center">
+            {/* THE ANIMATION ZONE (Place your code here) */}
+            <div className="h-48 flex items-center justify-center mb-6 relative overflow-hidden">
+              {/* The Central Cloud */}
+              <div
+                className={`relative z-20 ${publishPhase === "loading" ? "animate-cloud" : ""}`}
+              >
+                <div className="absolute inset-0 bg-indigo-500/10 blur-3xl rounded-full" />
+                <CloudIcon
+                  size={80}
+                  className={
+                    publishPhase === "error"
+                      ? "text-red-500"
+                      : "text-indigo-400"
+                  }
+                />
+
+                {publishPhase === "success" && (
+                  <div className="absolute inset-0 flex items-center justify-center z-30 animate-zoom-in">
+                    <div className="bg-green-500 rounded-full p-2 shadow-lg">
+                      <Check size={32} className="text-white" />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Spiral Particles */}
+              {publishPhase === "loading" && (
+                <div className="absolute inset-0 z-10">
+                  {[...Array(10)].map((_, i) => {
+                    const angle = (i / 10) * 2 * Math.PI;
+                    const x = Math.cos(angle) * 150;
+                    const y = Math.sin(angle) * 150;
+
+                    return (
+                      <div
+                        key={i}
+                        className="animate-spiral"
+                        style={
+                          {
+                            "--start-x": `${x}px`,
+                            "--start-y": `${y}px`,
+                            animationDelay: `${i * 0.2}s`,
+                          } as React.CSSProperties
+                        }
+                      >
+                        {i % 2 === 0 ? (
+                          <FileText size={24} className="text-indigo-200/60" />
+                        ) : (
+                          <ImageIcon size={20} className="text-purple-300/60" />
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* TEXT ZONE */}
+            <div className="space-y-2">
+              <h2 className="text-white font-black tracking-widest uppercase text-lg">
+                {publishPhase === "loading"
+                  ? publishStatus
+                  : publishPhase === "success"
+                    ? "Vaulted Successfully"
+                    : "Uplink Failed"}
+              </h2>
+              <p className="text-slate-400 text-xs font-medium px-4 leading-relaxed">
+                {publishPhase === "loading" &&
+                  "Establishing secure handshake with academic nodes..."}
+                {publishPhase === "success" &&
+                  "Your manuscript has been digitized and stored."}
+                {publishPhase === "error" &&
+                  "A communication error occurred. Your draft is still safe."}
+              </p>
+            </div>
+
+            {/* ACTION BUTTON (Visible after finish) */}
+            {publishPhase !== "loading" && (
+              <button
+                onClick={() => setIsPublishing(false)}
+                className={`mt-8 w-full py-4 rounded-xl font-black text-[10px] tracking-[0.2em] uppercase transition-all shadow-lg
+            ${
+              publishPhase === "success"
+                ? "bg-indigo-600 hover:bg-indigo-500 text-white"
+                : "bg-slate-700 hover:bg-slate-600 text-white"
+            }`}
+              >
+                {publishPhase === "success" ? "Continue" : "Close"}
+              </button>
+            )}
+          </div>
+        </div>
+      )}
       <style jsx global>{`
         .prose-editor h1 {
           font-size: 3rem;
           font-weight: 900;
-          margin-bottom: 1.5rem;
+          margin-bottom: 5rem;
           display: block;
         }
         .prose-editor h2 {
-          font-size: 1.75rem;
+          font-size: 2rem;
           font-weight: 800;
           margin-top: 1rem;
           display: block;
         }
-
         .prose-editor ul {
           list-style-type: disc !important;
           margin-left: 3.5rem !important;
@@ -907,6 +1040,7 @@ export default function OmniArchitectEditor() {
           margin-bottom: 0.75rem;
         }
 
+        /* INTERFACE & SCROLLBAR */
         .custom-scroll::-webkit-scrollbar {
           width: 10px;
         }
@@ -917,41 +1051,142 @@ export default function OmniArchitectEditor() {
         .custom-scroll::-webkit-scrollbar-track {
           background: #cbd5e1;
         }
+
+        /* FIGURE WRAPPER & DRAG/DROP PROTECTION */
         .figure-wrap {
           display: inline-block;
           position: relative;
-          /* This is the magic line: it stops the editor from 'grabbing' the click */
           user-select: none !important;
           -webkit-user-modify: read-only !important;
+          width: min-content !important;
+          height: min-content !important;
         }
 
+        .figure-wrap img {
+          -webkit-user-drag: none;
+          user-select: none;
+          pointer-events: none;
+        }
+
+        /* Caption remains editable while parent is read-only */
+        .figure-caption {
+          -webkit-user-modify: read-write-plaintext-only !important;
+          pointer-events: auto !important;
+        }
+
+        /* 4. DRAG & RESIZE MECHANICS */
         [data-action="drag-handle"],
         [data-action="delete-figure"] {
           pointer-events: all !important;
           cursor: pointer !important;
         }
 
+        .resize-container {
+          max-width: 100% !important;
+          height: auto !important;
+          pointer-events: auto !important;
+          min-width: 80px;
+          min-height: 80px;
+        }
+
+        /* This is the invisible layer that handles dragging */
         .drag-overlay {
           background: rgba(0, 0, 0, 0);
+          /* Cuts a hole in the bottom-right so the resize handle is clickable */
+          clip-path: polygon(
+            0% 0%,
+            100% 0%,
+            100% calc(100% - 20px),
+            calc(100% - 20px) 100%,
+            0% 100%
+          );
         }
 
-        /* This stops the browser from showing the 'blue' selection box 
-           on images which blocks clicks to our 'X' button */
-        .figure-wrap img {
-          -webkit-user-drag: none;
-          user-select: none;
-          pointer-events: none; /* The handle and 'X' will catch the click instead */
+        /* PUBLISHING SPIRAL ANIMATIONS */
+
+        @keyframes spiral-ingest {
+          0% {
+            opacity: 0;
+            transform: translate(var(--start-x), var(--start-y)) rotate(0deg)
+              scale(1.2);
+          }
+          15% {
+            opacity: 1;
+          }
+          100% {
+            opacity: 0;
+            /* Elements rotate twice while pulling to the center point (0,0) */
+            transform: translate(0, 0) rotate(720deg) scale(0);
+          }
         }
 
-        /* Ensure the editor doesn't try to 'type' inside the figure-wrap */
-        .figure-wrap {
-          -webkit-user-modify: read-only !important;
+        .animate-spiral {
+          position: absolute;
+          left: 50%;
+          top: 50%;
+          animation: spiral-ingest 2.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
         }
 
-        /* BUT the caption MUST be editable */
-        .figure-caption {
-          -webkit-user-modify: read-write-plaintext-only !important;
-          pointer-events: auto !important;
+        @keyframes cloud-pulse {
+          0%,
+          100% {
+            transform: scale(1);
+            filter: drop-shadow(0 0 0px rgba(99, 102, 241, 0));
+          }
+          50% {
+            transform: scale(1.05);
+            filter: drop-shadow(0 0 25px rgba(99, 102, 241, 0.6));
+          }
+        }
+        .animate-cloud {
+          animation: cloud-pulse 2s ease-in-out infinite;
+        }
+
+        /* 6. MODAL STATUS TRANSITIONS */
+        @keyframes zoom-in {
+          0% {
+            transform: scale(0.5);
+            opacity: 0;
+          }
+          100% {
+            transform: scale(1);
+            opacity: 1;
+          }
+        }
+
+        @keyframes shake {
+          0%,
+          100% {
+            transform: translateX(0);
+          }
+          25% {
+            transform: translateX(-8px);
+          }
+          75% {
+            transform: translateX(8px);
+          }
+        }
+
+        .animate-zoom-in {
+          animation: zoom-in 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)
+            forwards;
+        }
+
+        .animate-shake {
+          animation: shake 0.4s ease-in-out;
+        }
+
+        .fade-in {
+          animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
         }
       `}</style>
     </div>
