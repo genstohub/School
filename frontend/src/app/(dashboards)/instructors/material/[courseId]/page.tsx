@@ -8,7 +8,6 @@ import {
   AlignRight,
   AlignJustify,
   Image as ImageIcon,
-  Sparkles,
   Italic,
   Underline,
   List,
@@ -28,8 +27,22 @@ import {
   Upload,
   FileImage,
   SendIcon,
+  FileText,
+  CloudIcon,
+  Check,
 } from "lucide-react";
 import { useParams } from "next/navigation";
+import { set, get } from "idb-keyval";
+import {
+  rehydrateImages,
+  sanitizeEditorHTML,
+  StagedFiles,
+} from "./utils/editor-helpers";
+import { useAutoSave } from "./hooks/useAutoSave";
+import DraftModal from "../../Components/DraftModal";
+import { useEditorInteractions } from "./hooks/useEditorInteractions";
+import { REST_API } from "@/constants";
+import { useUser } from "@/hooks";
 
 // --- CONSTANTS ---
 const SYMBOL_GROUPS = {
@@ -168,31 +181,121 @@ const COLOR_PALETTE = [
   { name: "Paper", hex: "#ffffff" },
 ];
 
-export default function OmniArchitectEditor() {
+export default function OmniMaterialEditor() {
   const editorRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // User hook
+  const { user } = useUser();
+
   // Params
   const { courseId } = useParams();
-  const course_code = courseId?.toString().toUpperCase();
+  const courseCode = courseId?.toString().toUpperCase() || "";
 
   // State
-  const [title, setTitle] = useState("Research Manuscript V1");
+  const [topic, setTopic] = useState("Research Manuscript V1");
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [font, setFont] = useState("font-serif");
   const [theme, setTheme] = useState("bg-white");
   const [showImageModal, setShowImageModal] = useState(false);
   const [dragActive, setDragActive] = useState(false);
+  const [showDraftModal, setShowDraftModal] = useState<boolean>(false);
 
   // This stores the actual binary files to be sent to server
-  // Tell TypeScript this is an array that contains either Files or nulls
-  const [stagedFiles, setStagedFiles] = useState<(File | null)[]>([]);
+  const [stagedFiles, setStagedFiles] = useState<(File | null)[]>([]); // Tell TypeScript this is an array that contains either Files or nulls
+
+  const [isPublishing, setIsPublishing] = useState(false);
+  const [publishStatus, setPublishStatus] = useState("Compiling...");
+  // phases: 'loading' | 'success' | 'error'
+  const [publishPhase, setPublishPhase] = useState<
+    "loading" | "success" | "error"
+  >("loading");
+
+  // All that complex drag/delete logic is now just one line!
+  useEditorInteractions(editorRef, setStagedFiles);
 
   // --- CORE EXECUTION ---
   const exec = (cmd: string, val?: string) => {
     document.execCommand(cmd, false, val);
     editorRef.current?.focus();
     setActiveMenu(null);
+  };
+
+  // Declaring a useAutoSave hook to save the work
+  const { saveNow, lastSaved, clearDraft } = useAutoSave(
+    editorRef,
+    stagedFiles,
+    topic,
+    courseCode,
+  );
+
+  // Check for draft specific to THIS course on mount
+  useEffect(() => {
+    const checkDraft = async () => {
+      // Look for the key tied to this specific courseCode
+      const draft = await get<{
+        html: string;
+        topic: string;
+        courseCode: string;
+        stagedFiles: StagedFiles;
+      }>(courseCode);
+
+      const draftedHtml = draft?.html;
+
+      if (draftedHtml && draftedHtml.length > 50) {
+        setShowDraftModal(true);
+      }
+    };
+    checkDraft();
+  }, [courseCode]); // Re-run if the user switches courses
+
+  // The Restore Function
+  const handleDraftRestore = async () => {
+    const draft = await get(courseCode);
+    if (!draft || !editorRef.current) return;
+
+    const editor = editorRef.current;
+
+    // Force a "Reset" of the editor's internal engine
+    editor.blur();
+    editor.innerHTML = "";
+
+    //  Sync React State
+    setTopic(draft.topic || "");
+    setStagedFiles(draft.stagedFiles || []);
+
+    //Inject the HTML
+    const cleanHtml = sanitizeEditorHTML(draft.html);
+    editor.innerHTML = cleanHtml;
+
+    //  THE RE-IGNITION (Crucial for interaction)
+    // We wait for two frames to ensure React and the DOM are in sync
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        // Fix the image blobs
+        rehydrateImages(editor, draft.stagedFiles);
+
+        // Force the browser to 'realize' these are real elements
+        const images = editor.querySelectorAll("img");
+        images.forEach((img) => {
+          void img.offsetHeight; // The 'void' fix for your ESLint error
+        });
+
+        // Place cursor at the start so the editor is 'active'
+        editor.focus();
+      });
+    });
+
+    setShowDraftModal(false);
+  };
+
+  const handleDraftDiscard = async () => {
+    //  Reset the editor UI if you want them to start a new one
+    setTopic("New Research Manuscript");
+    if (editorRef.current)
+      editorRef.current.innerHTML = "<h1>New Manuscript</h1>";
+    setStagedFiles([]);
+    setShowDraftModal(false);
   };
 
   // --- RESCUE FEATURES ---
@@ -232,85 +335,49 @@ export default function OmniArchitectEditor() {
 
   // --- IMAGE & MODAL LOGIC ---
   const insertImage = (file: File) => {
+    // Check if file is > 5MB
+    if (file.size > 5 * 1024 * 1024) {
+      alert("This image is too heavy! Please choose a file smaller than 5MB.");
+      return;
+    }
     const tempUrl = URL.createObjectURL(file);
     const imageIndex = stagedFiles.length;
     setStagedFiles((prev) => [...prev, file]);
 
     // THIS IS THE HTML STRING
-  const html = `
-    <div class="figure-wrap" 
-        contenteditable="false" 
-        style="display: inline-block; vertical-align: top; margin: 10px; position: relative; user-select: none; touch-action: none; text-align: center;">
-      
-      <div class="resize-container" style="position: relative; display: inline-block; resize: both; overflow: hidden; width: 300px; line-height: 0; background: white; border: 1px solid #e2e8f0; border-radius: 4px;">
+    const html = `
+      <div class="figure-wrap" 
+          contenteditable="false" 
+          data-index="${imageIndex}"
+          style="display: inline-block; vertical-align: top; margin: 10px; position: relative; user-select: none; touch-action: none; text-align: center; width: min-content;">
         
-        <div class="drag-overlay" 
-            onpointerdown="
-              const el = this.closest('.figure-wrap');
-              el.setPointerCapture(event.pointerId);
-              
-              if (el.style.position !== 'absolute') {
-                const rect = el.getBoundingClientRect();
-                const parentRect = el.offsetParent.getBoundingClientRect();
-                el.style.width = rect.width + 'px';
-                el.style.left = (rect.left - parentRect.left) + 'px';
-                el.style.top = (rect.top - parentRect.top) + 'px';
-                el.style.position = 'absolute';
-                el.style.margin = '0';
-                el.style.zIndex = '1000';
-              }
-              
-              let startX = event.clientX;
-              let startY = event.clientY;
-              let startLeft = parseFloat(el.style.left);
-              let startTop = parseFloat(el.style.top);
+        <div class="resize-container" style="position: relative; display: inline-block; resize: both; overflow: hidden; width: 300px; min-width: 100px; min-height: 100px; line-height: 0; background: white; border: 1px solid #e2e8f0; border-radius: 4px; pointer-events: auto !important;">
+          
+          <div class="drag-overlay" 
+              data-action="drag-handle"
+              style="position: absolute; inset: 0; cursor: move; z-index: 5; background: rgba(0,0,0,0); 
+              /* This cuts a 20px hole in the bottom-right so you can grab the resize handle */
+              clip-path: polygon(0% 0%, 100% 0%, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0% 100%);">
+          </div>
 
-              const onPointerMove = (e) => {
-                const dx = e.clientX - startX;
-                const dy = e.clientY - startY;
-                el.style.left = (startLeft + dx) + 'px';
-                el.style.top = (startTop + dy) + 'px';
-              };
+          <button 
+            type="button"
+            data-action="delete-figure"
+            data-index="${imageIndex}"
+            style="position: absolute; top: 5px; right: 5px; z-index: 60; background: #ef4444; color: white; border: none; border-radius: 50%; width: 28px; height: 28px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px;">✕</button>
 
-              const onPointerUp = (e) => {
-                el.releasePointerCapture(e.pointerId);
-                el.removeEventListener('pointermove', onPointerMove);
-                el.removeEventListener('pointerup', onPointerUp);
-              };
-
-              el.addEventListener('pointermove', onPointerMove);
-              el.addEventListener('pointerup', onPointerUp);
-            "
-            style="position: absolute; inset: 0; cursor: move; z-index: 5;">
+          <img src="${tempUrl}" data-index="${imageIndex}" style="width: 100%; height: 100%; object-fit: contain; pointer-events: none;" />
+          
+          <div style="position: absolute; bottom: 0; right: 0; width: 20px; height: 20px; background: linear-gradient(135deg, transparent 50%, #6366f1 50%); pointer-events: none; z-index: 10;"></div>
         </div>
 
-        <button 
-          type="button"
-          onpointerdown="event.stopPropagation()"
-          onclick="this.closest('.figure-wrap').remove(); window.dispatchEvent(new CustomEvent('removeStagedFile', { detail: ${imageIndex} }));"
-          style="position: absolute; top: 5px; right: 5px; z-index: 60; background: #ef4444; color: white; border: none; border-radius: 50%; width: 28px; height: 28px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px;">✕</button>
+        <div contenteditable="true" class="figure-caption"
+            style="margin-top: 8px; font-style: italic; color: #64748b; font-size: 0.85rem; width: 100%; display: block; text-align: center; line-height:4; outline: none; cursor: text;">
+          Enter Figure Caption...
+        </div>
+      </div>`;
 
-        <img src="${tempUrl}" data-index="${imageIndex}" style="width: 100%; height: 100%; object-fit: contain; pointer-events: none;" />
-        
-        <div style="position: absolute; bottom: 0; right: 0; width: 20px; height: 20px; background: linear-gradient(135deg, transparent 50%, #6366f1 50%); pointer-events: none; z-index: 10;"></div>
-      </div>
-
-      <div contenteditable="true" 
-          style="margin-top: 8px; 
-                  font-style: italic; 
-                  color: #64748b; 
-                  font-size: 0.85rem; 
-                  width: 100%; 
-                  display: block; 
-                  text-align: center; 
-                  line-height: 1.4;
-                  outline: none;
-                  cursor: text;">
-        Enter Figure Caption...
-      </div>
-    </div>`;
-
-    // 2. This command actually pushes the HTML string into the editor
+    // This command actually pushes the HTML string into the editor
     exec("insertHTML", html);
     setShowImageModal(false);
   };
@@ -360,8 +427,69 @@ export default function OmniArchitectEditor() {
   };
 
   const addSideNote = () => {
-    const html = `<aside contenteditable="false" style="float: right; width: 220px; margin: 0 -280px 20px 20px; padding: 20px; background: #fffbeb; border-left: 6px solid #d97706; border-radius: 4px; box-shadow: 10px 10px 30px rgba(0,0,0,0.05);"><div contenteditable="true" style="font-size: 0.85rem; font-family: sans-serif; color: #92400e; line-height: 1.5;"><b>MARGINALIA:</b> Add definitions or references.</div></aside>`;
+    const html = `<aside contenteditable="false" style="float: right; width: 220px; margin: 0 -280px 20px 20px; padding: 20px; background: #fffbeb; border-left: 6px solid #d97706; border-radius: 4px; box-shadow: 10px 10px 30px rgba(0,0,0,0.05);"><div contenteditable="true" style="font-size: 0.85rem; font-family: sans-serif; color: #92400e; line-height:5;"><b>MARGINALIA:</b> Add definitions or references.</div></aside>`;
     exec("insertHTML", html);
+  };
+
+  const handlePublish = async () => {
+    if (!editorRef.current) return;
+
+    setIsPublishing(true);
+    setPublishPhase("loading");
+    setPublishStatus("Compiling...");
+
+    // Rotate status messages to keep user engaged
+    const statusTimers = [
+      setTimeout(() => setPublishStatus("Analyzing Assets..."), 1500),
+      setTimeout(() => setPublishStatus("Finalizing Metadata..."), 3000),
+      setTimeout(
+        () => setPublishStatus("Uplinking to Academic Servers..."),
+        4500,
+      ),
+    ];
+
+    try {
+      const finalContent = sanitizeEditorHTML(editorRef.current.innerHTML);
+      const formData = new FormData();
+
+      await saveNow(); // Sync IndexedDB
+
+      formData.append("topic", topic);
+      formData.append("content", finalContent);
+      formData.append("courseCode", courseCode.toLowerCase());
+      formData.append("user_id", user.user_id);
+
+      stagedFiles.forEach((file, index) => {
+        if (file) formData.append(`image_${index}`, file);
+      });
+
+      const response = await fetch(
+        REST_API + "/courses/materials/new/publish",
+        {
+          method: "POST",
+          credentials: "include",
+          body: formData,
+        },
+      );
+
+      // Clear all simulated timers
+      statusTimers.forEach((t) => clearTimeout(t));
+
+      if (response.ok) {
+        setPublishPhase("success");
+        await clearDraft();
+
+        // Clean up Editor UI
+        setTopic("New Topic Manuscript");
+        editorRef.current.innerHTML = "<h1>New Manuscript</h1>";
+        setStagedFiles([]);
+      } else {
+        setPublishPhase("error");
+      }
+    } catch (error) {
+      statusTimers.forEach((t) => clearTimeout(t));
+      setPublishPhase("error");
+    }
   };
 
   return (
@@ -395,7 +523,7 @@ export default function OmniArchitectEditor() {
               onClick={() =>
                 setActiveMenu(activeMenu === "fore" ? null : "fore")
               }
-              className="p-1.5 hover:bg-slate-100 rounded"
+              className="p5 hover:bg-slate-100 rounded"
               title="Text Color"
             >
               <Type size={18} />
@@ -404,7 +532,7 @@ export default function OmniArchitectEditor() {
               onClick={() =>
                 setActiveMenu(activeMenu === "hilite" ? null : "hilite")
               }
-              className="p-1.5 hover:bg-slate-100 rounded text-yellow-500"
+              className="p5 hover:bg-slate-100 rounded text-yellow-500"
               title="Highlight"
             >
               <Highlighter size={18} />
@@ -413,7 +541,7 @@ export default function OmniArchitectEditor() {
               onClick={() =>
                 setActiveMenu(activeMenu === "fill" ? null : "fill")
               }
-              className="p-1.5 hover:bg-slate-100 rounded text-indigo-600"
+              className="p5 hover:bg-slate-100 rounded text-indigo-600"
               title="Block Fill"
             >
               <PaintBucket size={18} />
@@ -471,7 +599,10 @@ export default function OmniArchitectEditor() {
             </div>
           )}
 
-          <button className="ml-auto bg-indigo-700 text-white px-5 py-2 rounded-full font-black text-[10px] tracking-widest flex items-center gap-2">
+          <button
+            className="ml-auto bg-indigo-700 text-white px-5 py-2 rounded-full font-black text-[10px] tracking-widest flex items-center gap-2"
+            onClick={handlePublish}
+          >
             {/* <Sparkles size={14} /> GENERATIVE ENGINE */}
             <SendIcon size={14} /> PUBLISH
           </button>
@@ -604,7 +735,7 @@ export default function OmniArchitectEditor() {
         </div>
       </header>
 
-      {/* 🧩 SYMBOL MENU */}
+      {/* SYMBOL MENU */}
       {activeMenu === "symbols" && (
         <div className="fixed top-32 right-10 bg-white border-4 border-black shadow-[20px_20px_0px_rgba(0,0,0,0.1)] rounded-xl z-[250] w-[420px] flex flex-col max-h-[70vh]">
           {/* Pinned Header */}
@@ -643,7 +774,7 @@ export default function OmniArchitectEditor() {
           </div>
         </div>
       )}
-      {/* 🖼️ IMAGE UPLOAD MODAL */}
+      {/* IMAGE UPLOAD MODAL */}
       {showImageModal && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[300] p-4 backdrop-blur-sm">
           <div className="bg-white rounded-2xl w-full max-w-xl overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
@@ -704,7 +835,7 @@ export default function OmniArchitectEditor() {
         >
           <div className="w-full items-center mb-0 flex p-10 gap-2 absolute flex-wrap">
             <span className="text-xs md:text-lg text-center font-black text-nowrap !text-[navyblue]">
-              {course_code} Pro Editor
+              {courseCode} Pro Editor
             </span>
             {" | "}
             <span className="text-[#64748B] text-xs font-bold uppercase tracking-widest text-nowrap">
@@ -713,8 +844,9 @@ export default function OmniArchitectEditor() {
           </div>
           <div className="px-20 pt-32 pb-12 mx-10 border-b-8 border-slate-900">
             <input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              value={topic}
+              onBlur={() => saveNow()}
+              onChange={(e) => setTopic(e.target.value)}
               className="w-full text-3xl font-black uppercase tracking-tighter outline-none bg-transparent"
             />
           </div>
@@ -723,7 +855,7 @@ export default function OmniArchitectEditor() {
             ref={editorRef}
             contentEditable
             suppressContentEditableWarning
-            className="prose-editor px-10 lg:px-20 py-10 outline-none text-lg leading-[1.8] text-slate-900 min-h-[1200px] h-fit"
+            className="prose-editor px-10 lg:px-20 py-10 outline-none text-lg leading-8] text-slate-900 min-h-[1200px] h-fit"
           >
             <h1>Omni-Architect Ready</h1>
             <p>
@@ -734,6 +866,7 @@ export default function OmniArchitectEditor() {
               <li>Lists are visible and styled.</li>
               <li>Floating side notes are active.</li>
             </ul>
+            <p>Please note: you must choose an image smaller than 5MB.</p>
             <p>
               Click <b>MEDIA</b> to use the new drag-and-drop modal.
             </p>
@@ -741,20 +874,155 @@ export default function OmniArchitectEditor() {
         </div>
       </main>
 
+      {/* DRAFT STATUS INDICATOR */}
+      <div className="fixed bottom-6 right-6 z-[100] flex items-center gap-3 bg-white/80 backdrop-blur-md px-4 py-2 rounded-2xl border border-slate-200 shadow-lg transition-all duration-500">
+        {lastSaved ? (
+          <>
+            <div className="relative flex h-3 w-3">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">
+                Auto-Draft Active
+              </span>
+              <span className="text-xs font-bold text-slate-700">
+                Last Synced: {lastSaved}
+              </span>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="h-3 w-3 rounded-full bg-slate-300"></div>
+            <div className="flex flex-col">
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">
+                Local Storage
+              </span>
+              <span className="text-xs font-bold text-slate-400 italic">
+                No active draft
+              </span>
+            </div>
+          </>
+        )}
+      </div>
+
+      {showDraftModal && (
+        <DraftModal
+          onDiscard={handleDraftDiscard}
+          onRestore={handleDraftRestore}
+        />
+      )}
+
+      {/* PUBLISHING OVERLAY MODAL */}
+      {isPublishing && (
+        <div className="fixed inset-0 z-[600] flex flex-col items-center justify-center bg-slate-950/95 backdrop-blur-2xl animate-in fade-in duration-500">
+          <div className="relative w-96 p-8 rounded-3xl border border-white/10 bg-white/5 shadow-2xl text-center">
+            {/* THE ANIMATION ZONE (Place your code here) */}
+            <div className="h-48 flex items-center justify-center mb-6 relative overflow-hidden">
+              {/* The Central Cloud */}
+              <div
+                className={`relative z-20 ${publishPhase === "loading" ? "animate-cloud" : ""}`}
+              >
+                <div className="absolute inset-0 bg-indigo-500/10 blur-3xl rounded-full" />
+                <CloudIcon
+                  size={80}
+                  className={
+                    publishPhase === "error"
+                      ? "text-red-500"
+                      : "text-indigo-400"
+                  }
+                />
+
+                {publishPhase === "success" && (
+                  <div className="absolute inset-0 flex items-center justify-center z-30 animate-zoom-in">
+                    <div className="bg-green-500 rounded-full p-2 shadow-lg">
+                      <Check size={32} className="text-white" />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Spiral Particles */}
+              {publishPhase === "loading" && (
+                <div className="absolute inset-0 z-10">
+                  {[...Array(10)].map((_, i) => {
+                    const angle = (i / 10) * 2 * Math.PI;
+                    const x = Math.cos(angle) * 150;
+                    const y = Math.sin(angle) * 150;
+
+                    return (
+                      <div
+                        key={i}
+                        className="animate-spiral"
+                        style={
+                          {
+                            "--start-x": `${x}px`,
+                            "--start-y": `${y}px`,
+                            animationDelay: `${i * 0.2}s`,
+                          } as React.CSSProperties
+                        }
+                      >
+                        {i % 2 === 0 ? (
+                          <FileText size={24} className="text-indigo-200/60" />
+                        ) : (
+                          <ImageIcon size={20} className="text-purple-300/60" />
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* TEXT ZONE */}
+            <div className="space-y-2">
+              <h2 className="text-white font-black tracking-widest uppercase text-lg">
+                {publishPhase === "loading"
+                  ? publishStatus
+                  : publishPhase === "success"
+                    ? "Vaulted Successfully"
+                    : "Uplink Failed"}
+              </h2>
+              <p className="text-slate-400 text-xs font-medium px-4 leading-relaxed">
+                {publishPhase === "loading" &&
+                  "Establishing secure handshake with academic nodes..."}
+                {publishPhase === "success" &&
+                  "Your manuscript has been digitized and stored."}
+                {publishPhase === "error" &&
+                  "A communication error occurred. Your draft is still safe."}
+              </p>
+            </div>
+
+            {/* ACTION BUTTON (Visible after finish) */}
+            {publishPhase !== "loading" && (
+              <button
+                onClick={() => setIsPublishing(false)}
+                className={`mt-8 w-full py-4 rounded-xl font-black text-[10px] tracking-[0.2em] uppercase transition-all shadow-lg
+            ${
+              publishPhase === "success"
+                ? "bg-indigo-600 hover:bg-indigo-500 text-white"
+                : "bg-slate-700 hover:bg-slate-600 text-white"
+            }`}
+              >
+                {publishPhase === "success" ? "Continue" : "Close"}
+              </button>
+            )}
+          </div>
+        </div>
+      )}
       <style jsx global>{`
         .prose-editor h1 {
           font-size: 3rem;
           font-weight: 900;
-          margin-bottom: 1.5rem;
+          margin-bottom: 5rem;
           display: block;
         }
         .prose-editor h2 {
-          font-size: 1.75rem;
+          font-size: 2rem;
           font-weight: 800;
           margin-top: 1rem;
           display: block;
         }
-
         .prose-editor ul {
           list-style-type: disc !important;
           margin-left: 3.5rem !important;
@@ -772,6 +1040,7 @@ export default function OmniArchitectEditor() {
           margin-bottom: 0.75rem;
         }
 
+        /* INTERFACE & SCROLLBAR */
         .custom-scroll::-webkit-scrollbar {
           width: 10px;
         }
@@ -782,9 +1051,144 @@ export default function OmniArchitectEditor() {
         .custom-scroll::-webkit-scrollbar-track {
           background: #cbd5e1;
         }
+
+        /* FIGURE WRAPPER & DRAG/DROP PROTECTION */
+        .figure-wrap {
+          display: inline-block;
+          position: relative;
+          user-select: none !important;
+          -webkit-user-modify: read-only !important;
+          width: min-content !important;
+          height: min-content !important;
+        }
+
+        .figure-wrap img {
+          -webkit-user-drag: none;
+          user-select: none;
+          pointer-events: none;
+        }
+
+        /* Caption remains editable while parent is read-only */
+        .figure-caption {
+          -webkit-user-modify: read-write-plaintext-only !important;
+          pointer-events: auto !important;
+        }
+
+        /* 4. DRAG & RESIZE MECHANICS */
+        [data-action="drag-handle"],
+        [data-action="delete-figure"] {
+          pointer-events: all !important;
+          cursor: pointer !important;
+        }
+
+        .resize-container {
+          max-width: 100% !important;
+          height: auto !important;
+          pointer-events: auto !important;
+          min-width: 80px;
+          min-height: 80px;
+        }
+
+        /* This is the invisible layer that handles dragging */
+        .drag-overlay {
+          background: rgba(0, 0, 0, 0);
+          /* Cuts a hole in the bottom-right so the resize handle is clickable */
+          clip-path: polygon(
+            0% 0%,
+            100% 0%,
+            100% calc(100% - 20px),
+            calc(100% - 20px) 100%,
+            0% 100%
+          );
+        }
+
+        /* PUBLISHING SPIRAL ANIMATIONS */
+
+        @keyframes spiral-ingest {
+          0% {
+            opacity: 0;
+            transform: translate(var(--start-x), var(--start-y)) rotate(0deg)
+              scale(1.2);
+          }
+          15% {
+            opacity: 1;
+          }
+          100% {
+            opacity: 0;
+            /* Elements rotate twice while pulling to the center point (0,0) */
+            transform: translate(0, 0) rotate(720deg) scale(0);
+          }
+        }
+
+        .animate-spiral {
+          position: absolute;
+          left: 50%;
+          top: 50%;
+          animation: spiral-ingest 2.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+        }
+
+        @keyframes cloud-pulse {
+          0%,
+          100% {
+            transform: scale(1);
+            filter: drop-shadow(0 0 0px rgba(99, 102, 241, 0));
+          }
+          50% {
+            transform: scale(1.05);
+            filter: drop-shadow(0 0 25px rgba(99, 102, 241, 0.6));
+          }
+        }
+        .animate-cloud {
+          animation: cloud-pulse 2s ease-in-out infinite;
+        }
+
+        /* 6. MODAL STATUS TRANSITIONS */
+        @keyframes zoom-in {
+          0% {
+            transform: scale(0.5);
+            opacity: 0;
+          }
+          100% {
+            transform: scale(1);
+            opacity: 1;
+          }
+        }
+
+        @keyframes shake {
+          0%,
+          100% {
+            transform: translateX(0);
+          }
+          25% {
+            transform: translateX(-8px);
+          }
+          75% {
+            transform: translateX(8px);
+          }
+        }
+
+        .animate-zoom-in {
+          animation: zoom-in 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)
+            forwards;
+        }
+
+        .animate-shake {
+          animation: shake 0.4s ease-in-out;
+        }
+
+        .fade-in {
+          animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
+        }
       `}</style>
     </div>
   );
 }
-
-

@@ -215,7 +215,7 @@ export const countries = [
   { name: "Sri Lanka", code: "LK" },
   { name: "Sudan (the)", code: "SD" },
   { name: "Suriname", code: "SR" },
-  { name: "Svalbard and Jan Mayen", code: "SJ" },
+  { name: "Svalbard and Jan Mayen", code: "SJ" }, 
   { name: "Sweden", code: "SE" },
   { name: "Switzerland", code: "CH" },
   { name: "Syrian Arab Republic", code: "SY" },
