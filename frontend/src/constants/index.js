@@ -1,6 +1,6 @@
 export const REST_API = 
-// "http://localhost:4000/api"
-"https://prep-backend-two.vercel.app/api";
+"http://localhost:4000/api"
+// "https://prep-backend-two.vercel.app/api";
 
 export const countries = [
   { name: "Albania", code: "AL" },
