@@ -1,189 +1,209 @@
 "use client";
 
 import React, { useState } from "react";
-import { CheckCircle, Star, GraduationCap, X } from "lucide-react";
+import { CheckCircle, CreditCard, Landmark, GraduationCap, X, RefreshCw } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 type Plan = {
   id: string;
   title: string;
   price: string;
+  duration: string;
   icon: React.ReactNode;
   benefits: string[];
 };
 
 const plans: Plan[] = [
   {
-    id: "2000",
-    title: "₦2000 Plan",
-    price: "₦2000",
-    icon: <GraduationCap className="w-8 h-8 text-blue-600" />,
+    id: "weekly",
+    title: "Weekly Access",
+    price: "₦2,000",
+    duration: "/week",
+    icon: <GraduationCap className="w-8 h-8 text-blue-500" />,
     benefits: [
-      "Access to selected courses",
-      "Fewer ads during learning",
-      "Limited live class participation",
-      "Email support only",
-      "Valid for 1 month",
+      "Full access to Dashboard",
+      "All course materials",
+      "Weekly live sessions",
+      "No advertisement interruptions",
+      "Instant certificate access",
     ],
   },
   {
-    id: "3000",
-    title: "₦3000 Plan",
-    price: "₦3000",
-    icon: <Star className="w-8 h-8 text-yellow-500" />,
+    id: "monthly",
+    title: "Monthly Saver",
+    price: "₦5,000",
+    duration: "/month",
+    icon: <CheckCircle className="w-8 h-8 text-green-500" />,
     benefits: [
-      "Full access to all courses",
-      "No ads during learning",
-      "Unlimited live class participation",
-      "Priority support (Email + Chat)",
-      "Downloadable resources",
-      "Valid for 1 month",
+      "Full access to Dashboard",
+      "Priority student support",
+      "Offline resource downloads",
+      "No advertisement interruptions",
+      "Save ₦3,000 vs weekly",
+    ],
+  },
+  {
+    id: "yearly",
+    title: "Yearly Unlimited",
+    price: "₦48,000",
+    duration: "/year",
+    icon: <Landmark className="w-8 h-8 text-purple-600" />,
+    benefits: [
+      "Full access to Dashboard",
+      "Personalized mentorship",
+      "Career placement assistance",
+      "No advertisement interruptions",
+      "Best value for serious students",
     ],
   },
 ];
 
+const NIGERIAN_BANKS = [
+  "Access Bank", "Zenith Bank", "GTBank", "First Bank", "UBA", 
+  "Kuda Bank", "OPay", "Moniepoint", "Stanbic IBTC", "Fidelity Bank"
+];
+
 export default function SubscriptionSection() {
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<"card" | "transfer">("card");
+  const [autoRenew, setAutoRenew] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handlePayment = (e: React.FormEvent) => {
     e.preventDefault();
     setShowSuccess(true);
-
+    // Simulate API call and redirect to dashboard
     setTimeout(() => {
       setShowSuccess(false);
       setSelectedPlan(null);
-    }, 2500);
+      // window.location.href = "/dashboard"; 
+    }, 3000);
   };
 
   return (
-    <section className="py-16 px-6 lg:px-20 bg-gray-50">
-      <h2 className="text-3xl font-bold text-center mb-10">
-        Suitable Subscription for you
-      </h2>
+    <section className="py-16 px-6 lg:px-20 bg-gray-50 min-h-screen">
+      <div className="max-w-6xl mx-auto">
+        <div className="text-center mb-12">
+          <h2 className="text-4xl font-extrabold text-gray-900 mb-4">Choose Your Path</h2>
+          <p className="text-gray-600">Subscribe to unlock your student dashboard and start learning.</p>
+        </div>
 
-      {/* Subscription Plans */}
-      <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 md:grid-cols-2 max-w-4xl mx-auto">
-        {plans.map((plan) => (
-          <motion.div
-            key={plan.id}
-            whileHover={{ scale: 1.03 }}
-            className="bg-white rounded-2xl shadow-lg p-6 flex flex-col justify-between"
-          >
-            <div>
-              <div className="flex items-center space-x-3 mb-4">
-                {plan.icon}
-                <h3 className="text-xl font-semibold">{plan.title}</h3>
+        {/* Subscription Cards */}
+        <div className="grid gap-8 grid-cols-1 md:grid-cols-3">
+          {plans.map((plan) => (
+            <motion.div
+              key={plan.id}
+              whileHover={{ y: -10 }}
+              className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8 flex flex-col cursor-pointer"
+              onClick={() => setSelectedPlan(plan)}
+            >
+              <div className="mb-6">{plan.icon}</div>
+              <h3 className="text-2xl font-bold text-gray-800 mb-2">{plan.title}</h3>
+              <div className="flex items-baseline mb-6">
+                <span className="text-4xl font-black text-blue-600">{plan.price}</span>
+                <span className="text-gray-500 ml-1">{plan.duration}</span>
               </div>
-              <ul className="space-y-2 mb-6">
+              <ul className="space-y-4 mb-8 flex-grow">
                 {plan.benefits.map((benefit, idx) => (
-                  <li key={idx} className="flex items-center space-x-2">
-                    <CheckCircle className="w-5 h-5 text-green-500" />
-                    <span>{benefit}</span>
+                  <li key={idx} className="flex items-start space-x-3 text-gray-600">
+                    <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 shrink-0" />
+                    <span className="text-sm">{benefit}</span>
                   </li>
                 ))}
               </ul>
-            </div>
-            <button
-              onClick={() => setSelectedPlan(plan)}
-              className="mt-auto bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition"
-            >
-              Subscribe
-            </button>
-          </motion.div>
-        ))}
+              <button className="w-full bg-blue-600 text-white py-4 rounded-xl font-bold hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200">
+                Get Started
+              </button>
+            </motion.div>
+          ))}
+        </div>
       </div>
 
       {/* Payment Modal */}
       <AnimatePresence>
         {selectedPlan && (
-          <motion.div
-            className="fixed inset-0 bg-black/50 backdrop-blur-md flex items-center justify-center z-50"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+          <motion.div 
+            className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
           >
-            <motion.div
-              className="bg-white rounded-2xl p-6 max-w-md w-full shadow-xl relative"
-              initial={{ y: 80, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 80, opacity: 0 }}
+            <motion.div 
+              className="bg-white rounded-3xl p-8 max-w-lg w-full shadow-2xl relative overflow-hidden"
+              initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }}
             >
-              <button
-                onClick={() => setSelectedPlan(null)}
-                className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
-              >
+              <button onClick={() => setSelectedPlan(null)} className="absolute top-5 right-5 text-gray-400 hover:text-gray-600">
                 <X className="w-6 h-6" />
               </button>
 
               {!showSuccess ? (
                 <>
-                  <h3 className="text-xl font-semibold mb-4">
-                    Complete Subscription - {selectedPlan.title}
-                  </h3>
-                  <form onSubmit={handleSubmit} className="space-y-4">
-                    <input
-                      type="text"
-                      placeholder="Full Name"
-                      className="w-full border rounded-lg px-4 py-2"
-                      required
-                    />
-                    <input
-                      type="text"
-                      placeholder="User ID"
-                      className="w-full border rounded-lg px-4 py-2"
-                      required
-                    />
-                    <input
-                      type="text"
-                      placeholder="Course ID"
-                      className="w-full border rounded-lg px-4 py-2"
-                      required
-                    />
-                    <input
-                      type="email"
-                      placeholder="Email"
-                      className="w-full border rounded-lg px-4 py-2"
-                      required
-                    />
-                    <select
-                      className="w-full border rounded-lg px-4 py-2"
-                      required
+                  <div className="mb-6">
+                    <span className="text-xs font-bold uppercase tracking-wider text-blue-600 bg-blue-50 px-3 py-1 rounded-full">Secure Checkout</span>
+                    <h3 className="text-2xl font-bold mt-2 text-gray-900">Payment for {selectedPlan.title}</h3>
+                  </div>
+
+                  {/* Payment Method Toggle */}
+                  <div className="flex p-1 bg-gray-100 rounded-xl mb-6">
+                    <button 
+                      onClick={() => setPaymentMethod("card")}
+                      className={`flex-1 flex items-center justify-center py-2 rounded-lg transition ${paymentMethod === "card" ? "bg-white shadow-sm text-blue-600" : "text-gray-500"}`}
                     >
-                      <option value="">Select Bank</option>
-                      <option>First Bank</option>
-                      <option>UBA</option>
-                      <option>GTBank</option>
-                      <option>Access Bank</option>
-                      <option>Zenith Bank</option>
-                    </select>
-                    <p className="text-sm text-gray-600">
-                      Requesting account details → Check your email for account
-                      details to complete subscription.
-                    </p>
-                    <button
-                      type="submit"
-                      className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
+                      <CreditCard className="w-4 h-4 mr-2" /> Card
+                    </button>
+                    <button 
+                      onClick={() => setPaymentMethod("transfer")}
+                      className={`flex-1 flex items-center justify-center py-2 rounded-lg transition ${paymentMethod === "transfer" ? "bg-white shadow-sm text-blue-600" : "text-gray-500"}`}
                     >
-                      Submit
+                      <Landmark className="w-4 h-4 mr-2" /> Transfer
+                    </button>
+                  </div>
+
+                  <form onSubmit={handlePayment} className="space-y-4">
+                    {paymentMethod === "card" ? (
+                      <div className="space-y-4">
+                        <input type="text" placeholder="Card Number" className="w-full border-gray-200 border rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none" required />
+                        <div className="grid grid-cols-2 gap-4">
+                          <input type="text" placeholder="MM/YY" className="border-gray-200 border rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none" required />
+                          <input type="text" placeholder="CVV" className="border-gray-200 border rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none" required />
+                        </div>
+                        <label className="flex items-center space-x-3 cursor-pointer group">
+                          <input 
+                            type="checkbox" 
+                            className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                            checked={autoRenew}
+                            onChange={(e) => setAutoRenew(e.target.checked)}
+                          />
+                          <div className="flex items-center text-sm text-gray-600 group-hover:text-blue-600 transition">
+                            <RefreshCw className={`w-4 h-4 mr-2 ${autoRenew ? 'animate-spin-slow' : ''}`} />
+                            Enable automatic renewal
+                          </div>
+                        </label>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        <select className="w-full border-gray-200 border rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none" required>
+                          <option value="">Choose your Bank</option>
+                          {NIGERIAN_BANKS.map(bank => <option key={bank} value={bank}>{bank}</option>)}
+                        </select>
+                        <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
+                          <p className="text-xs text-blue-800 font-medium mb-1">How to pay:</p>
+                          <p className="text-sm text-blue-700">A dedicated account number will be generated for this transaction on the next screen.</p>
+                        </div>
+                      </div>
+                    )}
+                    
+                    <button type="submit" className="w-full bg-gray-900 text-white py-4 rounded-xl font-bold hover:bg-black transition-all mt-4">
+                      Pay {selectedPlan.price}
                     </button>
                   </form>
                 </>
               ) : (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="text-center"
-                >
-                  <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4" />
-                  <h4 className="text-lg font-semibold">
-                    Subscription Request Sent!
-                  </h4>
-                  <p className="text-sm text-gray-600">
-                    Please check your email for account details to complete
-                    payment.
-                  </p>
-                </motion.div>
+                <div className="text-center py-10">
+                  <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <CheckCircle className="w-12 h-12 text-green-500" />
+                  </div>
+                  <h4 className="text-2xl font-bold text-gray-900">Payment Successful!</h4>
+                  <p className="text-gray-600 mt-2">Welcome aboard. We&apos;re redirecting you to your student dashboard now...</p>
+                </div>
               )}
             </motion.div>
           </motion.div>
