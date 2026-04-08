@@ -1009,7 +1009,183 @@ export default function OmniMaterialEditor() {
         </div>
       )}
       <style jsx global>{`
-       
+         .prose-editor h1 {
+          font-size: 3rem;
+          font-weight: 900;
+          margin-bottom: 5rem;
+          display: block;
+        }
+        .prose-editor h2 {
+          font-size: 2rem;
+          font-weight: 800;
+          margin-top: 1rem;
+          display: block;
+        }
+        .prose-editor ul {
+          list-style-type: disc !important;
+          margin-left: 3.5rem !important;
+          margin-bottom: 2rem !important;
+          display: block !important;
+        }
+        .prose-editor ol {
+          list-style-type: decimal !important;
+          margin-left: 3.5rem !important;
+          margin-bottom: 2rem !important;
+          display: block !important;
+        }
+        .prose-editor li {
+          display: list-item !important;
+          margin-bottom: 0.75rem;
+        }
+
+        /* INTERFACE & SCROLLBAR */
+        .custom-scroll::-webkit-scrollbar {
+          width: 10px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+          background: #475569;
+          border-radius: 5px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+          background: #cbd5e1;
+        }
+
+        /* FIGURE WRAPPER & DRAG/DROP PROTECTION */
+        .figure-wrap {
+          display: inline-block;
+          position: relative;
+          user-select: none !important;
+          -webkit-user-modify: read-only !important;
+          width: min-content !important;
+          height: min-content !important;
+        }
+
+        .figure-wrap img {
+          -webkit-user-drag: none;
+          user-select: none;
+          pointer-events: none;
+        }
+
+        /* Caption remains editable while parent is read-only */
+        .figure-caption {
+          -webkit-user-modify: read-write-plaintext-only !important;
+          pointer-events: auto !important;
+        }
+
+        /* 4. DRAG & RESIZE MECHANICS */
+        [data-action="drag-handle"],
+        [data-action="delete-figure"] {
+          pointer-events: all !important;
+          cursor: pointer !important;
+        }
+
+        .resize-container {
+          max-width: 100% !important;
+          height: auto !important;
+          pointer-events: auto !important;
+          min-width: 80px;
+          min-height: 80px;
+        }
+
+        /* This is the invisible layer that handles dragging */
+        .drag-overlay {
+          background: rgba(0, 0, 0, 0);
+          /* Cuts a hole in the bottom-right so the resize handle is clickable */
+          clip-path: polygon(
+            0% 0%,
+            100% 0%,
+            100% calc(100% - 20px),
+            calc(100% - 20px) 100%,
+            0% 100%
+          );
+        }
+
+        /* PUBLISHING SPIRAL ANIMATIONS */
+
+        @keyframes spiral-ingest {
+          0% {
+            opacity: 0;
+            transform: translate(var(--start-x), var(--start-y)) rotate(0deg)
+              scale(1.2);
+          }
+          15% {
+            opacity: 1;
+          }
+          100% {
+            opacity: 0;
+            /* Elements rotate twice while pulling to the center point (0,0) */
+            transform: translate(0, 0) rotate(720deg) scale(0);
+          }
+        }
+
+        .animate-spiral {
+          position: absolute;
+          left: 50%;
+          top: 50%;
+          animation: spiral-ingest 2.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+        }
+
+        @keyframes cloud-pulse {
+          0%,
+          100% {
+            transform: scale(1);
+            filter: drop-shadow(0 0 0px rgba(99, 102, 241, 0));
+          }
+          50% {
+            transform: scale(1.05);
+            filter: drop-shadow(0 0 25px rgba(99, 102, 241, 0.6));
+          }
+        }
+        .animate-cloud {
+          animation: cloud-pulse 2s ease-in-out infinite;
+        }
+
+        /* 6. MODAL STATUS TRANSITIONS */
+        @keyframes zoom-in {
+          0% {
+            transform: scale(0.5);
+            opacity: 0;
+          }
+          100% {
+            transform: scale(1);
+            opacity: 1;
+          }
+        }
+
+        @keyframes shake {
+          0%,
+          100% {
+            transform: translateX(0);
+          }
+          25% {
+            transform: translateX(-8px);
+          }
+          75% {
+            transform: translateX(8px);
+          }
+        }
+
+        .animate-zoom-in {
+          animation: zoom-in 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)
+            forwards;
+        }
+
+        .animate-shake {
+          animation: shake 0.4s ease-in-out;
+        }
+
+        .fade-in {
+          animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
+        }
       `}</style>
     </div>
   );
