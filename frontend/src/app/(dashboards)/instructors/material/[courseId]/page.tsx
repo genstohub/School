@@ -344,38 +344,36 @@ export default function OmniMaterialEditor() {
     const imageIndex = stagedFiles.length;
     setStagedFiles((prev) => [...prev, file]);
 
-    // THIS IS THE HTML STRING
-    const html = `
-      <div class="figure-wrap" 
-          contenteditable="false" 
-          data-index="${imageIndex}"
-          style="display: inline-block; vertical-align: top; margin: 10px; position: relative; user-select: none; touch-action: none; text-align: center; width: min-content;">
-        
-        <div class="resize-container" style="position: relative; display: inline-block; resize: both; overflow: hidden; width: 300px; min-width: 100px; min-height: 100px; line-height: 0; background: white; border: 1px solid #e2e8f0; border-radius: 4px; pointer-events: auto !important;">
-          
-          <div class="drag-overlay" 
-              data-action="drag-handle"
-              style="position: absolute; inset: 0; cursor: move; z-index: 5; background: rgba(0,0,0,0); 
-              /* This cuts a 20px hole in the bottom-right so you can grab the resize handle */
-              clip-path: polygon(0% 0%, 100% 0%, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0% 100%);">
-          </div>
+   const html = `
+  <div class="figure-wrap" 
+      contenteditable="false" 
+      data-index="${imageIndex}"
+      style="display: inline-block; vertical-align: top; margin: 10px; position: relative; user-select: none; touch-off: none; text-align: center; width: min-content;">
+    
+    <div class="resize-container" style="position: relative; display: inline-block; resize: both; overflow: hidden; width: 300px; min-width: 100px; min-height: 100px; line-height: 0; background: white; border: 1px solid #e2e8f0; border-radius: 4px; pointer-events: auto !important;">
+      
+      <div class="drag-overlay" 
+          data-action="drag-handle"
+          style="position: absolute; inset: 0; cursor: move; z-index: 5; background: rgba(0,0,0,0); 
+          clip-path: polygon(0% 0%, 100% 0%, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0% 100%);">
+      </div>
 
-          <button 
-            type="button"
-            data-action="delete-figure"
-            data-index="${imageIndex}"
-            style="position: absolute; top: 5px; right: 5px; z-index: 60; background: #ef4444; color: white; border: none; border-radius: 50%; width: 28px; height: 28px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px;">✕</button>
+      <button 
+        type="button"
+        data-action="delete-figure"
+        data-index="${imageIndex}"
+        style="position: absolute; top: 5px; right: 5px; z-index: 60; background: #ef4444; color: white; border: none; border-radius: 50%; width: 28px; height: 28px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px;">✕</button>
 
-          <img src="${tempUrl}" data-index="${imageIndex}" style="width: 100%; height: 100%; object-fit: contain; pointer-events: none;" />
-          
-          <div style="position: absolute; bottom: 0; right: 0; width: 20px; height: 20px; background: linear-gradient(135deg, transparent 50%, #6366f1 50%); pointer-events: none; z-index: 10;"></div>
-        </div>
+      <img src="${tempUrl}" data-index="${imageIndex}" style="width: 100%; height: 100%; object-fit: fill; pointer-events: none;" />
+      
+      <div style="position: absolute; bottom: 0; right: 0; width: 20px; height: 20px; background: linear-gradient(135deg, transparent 50%, #6366f1 50%); pointer-events: none; z-index: 10;"></div>
+    </div>
 
-        <div contenteditable="true" class="figure-caption"
-            style="margin-top: 8px; font-style: italic; color: #64748b; font-size: 0.85rem; width: 100%; display: block; text-align: center; line-height:4; outline: none; cursor: text;">
-          Enter Figure Caption...
-        </div>
-      </div>`;
+    <div contenteditable="true" class="figure-caption"
+        style="margin-top: 8px; font-style: italic; color: #64748b; font-size: 0.85rem; width: 100%; display: block; text-align: center; line-height: 1.5; outline: none; cursor: text;">
+      Enter Figure Caption...
+    </div>
+  </div>`;
 
     // This command actually pushes the HTML string into the editor
     exec("insertHTML", html);
@@ -1011,7 +1009,7 @@ export default function OmniMaterialEditor() {
         </div>
       )}
       <style jsx global>{`
-        .prose-editor h1 {
+         .prose-editor h1 {
           font-size: 3rem;
           font-weight: 900;
           margin-bottom: 5rem;

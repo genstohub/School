@@ -10,6 +10,7 @@ import {
   ExternalLink,
   Circle
 } from "lucide-react";
+import { useActiveStudents } from "@/hooks";
 
 // Mock Data - Replace with your actual API fetch
 const MOCK_ACTIVE_STUDENTS = [
@@ -21,6 +22,8 @@ const MOCK_ACTIVE_STUDENTS = [
 
 export default function ActiveStudentsPage() {
   const [searchTerm, setSearchTerm] = useState("");
+
+  const activeStudents = useActiveStudents();
 
   return (
     <div className="space-y-6">

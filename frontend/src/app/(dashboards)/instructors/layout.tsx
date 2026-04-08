@@ -59,6 +59,4 @@ export default function InstructorLayout({
       </div>
     );
   }
-
-  return null;
 }
